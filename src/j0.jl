@@ -545,10 +545,10 @@ const ONEOSQPI = big"5.6418958354775628694807945156077258584405E-1"
 # Y0(x)cos(X) - J0(x)sin(X) = sqrt( 2/(pi x)) Q0(x),
 # Q0(x) = 1/x (-.125 + 1/x^2 R(1/x^2))
 #
-function besselj0_128(x::BigFloat)
+function besselj0(x::BigFloat)
     xx = abs(x)
     if iszero(xx)
-        return one(Double64)
+        return one(BigFloat)
     elseif xx <= 2.0
         z = xx * xx
         p = z * z * evalpoly(z, J0_2N) / evalpoly(z, J0_2D)
@@ -608,12 +608,4 @@ function besselj0_128(x::BigFloat)
         z = ONEOSQPI * (p * cc - q * ss) / sqrt(xx)
         return z
     end
-end
-
-function besselj0(x::BigFloat)
-    oldprec = precision(BigFloat)
-    setprecision(BigFloat, 128)
-    out = besselj0_128(BigFloat(x))
-    setprecision(BigFloat, oldprec)
-  return out
 end
