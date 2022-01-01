@@ -16,5 +16,5 @@ j0_big = besselj0.(big.(x))
 
 @test j0_64 ≈ j0_SpecialFunctions
 @test j0_32 ≈ j0_SpecialFunctions
-#@show j0_big .- j0_SpecialFunctions
+
 @test isapprox(j0_big, j0_SpecialFunctions, atol=1.5e-34)
