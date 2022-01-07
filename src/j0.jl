@@ -70,9 +70,9 @@ function besselj0(x::Float64)
             )
 
         q = evalpoly(q, QP) / evalpoly(q, QQ)
-        xn = x - 0.78539816339744830962
+        xn = x - PIO4(Float64)
         p = p * cos(xn) - w * q * sin(xn)
-        return p * .79788456080286535588 / sqrt(x)
+        return p * SQ2OPI(Float64) / sqrt(x)
     end
 end
 
@@ -114,7 +114,7 @@ function besselj0(x::Float32)
 
         p = w * evalpoly(q, MO)
         w = q * q
-        xn = q * evalpoly(w, PH) - 0.78539816339744830962f0
+        xn = q * evalpoly(w, PH) - PIO4(Float32)
         p = p * cos(xn + x)
         return p
     end
@@ -201,7 +201,7 @@ function besselj0(x::BigFloat)
         else
             ss = z / cc;
         end
-        z = ONEOSQPI * (p * cc - q * ss) / sqrt(xx)
+        z = ONEOSQPI(BigFloat) * (p * cc - q * ss) / sqrt(xx)
         return z
     end
 end

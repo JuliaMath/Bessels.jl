@@ -7,16 +7,16 @@ function besselj1(x::Float64)
     if w <= 5.0
         z = x * x
         w = evalpoly(z, RP) / evalpoly(z, RQ)
-        w = w * x * (z - Z1) * (z - Z2)
+        w = w * x * (z - 1.46819706421238932572E1) * (z - 4.92184563216946036703E1)
         return w
     else
         w = 5.0 / x
         z = w * w
         p = evalpoly(z, PP) / evalpoly(z, PQ)
         q = evalpoly(z, QP) / evalpoly(z, QQ)
-        xn = x - THPIO4
+        xn = x - THPIO4(Float64)
         p = p * cos(xn) - w * q * sin(xn)
-        return p * SQ2OPI / sqrt(x)
+        return p * SQ2OPI(Float64) / sqrt(x)
     end
 end
 
@@ -27,26 +27,18 @@ function bessely1(x::Float64)
         end
         z = x * x
         w = x * (evalpoly(z, YP) / evalpoly(z, YQ))
-        w += TWOOPI * (besselj1(x) * log(x) - inv(x))
+        w += TWOOPI(Float64) * (besselj1(x) * log(x) - inv(x))
         return w
     else
         w = 5.0 / x
         z = w * w
         p = evalpoly(z, PP) / evalpoly(z, PQ)
         q = evalpoly(z, QP) / evalpoly(z, QQ)
-        xn = x - THPIO4
+        xn = x - THPIO4(Float64)
         p = p * sin(xn) + w * q * cos(xn)
-        return p * SQ2OPI / sqrt(x)
+        return p * SQ2OPI(Float64) / sqrt(x)
     end
 end
-
-const Z1 = 1.46819706421238932572E1
-const Z2 = 4.92184563216946036703E1
-
-const PIO4 = .78539816339744830962
-const THPIO4 = 2.35619449019234492885
-const SQ2OPI = .79788456080286535588
-const TWOOPI = 0.6366197723675814
 
 const RP = (
     3.68295732863852883286E15, -7.27494245221818276015E13,

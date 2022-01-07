@@ -20,7 +20,7 @@
 #
 # Ported to Julia in December 2021 by Michael Helton
 #
-function bessely0(x)
+function bessely0(x::Float64)
     if x <= 5.0
         if x <= 0.0
             return NaN64
@@ -39,7 +39,7 @@ function bessely0(x)
         )
     
         w = evalpoly(z, YP) / evalpoly(z, YQ)
-        w += 0.6366197723675814 * log(x) * besselj0(x)
+        w += TWOOPI(Float64) * log(x) * besselj0(x)
         return w
     else
         w = 5.0 / x
@@ -70,9 +70,9 @@ function bessely0(x)
             )
 
         q = evalpoly(z, QP) / evalpoly(z, QQ)
-        xn = x - 0.78539816339744830962
+        xn = x - PIO4(Float64)
         p = p * sin(xn) + w * q * cos(xn);
-        return p * .79788456080286535588 / sqrt(x)
+        return p * SQ2OPI(Float64) / sqrt(x)
     end
 end
 
@@ -94,7 +94,7 @@ function bessely0(x::Float32)
         )
  
         w = (z - YZ1) * evalpoly(z, YP)
-        w += 0.636619772367581343075535f0 * log(x) * besselj0(x)
+        w += TWOOPI(Float32) * log(x) * besselj0(x)
         return w
     else
         q = 1.0f0 / x
@@ -114,7 +114,7 @@ function bessely0(x::Float32)
 
         p = w * evalpoly(q, MO)
         w = q * q
-        xn = q * evalpoly(w, PH) - .78539816339744830962f0
+        xn = q * evalpoly(w, PH) - PIO4(Float32)
         p = p * sin(xn + x)
         return p
     end
@@ -137,7 +137,7 @@ function bessely0(x::BigFloat)
     if xx <= 2.0
         z = xx * xx
         p = evalpoly(z, Y0_2N) / evalpoly(z, Y0_2D)
-        p = TWOOPI * log(x) * besselj0(x) + p
+        p = TWOOPI(BigFloat) * log(x) * besselj0(x) + p
         return p
     end
 
@@ -190,6 +190,6 @@ function bessely0(x::BigFloat)
     else 
         ss = z / cc
     end
-    z = ONEOSQPI * (p * ss + q * cc) / sqrt(x)
+    z = ONEOSQPI(BigFloat) * (p * ss + q * cc) / sqrt(x)
     return z
 end

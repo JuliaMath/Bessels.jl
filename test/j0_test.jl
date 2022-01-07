@@ -18,3 +18,16 @@ j0_big = besselj0.(big.(x))
 @test j0_32 ≈ j0_SpecialFunctions
 
 @test isapprox(j0_big, j0_SpecialFunctions, atol=1.5e-34)
+
+
+
+j1_SpecialFunctions = SpecialFunctions.besselj1.(big.(x))
+@assert j1_SpecialFunctions[1] isa BigFloat
+
+j1_64 = besselj1.(Float64.(x))
+
+
+@test j1_64[1] isa Float64
+
+@test j1_64 ≈ j1_SpecialFunctions
+

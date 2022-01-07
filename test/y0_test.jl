@@ -15,3 +15,15 @@ y0_big = bessely0.(big.(x))
 @test y0_SpecialFunctions ≈ y0_32
 
 @test isapprox(y0_big, y0_SpecialFunctions, atol=1.5e-34)
+
+
+y1_SpecialFunctions = SpecialFunctions.bessely1.(big.(x))
+@assert y1_SpecialFunctions[1] isa BigFloat
+
+y1_64 = bessely1.(Float64.(x))
+
+
+@test y1_64[1] isa Float64
+
+@test y1_64 ≈ y1_SpecialFunctions
+
