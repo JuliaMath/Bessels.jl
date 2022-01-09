@@ -21,9 +21,14 @@ y1_SpecialFunctions = SpecialFunctions.bessely1.(big.(x))
 @assert y1_SpecialFunctions[1] isa BigFloat
 
 y1_64 = bessely1.(Float64.(x))
+y1_32 = bessely1.(Float32.(x))
 
 
 @test y1_64[1] isa Float64
+@test y1_32[1] isa Float32
+
 
 @test y1_64 ≈ y1_SpecialFunctions
+@test y1_32 ≈ y1_SpecialFunctions
+
 

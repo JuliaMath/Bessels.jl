@@ -1,3 +1,23 @@
+function besselj1(x::Float32)
+    if x < zero(x)
+        x = -x
+    end
+    if x <= 2.0f0
+        z = x * x
+        Z1 = 1.46819706421238932572f1
+        p = (z - Z1) * x * evalpoly(z, JP32)
+        return p
+    else
+        q = inv(x)
+        w = sqrt(q)
+        p = w * evalpoly(q, MO132)
+        w = q * q
+        xn = q * evalpoly(w, PH132) - THPIO4(Float32)
+        p = p * cos(xn + x)
+        return p
+    end
+end
+
 function besselj1(x::Float64)
     w = x
     if x < 0
@@ -20,6 +40,27 @@ function besselj1(x::Float64)
     end
 end
 
+function bessely1(x::Float32)
+    if x <= 2.0f0
+        if x <= zero(x)
+            return error("Domain error: x <= 0")
+        end
+        z = x * x
+        YO1 =  4.66539330185668857532f0
+        w = (z - YO1) * x * evalpoly(z, YP32)
+        w += TWOOPI(Float32) * (besselj1(x) * log(x) - inv(x))
+        return w
+    else
+        q = inv(x)
+        w = sqrt(q)
+        p = w * evalpoly(q, MO132)
+        w = q * q
+        xn = q * evalpoly(w, PH132) - THPIO4(Float32)
+        p = p * sin(xn + x)
+        return p
+    end
+end
+
 function bessely1(x::Float64)
     if x <= 5.0
         if x< 0.0
@@ -39,6 +80,35 @@ function bessely1(x::Float64)
         return p * SQ2OPI(Float64) / sqrt(x)
     end
 end
+
+
+const JP32 = (
+    -3.405537384615824f-2, 1.937383947804541f-3,
+    -4.541343896997497f-5, 6.009061827883699f-7,
+    -4.878788132172128f-9
+)
+
+
+const YP32 = (
+    4.202369946500099f-2, -2.641785726447862f-3,
+    6.719543806674249f-5, -9.496460629917016f-7,
+    8.061978323326852f-9
+)
+
+
+const MO132 = (
+    7.978845453073848f-1, 4.976029650847191f-6,
+    1.493389585089498f-1, 5.435364690523026f-3,
+    -2.102302420403875f-1, 3.138238455499697f-1,
+    -2.284801500053359f-1,6.913942741265801f-2,
+)
+
+const PH132 = (
+    3.749989509080821f-1, -1.637986776941202f-1,
+    3.503787691653334f-1, -1.544842782180211f0,
+    7.222973196770240f0, -2.485774108720340f1,
+    5.073465654089319f1, -4.497014141919556f1,
+)
 
 const RP = (
     3.68295732863852883286E15, -7.27494245221818276015E13,

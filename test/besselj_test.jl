@@ -25,9 +25,15 @@ j1_SpecialFunctions = SpecialFunctions.besselj1.(big.(x))
 @assert j1_SpecialFunctions[1] isa BigFloat
 
 j1_64 = besselj1.(Float64.(x))
+j1_32 = besselj1.(Float32.(x))
+
 
 
 @test j1_64[1] isa Float64
+@test j1_32[1] isa Float32
+
 
 @test j1_64 ≈ j1_SpecialFunctions
+@test j1_32 ≈ j1_SpecialFunctions
+
 
