@@ -1,7 +1,11 @@
 function besselj1(x::Float32)
-    if x < zero(x)
-        x = -x
+    x = abs(x)
+    if iszero(x)
+        return one(x)
+    elseif isinf(x)
+        return zero(x)
     end
+
     if x <= 2.0f0
         z = x * x
         Z1 = 1.46819706421238932572f1
@@ -19,15 +23,17 @@ function besselj1(x::Float32)
 end
 
 function besselj1(x::Float64)
-    w = x
-    if x < 0
-        w = -x
+    x = abs(x)
+    if iszero(x)
+        return one(x)
+    elseif isinf(x)
+        return zero(x)
     end
 
-    if w <= 5.0
+    if x <= 5.0
         z = x * x
         w = evalpoly(z, RP) / evalpoly(z, RQ)
-        w = w * x * (z - 1.46819706421238932572E1) * (z - 4.92184563216946036703E1)
+        w = w * x * (z - 1.46819706421238932572e1) * (z - 4.92184563216946036703e1)
         return w
     else
         w = 5.0 / x
@@ -41,10 +47,17 @@ function besselj1(x::Float64)
 end
 
 function bessely1(x::Float32)
-    if x <= 2.0f0
-        if x <= zero(x)
-            return error("Domain error: x <= 0")
+    if x <= zero(x)
+        if iszero(x)
+            return -Inf32
+        else
+            return throw(DomainError(x, "NaN result for non-NaN input."))
         end
+    elseif isinf(x)
+        return zero(x)
+    end
+
+    if x <= 2.0f0
         z = x * x
         YO1 =  4.66539330185668857532f0
         w = (z - YO1) * x * evalpoly(z, YP32)
@@ -62,10 +75,17 @@ function bessely1(x::Float32)
 end
 
 function bessely1(x::Float64)
-    if x <= 5.0
-        if x< 0.0
-            return NaN
+    if x <= zero(x)
+        if iszero(x)
+            return -Inf64
+        else
+            return throw(DomainError(x, "NaN result for non-NaN input."))
         end
+    elseif isinf(x)
+        return zero(x)
+    end
+
+    if x <= 5.0
         z = x * x
         w = x * (evalpoly(z, YP) / evalpoly(z, YQ))
         w += TWOOPI(Float64) * (besselj1(x) * log(x) - inv(x))

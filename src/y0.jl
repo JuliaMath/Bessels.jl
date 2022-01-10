@@ -21,10 +21,16 @@
 # Ported to Julia in December 2021 by Michael Helton
 #
 function bessely0(x::Float64)
-    if x <= 5.0
-        if x <= 0.0
-            return NaN64
+    if x <= zero(x)
+        if iszero(x)
+            return -Inf64
+        else
+            return throw(DomainError(x, "NaN result for non-NaN input."))
         end
+    elseif isinf(x)
+        return zero(x)
+    end
+    if x <= 5.0
         z = x * x
 
         YP = (
@@ -78,14 +84,16 @@ end
 
 
 function bessely0(x::Float32)
-    if x <= 2.0f0
-        if x <= 0.0f0
-            if x == 0.0f0
-                return -Inf32
-            end
-            return NaN32
+    if x <= zero(x)
+        if iszero(x)
+            return -Inf32
+        else
+            return throw(DomainError(x, "NaN result for non-NaN input."))
         end
-
+    elseif isinf(x)
+        return zero(x)
+    end
+    if x <= 2.0f0
         z = x * x
         YZ1 =  0.43221455686510834878f0
         YP = (
@@ -122,16 +130,16 @@ end
 
 
 function bessely0(x::BigFloat)
-    if isnan(x)
-        return NaN
-    elseif x < zero(x)
-        return NaN
-    elseif iszero(x)
-        return -Inf
+    if x <= zero(x)
+        if iszero(x)
+            return -Inf
+        else
+            return throw(DomainError(x, "NaN result for non-NaN input."))
+        end
     elseif isinf(x)
         return zero(x)
     end
-
+  
     xx = abs(x)
 
     if xx <= 2.0
@@ -141,7 +149,7 @@ function bessely0(x::BigFloat)
         return p
     end
 
-    xinv = 1.0 / xx
+    xinv = inv(xx)
     z = xinv * xinv
     if xinv <= 0.25
         if xinv <= 0.125

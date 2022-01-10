@@ -20,6 +20,13 @@
 #
 #
 function besselj0(x::Float64)
+    x = abs(x)
+    if iszero(x)
+        return one(x)
+    elseif isinf(x)
+        return zero(x)
+    end
+
     if x <= 5.0
         z = x * x
         if x < 1.0e-5
@@ -78,8 +85,11 @@ end
 
 
 function besselj0(x::Float32)
-    if x < 0.0f0
-        x *= -1
+    x = abs(x)
+    if iszero(x)
+        return one(x)
+    elseif isinf(x)
+        return zero(x)
     end
 
     if x <= 2.0f0
@@ -97,7 +107,7 @@ function besselj0(x::Float32)
         p = (z - DR1) * evalpoly(z, JP)
         return p
     else
-        q = 1.0f0 / x
+        q = inv(x)
         w = sqrt(q)
 
         MO = (
@@ -142,17 +152,22 @@ end
 # Q0(x) = 1/x (-.125 + 1/x^2 R(1/x^2))
 #
 function besselj0(x::BigFloat)
-    xx = abs(x)
-    if iszero(xx)
-        return one(BigFloat)
-    elseif xx <= 2.0
-        z = xx * xx
+    x = abs(x)
+    T = eltype(x)
+    if iszero(x)
+        return one(x)
+    elseif isinf(x)
+        return zero(x)
+    end
+
+    if x <= 2.0
+        z = x * x
         p = z * z * evalpoly(z, J0_2N) / evalpoly(z, J0_2D)
         p -= 0.25 * z
-        p += 1.0
+        p += one(T)
         return p
     else
-        xinv = 1.0 / xx
+        xinv = inv(x)
         z  = xinv * xinv
         if xinv <= 0.25
             if xinv <= 0.125
@@ -191,17 +206,17 @@ function besselj0(x::BigFloat)
         p = 1.0 + z * p
         q = z * xinv * q
         q = q - 0.125 * xinv
-        c = cos(xx)
-        s = sin(xx)
+        c = cos(x)
+        s = sin(x)
         ss = s - c
         cc = s + c
-        z = -cos(xx + xx)
+        z = -cos(x + x)
         if (s * c) < 0
             cc = z / ss;
         else
             ss = z / cc;
         end
-        z = ONEOSQPI(BigFloat) * (p * cc - q * ss) / sqrt(xx)
+        z = ONEOSQPI(T) * (p * cc - q * ss) / sqrt(x)
         return z
     end
 end

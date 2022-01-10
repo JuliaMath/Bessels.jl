@@ -16,6 +16,14 @@ y0_big = bessely0.(big.(x))
 
 @test isapprox(y0_big, y0_SpecialFunctions, atol=1.5e-34)
 
+@test_throws DomainError bessely0(-1.0)
+
+@test bessely0(zero(Float32)) == -Inf32
+@test bessely0(zero(Float64)) == -Inf64
+@test bessely0(zero(BigFloat)) == -Inf
+
+@test bessely0(Inf32) == zero(Float32)
+@test bessely0(Inf64) == zero(Float64)
 
 y1_SpecialFunctions = SpecialFunctions.bessely1.(big.(x))
 @assert y1_SpecialFunctions[1] isa BigFloat
@@ -31,4 +39,11 @@ y1_32 = bessely1.(Float32.(x))
 @test y1_64 ≈ y1_SpecialFunctions
 @test y1_32 ≈ y1_SpecialFunctions
 
+@test_throws DomainError bessely1(-1.0)
+
+@test bessely1(zero(Float32)) == -Inf32
+@test bessely1(zero(Float64)) == -Inf64
+
+@test bessely1(Inf32) == zero(Float32)
+@test bessely1(Inf64) == zero(Float64)
 
