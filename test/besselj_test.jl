@@ -1,5 +1,5 @@
 # general array for testing input to SpecialFunctions.jl
-x = 0.01:0.01:100.0
+x = 1e-6:0.01:100.0
 
 ### Tests for besselj0
 j0_SpecialFunctions = SpecialFunctions.besselj0.(big.(x)) # array to be tested against computed in BigFloats
@@ -58,3 +58,9 @@ j1_32 = besselj1.(Float32.(x))
 # test that Inf inputs go to zero
 @test besselj1(Inf32) == zero(Float32)
 @test besselj1(Inf64) == zero(Float64)
+
+## Tests for besselj 
+# note this is not complete just a simple test
+
+@test besselj(3, 1.0) ≈ SpecialFunctions.besselj(3, 1.0)
+@test besselj(-5, 6.1) ≈ SpecialFunctions.besselj(-5, 6.1)

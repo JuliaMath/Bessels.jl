@@ -51,6 +51,7 @@ function bessely1(x::Float64)
         return p * SQ2OPI(T) / sqrt(x)
     end
 end
+#=
 function bessely(n::Int, x)
     if n < 0
         n = -n
@@ -74,6 +75,7 @@ function bessely(n::Int, x)
 
     anm2 = bessely0(x)
     anm1 = bessely1(x)
+    an = zero(x)
 
     k = 1
     r = 2 * k
@@ -87,3 +89,4 @@ function bessely(n::Int, x)
 
     return sign * an
 end
+=#
