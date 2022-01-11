@@ -83,6 +83,42 @@ julia> besselk1x(1.0f0)
 
 # Benchmarks
 
+```julia
+# Bessels.jl
+julia> @benchmark besselj0(x) setup=(x=100.0*rand())
+BenchmarkTools.Trial: 10000 samples with 999 evaluations.
+ Range (min … max):   7.465 ns … 28.946 ns  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     25.860 ns              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   24.915 ns ±  4.090 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
+ Memory estimate: 0 bytes, allocs estimate: 0.
+ 
+ # SpecialFunctions.jl
+ julia> @benchmark besselj0(x) setup=(x=100.0*rand())
+BenchmarkTools.Trial: 10000 samples with 999 evaluations.
+ Range (min … max):   9.050 ns … 79.412 ns  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     51.677 ns              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   51.029 ns ±  5.653 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
+ Memory estimate: 0 bytes, allocs estimate: 0.
+ ```
+ 
+ ```julia
+ # Bessels.jl
+ julia> @benchmark besselk1(x) setup=(x=100.0*rand())
+BenchmarkTools.Trial: 10000 samples with 988 evaluations.
+ Range (min … max):  47.781 ns … 97.672 ns  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     47.950 ns              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   48.495 ns ±  2.656 ns  ┊ GC (mean ± σ):  0.00% ± 0.00%
+ Memory estimate: 0 bytes, allocs estimate: 0.
+ 
+ # SpecialFunctions.jl
+ julia> @benchmark besselk(1, x) setup=(x=10.0*rand())
+BenchmarkTools.Trial: 10000 samples with 681 evaluations.
+ Range (min … max):  184.962 ns …  2.122 μs  ┊ GC (min … max): 0.00% … 81.41%
+ Time  (median):     377.081 ns              ┊ GC (median):    0.00%
+ Time  (mean ± σ):   388.243 ns ± 96.971 ns  ┊ GC (mean ± σ):  0.04% ±  0.81%
+ Memory estimate: 16 bytes, allocs estimate: 1.
+ ```
+
 Comparing the relative speed (`SpecialFunctions.jl / Bessels.jl`) for a vector of values between 0 and 100.
 
 ## Float32
