@@ -47,3 +47,15 @@ julia> @btime besselk1(x) setup=(x=Float32(10.0*rand()))
 | besseli1  | 7x  |
 | besselk0  | 5x  |
 | besselk1  | 5x  |
+
+```julia
+# SpecialFunctions.jl 
+julia> @btime besselk(1, x) setup=(x=10.0*rand())
+  184.726 ns (1 allocation: 16 bytes) # notice the small difference in Float32 and Float64 implementations
+0.0007517428778913419
+
+# Bessels.jl
+julia> @btime besselk1(x) setup=(x=10.0*rand())
+  47.824 ns (0 allocations: 0 bytes)
+0.0057366790518002045
+```
