@@ -1,7 +1,7 @@
 function besselj1(x::Float32)
     x = abs(x)
     if iszero(x)
-        return one(x)
+        return zero(x)
     elseif isinf(x)
         return zero(x)
     end
@@ -25,7 +25,7 @@ end
 function besselj1(x::Float64)
     x = abs(x)
     if iszero(x)
-        return one(x)
+        return zero(x)
     elseif isinf(x)
         return zero(x)
     end
