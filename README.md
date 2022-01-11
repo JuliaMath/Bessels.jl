@@ -23,6 +23,18 @@ Comparing the relative speed (`SpecialFunctions.jl / Bessels.jl`) for a vector o
 
 * it looks like SpecialFunctions.jl doesn't always preserve the correct input type so some of the calculations may be done in Float64. This might skew the benchmarks for `Bessels.jl` as it should have all calculations done in the lower precision.
 
+```julia
+# SpecialFunctions.jl 
+julia> @btime besselk(1, x) setup=(x=Float32(10.0*rand()))
+  179.272 ns (1 allocation: 16 bytes)
+0.021948646168061196 # notice incorrect Float64 return type
+
+# Bessels.jl
+julia> @btime besselk1(x) setup=(x=Float32(10.0*rand()))
+  22.967 ns (0 allocations: 0 bytes)
+0.0027777348f0 # notice correct Float32 return type
+```
+
 ## Float64
 
 | function | Relative speed |
