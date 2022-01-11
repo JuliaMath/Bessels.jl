@@ -21,6 +21,8 @@ Comparing the relative speed (`SpecialFunctions.jl / Bessels.jl`) for a vector o
 | besselk0  | 13x  |
 | besselk1  | 15x  |
 
+* it looks like SpecialFunctions.jl doesn't always preserve the correct input type so some of the calculations may be done in Float64. This might skew the benchmarks for `Bessels.jl` as it should have all calculations done in the lower precision.
+
 ## Float64
 
 | function | Relative speed |
