@@ -39,7 +39,6 @@ k1_32 = besselk1.(Float32.(x))
 @test k1_64[1] isa Float64
 @test k1_32[1] isa Float32
 
-
 # test against SpecialFunctions.jl
 @test k1_64 ≈ k1_SpecialFunctions
 @test k1_32 ≈ k1_SpecialFunctions
@@ -53,7 +52,6 @@ k1x_32 = besselk1x.(Float32.(x))
 # make sure output types match input types
 @test k1x_64[1] isa Float64
 @test k1x_32[1] isa Float32
-
 
 # test against SpecialFunctions.jl
 @test k1x_64 ≈ k1x_SpecialFunctions

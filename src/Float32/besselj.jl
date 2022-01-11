@@ -25,7 +25,6 @@ function besselj0(x::Float32)
         return p
     end
 end
-
 function besselj1(x::Float32)
     x = abs(x)
     if iszero(x)

@@ -51,7 +51,6 @@ function bessely1(x::Float64)
         return p * SQ2OPI(T) / sqrt(x)
     end
 end
-
 function bessely(n::Int, x)
     if n < 0
         n = -n

@@ -40,7 +40,6 @@ i1_32 = besseli1.(Float32.(x))
 @test i1_64[1] isa Float64
 @test i1_32[1] isa Float32
 
-
 # test against SpecialFunctions.jl
 @test i1_64 ≈ i1_SpecialFunctions
 @test i1_32 ≈ i1_SpecialFunctions
@@ -54,7 +53,6 @@ i1x_32 = besseli1x.(Float32.(x))
 # make sure output types match input types
 @test i1x_64[1] isa Float64
 @test i1x_32[1] isa Float32
-
 
 # test against SpecialFunctions.jl
 @test i1x_64 ≈ i1x_SpecialFunctions

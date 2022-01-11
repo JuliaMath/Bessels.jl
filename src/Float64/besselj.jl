@@ -55,8 +55,6 @@ function besselj1(x::Float64)
         return p * SQ2OPI(T) / sqrt(x)
     end
 end
-
-
 function besselj(n::Int, x::Float64)
     if n < 0
         n = -n

@@ -58,4 +58,3 @@ function besselk1x(x::Float64)
         return chbevl(8.0 / x - 2.0, B_k1(T)) / sqrt(x)
     end
 end
-
