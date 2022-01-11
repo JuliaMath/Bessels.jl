@@ -1,3 +1,9 @@
+#=
+Cephes Math Library Release 2.8:  June, 2000
+Copyright 1984, 1987, 2000 by Stephen L. Moshier
+https://github.com/jeremybarnes/cephes/blob/master/bessel/i0.c
+https://github.com/jeremybarnes/cephes/blob/master/bessel/i1.c
+=#
 function besseli0(x::Float64)
     T = Float64
     x = abs(x)

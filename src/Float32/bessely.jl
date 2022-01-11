@@ -1,3 +1,14 @@
+#	Bessel function of second kind, order zero
+#
+#	Bessel function of second kind, order one
+#=
+Ported to Julia from:
+Cephes Math Library Release 2.2:  June, 1992
+Copyright 1984, 1987, 1992 by Stephen L. Moshier
+Direct inquiries to 30 Frost Street, Cambridge, MA 02140
+https://github.com/jeremybarnes/cephes/blob/master/single/j0f.c
+https://github.com/jeremybarnes/cephes/blob/master/single/j1f.c
+=#
 function bessely0(x::Float32)
     T = Float32
     if x <= zero(x)

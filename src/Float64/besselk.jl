@@ -1,3 +1,9 @@
+#=
+Cephes Math Library Release 2.8:  June, 2000
+Copyright 1984, 1987, 2000 by Stephen L. Moshier
+https://github.com/jeremybarnes/cephes/blob/master/bessel/k0.c
+https://github.com/jeremybarnes/cephes/blob/master/bessel/k1.c
+=#
 function besselk0(x::Float64)
     T = Float64
     if x <= zero(x)
