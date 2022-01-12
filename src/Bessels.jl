@@ -17,17 +17,11 @@ export besselk0x
 export besselk1
 export besselk1x
 
-include("Float32/besseli.jl")
-include("Float32/besselj.jl")
-include("Float32/besselk.jl")
-include("Float32/bessely.jl")
-include("Float32/constants.jl")
-
-include("Float64/besseli.jl")
-include("Float64/besselj.jl")
-include("Float64/besselk.jl")
-include("Float64/bessely.jl")
-include("Float64/constants.jl")
+include("besseli.jl")
+include("besselj.jl")
+include("besselk.jl")
+include("bessely.jl")
+include("constants.jl")
 
 include("Float128/besseli.jl")
 include("Float128/besselj.jl")
