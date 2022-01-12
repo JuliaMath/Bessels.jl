@@ -7,21 +7,18 @@ https://github.com/jeremybarnes/cephes/blob/master/bessel/j1.c
 function besselj0(x::Float64)
     T = Float64
     x = abs(x)
-    if iszero(x)
-        return one(x)
-    elseif isinf(x)
-        return zero(x)
-    end
+    iszero(x) && return one(x)
+    isinf(x) && return zero(x)
 
-    if x <= 5.0
+    if x <= 5
         z = x * x
         if x < 1.0e-5
             return 1.0 - z / 4.0
         end
-        
+
         DR1 = 5.78318596294678452118E0
         DR2 = 3.04712623436620863991E1
-      
+
         p = (z - DR1) * (z - DR2)
         p = p * evalpoly(z, RP_j0(T)) / evalpoly(z, RQ_j0(T))
         return p
@@ -36,15 +33,36 @@ function besselj0(x::Float64)
         return p * SQ2OPI(T) / sqrt(x)
     end
 end
+function besselj0(x::Float32)
+    T = Float32
+    x = abs(x)
+    iszero(x) && return one(x)
+    isinf(x) && return zero(x)
+
+    if x <= 2.0f0
+        z = x * x
+        if x < 1.0f-3
+            return 1.0f0 - 0.25f0 * z
+        end
+        DR1 = 5.78318596294678452118f0
+        p = (z - DR1) * evalpoly(z, JP_j0(T))
+        return p
+    else
+        q = inv(x)
+        w = sqrt(q)
+        p = w * evalpoly(q, MO_j0(T))
+        w = q * q
+        xn = q * evalpoly(w, PH_j0(T)) - PIO4(Float32)
+        p = p * cos(xn + x)
+        return p
+    end
+end
 
 function besselj1(x::Float64)
     T = Float64
     x = abs(x)
-    if iszero(x)
-        return zero(x)
-    elseif isinf(x)
-        return zero(x)
-    end
+    iszero(x) && return zero(x)
+    isinf(x) && return zero(x)
 
     if x <= 5.0
         z = x * x
@@ -61,6 +79,28 @@ function besselj1(x::Float64)
         return p * SQ2OPI(T) / sqrt(x)
     end
 end
+
+function besselj1(x::Float32)
+    x = abs(x)
+    iszero(x) && return zero(x)
+    isinf(x) && return zero(x)
+
+    if x <= 2.0f0
+        z = x * x
+        Z1 = 1.46819706421238932572f1
+        p = (z - Z1) * x * evalpoly(z, JP32)
+        return p
+    else
+        q = inv(x)
+        w = sqrt(q)
+        p = w * evalpoly(q, MO132)
+        w = q * q
+        xn = q * evalpoly(w, PH132) - THPIO4(Float32)
+        p = p * cos(xn + x)
+        return p
+    end
+end
+
 function besselj(n::Int, x::Float64)
     if n < 0
         n = -n
