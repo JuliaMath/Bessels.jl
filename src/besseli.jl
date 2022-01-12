@@ -13,7 +13,6 @@ function besseli0(x::T) where T <: Union{Float32, Float64}
     end
 end
 function besseli0x(x::T) where T <: Union{Float32, Float64}
-    T = Float64
     x = abs(x)
     if x <= 8
         y = muladd(x, T(.5), T(-2))
@@ -35,8 +34,7 @@ function besseli1(x::T) where T <: Union{Float32, Float64}
     end
     return z
 end
-function besseli1x(x::Float64)
-    T = Float64
+function besseli1x(x::T) where T <: Union{Float32, Float64}
     z = abs(x)
     if z <= 8
         y = muladd(x, T(.5), T(-2))
