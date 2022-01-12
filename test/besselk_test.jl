@@ -1,5 +1,5 @@
 # general array for testing input to SpecialFunctions.jl
-x = 0.01:0.01:10.0
+x = 1e-5:0.01:50.0
 
 ### Tests for besselk0
 k0_SpecialFunctions = SpecialFunctions.besselk.(0, x) 

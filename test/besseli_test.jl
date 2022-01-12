@@ -1,5 +1,5 @@
 # general array for testing input to SpecialFunctions.jl
-x = 0.01:0.01:10.0
+x = 1e-6:0.01:50.0
 
 ### Tests for besseli0
 i0_SpecialFunctions = SpecialFunctions.besseli.(0, x) 
