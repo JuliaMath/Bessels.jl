@@ -9,7 +9,7 @@ function besseli0(x::T) where T <: Union{Float32, Float64}
         y = muladd(x, T(.5), T(-2))
         return exp(x) * chbevl(y, A_i0(T))
     else
-        return exp(x) * chbevl(T(32) / x - T(-2), B_i0(T)) / sqrt(x)
+        return exp(x) * chbevl(T(32) / x - T(2), B_i0(T)) / sqrt(x)
     end
 end
 function besseli0x(x::T) where T <: Union{Float32, Float64}
@@ -18,7 +18,7 @@ function besseli0x(x::T) where T <: Union{Float32, Float64}
         y = muladd(x, T(.5), T(-2))
         return chbevl(y, A_i0(T))
     else
-        return chbevl(T(32) / x - T(-2), B_i0(T)) / sqrt(x)
+        return chbevl(T(32) / x - T(2), B_i0(T)) / sqrt(x)
     end
 end
 function besseli1(x::T) where T <: Union{Float32, Float64}
@@ -27,7 +27,7 @@ function besseli1(x::T) where T <: Union{Float32, Float64}
         y = muladd(z, T(.5), T(-2))
         z = chbevl(y, A_i1(T)) * z * exp(z)
     else
-        z = exp(z) * chbevl(T(32) / z - T(-2), B_i1(T)) / sqrt(z)
+        z = exp(z) * chbevl(T(32) / z - T(2), B_i1(T)) / sqrt(z)
     end
     if x < zero(x)
         z = -z
@@ -40,7 +40,7 @@ function besseli1x(x::T) where T <: Union{Float32, Float64}
         y = muladd(z, T(.5), T(-2))
         z = chbevl(y, A_i1(T)) * z
     else
-        z = chbevl(T(32) / z - T(-2), B_i1(T)) / sqrt(z)
+        z = chbevl(T(32) / z - T(2), B_i1(T)) / sqrt(z)
     end
     if x < zero(x)
         z = -z
