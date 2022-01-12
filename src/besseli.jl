@@ -24,10 +24,10 @@ end
 function besseli1(x::T) where T <: Union{Float32, Float64}
     z = abs(x)
     if x <= 8
-        y = muladd(x, T(.5), T(-2))
+        y = muladd(z, T(.5), T(-2))
         z = chbevl(y, A_i1(T)) * z * exp(z)
     else
-        z = exp(z) * chbevl(T(32) / x - T(-2), B_i1(T)) / sqrt(z)
+        z = exp(z) * chbevl(T(32) / z - T(-2), B_i1(T)) / sqrt(z)
     end
     if x < zero(x)
         z = -z
@@ -37,10 +37,10 @@ end
 function besseli1x(x::T) where T <: Union{Float32, Float64}
     z = abs(x)
     if z <= 8
-        y = muladd(x, T(.5), T(-2))
+        y = muladd(z, T(.5), T(-2))
         z = chbevl(y, A_i1(T)) * z
     else
-        z = chbevl(T(32) / x - T(-2), B_i1(T)) / sqrt(z)
+        z = chbevl(T(32) / z - T(-2), B_i1(T)) / sqrt(z)
     end
     if x < zero(x)
         z = -z
