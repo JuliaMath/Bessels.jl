@@ -36,7 +36,7 @@ end
 function besselj0(x::Float32)
     T = Float32
     x = abs(x)
-    iszero(x) && return zero(x)
+    iszero(x) && return one(x)
     isinf(x) && return zero(x)
 
     if x <= 2.0f0
