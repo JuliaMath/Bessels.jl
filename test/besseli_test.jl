@@ -1,6 +1,7 @@
 # general array for testing input to SpecialFunctions.jl
-x32 = 1e-6:0.01:60.0
-x64 = 1e-6:0.01:600.0
+x32 = [-1.0; 0.0; 1e-6; 0.01:0.01:60.0]
+x64 = [-1.0; 0.0; 1e-6; 0.01:0.01:600.0]
+
 ### Tests for besseli0
 i032_SpecialFunctions = SpecialFunctions.besseli.(0, x32)
 i064_SpecialFunctions = SpecialFunctions.besseli.(0, x64) 
