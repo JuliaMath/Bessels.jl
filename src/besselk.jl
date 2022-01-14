@@ -11,9 +11,6 @@ https://www.advanpix.com/2015/11/25/rational-approximations-for-the-modified-bes
 Actual coefficients used are from the boost math library.
 https://github.com/boostorg/math/tree/develop/include/boost/math/special_functions/detail
 =#
-
-
-
 function besselk0(x::T) where T <: Union{Float32, Float64}
     x <= zero(T) && return throw(DomainError(x, "`x` must be nonnegative."))
     if x <= one(T)
@@ -22,13 +19,9 @@ function besselk0(x::T) where T <: Union{Float32, Float64}
         a = muladd(s, a, 1)
         return muladd(-a, log(x), evalpoly(x * x, P2_k0(T)))
     else
-        if x < LOGMAXVAL(T)
-            return muladd(evalpoly(inv(x), P3_k0(T)), inv(evalpoly(inv(x), Q3_k0(T))), one(T)) * exp(-x) / sqrt(x)
-        else
-            s = exp(-x / 2)
-            a = muladd(evalpoly(inv(x), P3_k0(T)), inv(evalpoly(inv(x), Q3_k0(T))), one(T)) * s / sqrt(x)
-            return a * s
-        end
+        s = exp(-x / 2)
+        a = muladd(evalpoly(inv(x), P3_k0(T)), inv(evalpoly(inv(x), Q3_k0(T))), one(T)) * s / sqrt(x)
+        return a * s
     end
 end
 function besselk0x(x::T) where T <: Union{Float32, Float64}
@@ -42,76 +35,27 @@ function besselk0x(x::T) where T <: Union{Float32, Float64}
         return muladd(evalpoly(inv(x), P3_k0(T)), inv(evalpoly(inv(x), Q3_k0(T))), one(T)) / sqrt(x)
     end
 end
-
-
-function besselk1(x::Float32)
-    T = Float32
+function besselk1(x::T) where T <: Union{Float32, Float64}
     x <= zero(T) && return throw(DomainError(x, "`x` must be nonnegative."))
     if x <= one(T)
         z = x * x
         a = z / 4
-        
-        pq = muladd(evalpoly(a, P1_k1(T)), inv(evalpoly(a, Q1_k1(T))), Y_k1(T))
-        pq = muladd(pq * a, a, (a / 2 + 1))
-        a = pq * x / 2
-        pq = muladd(evalpoly(z, P2_k1(T)), x, inv(x))
-        return muladd(a, log(x), pq)
-    else
-        if x < LOGMAXVAL(T)
-            return muladd(evalpoly(inv(x), P3_k1(T)), inv(evalpoly(inv(x), Q3_k1(T))), Y2_k1(T)) * exp(-x) / sqrt(x)
-        else 
-            s = exp(-x / 2)
-            a = muladd(evalpoly(inv(x), P3_k1(T)), inv(evalpoly(inv(x), Q3_k1(T))), Y2_k1(T)) * s / sqrt(x)
-            return a * s
-        end
-    end
-end
-function besselk1(x::Float64)
-    T = Float64
-    x <= zero(T) && return throw(DomainError(x, "`x` must be nonnegative."))
-    if x <= one(T)
-        z = x * x
-        a = z / 4
-        
         pq = muladd(evalpoly(a, P1_k1(T)), inv(evalpoly(a, Q1_k1(T))), Y_k1(T))
         pq = muladd(pq * a, a, (a / 2 + 1))
         a = pq * x / 2
         pq = muladd(evalpoly(z, P2_k1(T)) / evalpoly(z, Q2_k1(T)), x, inv(x))
         return muladd(a, log(x), pq)
     else
-        if x < LOGMAXVAL(T)
-            return muladd(evalpoly(inv(x), P3_k1(T)), inv(evalpoly(inv(x), Q3_k1(T))), Y2_k1(T)) * exp(-x) / sqrt(x)
-        else 
-            s = exp(-x / 2)
-            a = muladd(evalpoly(inv(x), P3_k1(T)), inv(evalpoly(inv(x), Q3_k1(T))), Y2_k1(T)) * s / sqrt(x)
-            return a * s
-        end
+        s = exp(-x / 2)
+        a = muladd(evalpoly(inv(x), P3_k1(T)), inv(evalpoly(inv(x), Q3_k1(T))), Y2_k1(T)) * s / sqrt(x)
+        return a * s
     end
 end
-function besselk1x(x::Float32)
-    T = Float32
+function besselk1x(x::T) where T <: Union{Float32, Float64}
     x <= zero(T) && return throw(DomainError(x, "`x` must be nonnegative."))
     if x <= one(T)
         z = x * x
         a = z / 4
-        
-        pq = muladd(evalpoly(a, P1_k1(T)), inv(evalpoly(a, Q1_k1(T))), Y_k1(T))
-        pq = muladd(pq * a, a, (a / 2 + 1))
-        a = pq * x / 2
-        pq = muladd(evalpoly(z, P2_k1(T)), x, inv(x))
-        return muladd(a, log(x), pq) * exp(x)
-    else
-        return muladd(evalpoly(inv(x), P3_k1(T)), inv(evalpoly(inv(x), Q3_k1(T))), Y2_k1(T)) / sqrt(x)
-    
-    end
-end
-function besselk1x(x::Float64)
-    T = Float64
-    x <= zero(T) && return throw(DomainError(x, "`x` must be nonnegative."))
-    if x <= one(T)
-        z = x * x
-        a = z / 4
-        
         pq = muladd(evalpoly(a, P1_k1(T)), inv(evalpoly(a, Q1_k1(T))), Y_k1(T))
         pq = muladd(pq * a, a, (a / 2 + 1))
         a = pq * x / 2

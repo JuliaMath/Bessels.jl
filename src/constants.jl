@@ -272,9 +272,6 @@ const Q3_k0(::Type{Float64}) = (
 )
 const Y_k0 = 1.137250900268554688
 
-const LOGMAXVAL(::Type{Float32}) = 88.0f0
-const LOGMAXVAL(::Type{Float64}) = 709.0 
-
 
 const Y_k1(::Type{Float32}) = 8.695471287f-2
 const Y_k1(::Type{Float64}) = 8.69547128677368164e-2
@@ -303,6 +300,9 @@ const P2_k1(::Type{Float32}) = (
 const P2_k1(::Type{Float64}) = (
     -3.07965757829206184e-1, -7.80929703673074907e-02,
     -2.70619343754051620e-3, -2.49549522229072008e-5
+)
+const Q2_k1(::Type{Float32}) = (
+    one(Float32), zero(Float32)
 )
 const Q2_k1(::Type{Float64}) = (
     1.00000000000000000e0, -2.36316836412163098e-2,
