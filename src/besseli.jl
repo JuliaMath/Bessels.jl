@@ -34,8 +34,7 @@ function besseli0x(x::T) where T <: Union{Float32, Float64}
         return evalpoly(inv(x), besseli0_large_coefs(T)) / sqrt(x)
     end
 end
-function besseli1(x::Float32)
-    T = Float32
+function besseli1(x::T) where T <: Union{Float32, Float64}
     z = abs(x)
     if z < 7.75
         a = z * z / 4
@@ -51,46 +50,14 @@ function besseli1(x::Float32)
     end
     return z
 end
-function besseli1(x::Float64)
-    T = Float64
-    z = abs(x)
-    if z < 7.75
-        a = z * z / 4
-        inner = (one(T), T(0.5), evalpoly(a, besseli1_small_coefs(T)))
-        z = z * evalpoly(a, inner) / 2
-    else
-        a = exp(z / 2)
-        s = a * evalpoly(inv(z), besseli1_med_coefs(T)) / sqrt(z)
-        z =  a * s
-    end
-    if x < zero(x)
-        z = -z
-    end
-    return z
-end
-function besseli1x(x::Float32)
-    T = Float32
+function besseli1x(x::T) where T <: Union{Float32, Float64}
+    T == Float32 ? branch = 50 : branch = 500
     z = abs(x)
     if z < 7.75
         a = z * z / 4
         inner = (one(T), T(0.5), evalpoly(a, besseli1_small_coefs(T)))
         z = z * evalpoly(a, inner) / 2 * exp(-z)
-    else
-        z =  evalpoly(inv(z), besseli1_med_coefs(T)) / sqrt(z)
-    end
-    if x < zero(x)
-        z = -z
-    end
-    return z
-end
-function besseli1x(x::Float64)
-    T = Float64
-    z = abs(x)
-    if z < 7.75
-        a = z * z / 4
-        inner = (one(T), T(0.5), evalpoly(a, besseli1_small_coefs(T)))
-        z = z * evalpoly(a, inner) / 2 * exp(-z)
-    elseif z < 500
+    elseif z < branch
         z = evalpoly(inv(z), besseli1_med_coefs(T)) / sqrt(z)
     else
         z = evalpoly(inv(z), besseli1_large_coefs(T)) / sqrt(z)
