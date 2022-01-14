@@ -1,49 +1,86 @@
+# Modified Bessel functions of the first kind of order zero and one
+# besseli0, besseli1
+# Scaled modified Bessel functions of the first kind of order zero and one
+# besseli0x, besselix
+
 #=
-Cephes Math Library Release 2.8:  June, 2000
-Copyright 1984, 1987, 2000 by Stephen L. Moshier
-https://github.com/jeremybarnes/cephes/blob/master/bessel/i0.c
-https://github.com/jeremybarnes/cephes/blob/master/bessel/i1.c
+Approximate forms used here are given in
+"Rational Approximations for the Modified Bessel Function of the First Kind - I1(x) for Computations with Double Precision"
+by Pavel Holoborodko, 
+http://www.advanpix.com/2015/11/12/rational-approximations-for-the-modified-bessel-function-of-the-first-kind-i1-for-computations-with-double-precision/
+Actual coefficients used are from the boost math library.
+https://github.com/boostorg/math/tree/develop/include/boost/math/special_functions/detail
 =#
+
 function besseli0(x::T) where T <: Union{Float32, Float64}
-    if x <= 8
-        y = muladd(x, T(.5), T(-2))
-        return exp(x) * chbevl(y, A_i0(T))
+    T == Float32 ? branch = 50 : branch = 500
+    if x < 7.75
+        a = x * x / 4
+        return muladd(a, evalpoly(a, P1_i0(T)), 1)
+    elseif x < branch
+        return exp(x) * evalpoly(inv(x), P2_i0(T)) / sqrt(x)
     else
-        return exp(x) * chbevl(T(32) / x - T(2), B_i0(T)) / sqrt(x)
+        a = exp(x / 2)
+        s = a * evalpoly(inv(x), P3_i0(T)) / sqrt(x)
+        return a * s
     end
 end
 function besseli0x(x::T) where T <: Union{Float32, Float64}
-    x = abs(x)
-    if x <= 8
-        y = muladd(x, T(.5), T(-2))
-        return chbevl(y, A_i0(T))
+    T == Float32 ? branch = 50 : branch = 500
+    if x < 7.75
+        a = x * x / 4
+        return muladd(a, evalpoly(a, P1_i0(T)), 1) * exp(-x)
+    elseif x < branch
+        return evalpoly(inv(x), P2_i0(T)) / sqrt(x)
     else
-        return chbevl(T(32) / x - T(2), B_i0(T)) / sqrt(x)
+        return evalpoly(inv(x), P3_i0(T)) / sqrt(x)
     end
 end
-function besseli1(x::T) where T <: Union{Float32, Float64}
-    z = abs(x)
-    if x <= 8
-        y = muladd(z, T(.5), T(-2))
-        z = chbevl(y, A_i1(T)) * z * exp(z)
+function besseli1(x::Float32)
+    T = Float32
+    if x < 7.75
+        a = x * x / 4
+        inner = (one(T), T(0.5), evalpoly(a, P1_i1(T)))
+        return x * evalpoly(a, inner) / 2
     else
-        z = exp(z) * chbevl(T(32) / z - T(2), B_i1(T)) / sqrt(z)
+        a = exp(x / 2)
+        s = a * evalpoly(inv(x), P2_i1(T)) / sqrt(x)
+        return a * s
     end
-    if x < zero(x)
-        z = -z
-    end
-    return z
 end
-function besseli1x(x::T) where T <: Union{Float32, Float64}
-    z = abs(x)
-    if z <= 8
-        y = muladd(z, T(.5), T(-2))
-        z = chbevl(y, A_i1(T)) * z
+function besseli1(x::Float64)
+    T = Float64
+    if x < 7.75
+        a = x * x / 4
+        inner = (one(T), T(0.5), evalpoly(a, P1_i1(T)))
+        return x * evalpoly(a, inner) / 2
+    elseif x < 500
+        return exp(x) * evalpoly(inv(x), P2_i1(T)) / sqrt(x)
     else
-        z = chbevl(T(32) / z - T(2), B_i1(T)) / sqrt(z)
+        a = exp(x / 2)
+        s = a * evalpoly(inv(x), P3_i1(T)) / sqrt(x)
+        return a * s
     end
-    if x < zero(x)
-        z = -z
+end
+function besseli1x(x::Float32)
+    T = Float32
+    if x < 7.75
+        a = x * x / 4
+        inner = (one(T), T(0.5), evalpoly(a, P1_i1(T)))
+        return x * evalpoly(a, inner) / 2 * exp(-x)
+    else
+        return evalpoly(inv(x), P2_i1(T)) / sqrt(x)
     end
-    return z
+end
+function besseli1x(x::Float64)
+    T = Float64
+    if x < 7.75
+        a = x * x / 4
+        inner = (one(T), T(0.5), evalpoly(a, P1_i1(T)))
+        return x * evalpoly(a, inner) / 2 * exp(-x)
+    elseif x < 500
+        return evalpoly(inv(x), P2_i1(T)) / sqrt(x)
+    else
+        return evalpoly(inv(x), P3_i1(T)) / sqrt(x)
+    end
 end
