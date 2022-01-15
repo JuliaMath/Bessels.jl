@@ -34,6 +34,7 @@
 #    A third branch is used for scaled functions for large values
 #
 #    Horner's scheme is then used to evaluate all polynomials.
+#    ArbNumerics.jl is used as the reference bessel implementations with 75 digits.
 # 
 # [1] "Rational Approximations for the Modified Bessel Function of the First Kind 
 #     - I0(x) for Computations with Double Precision" by Pavel Holoborodko     
