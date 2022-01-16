@@ -164,8 +164,9 @@ end
     (iszero(k0) || iszero(k1)) && return zero(x) 
 
     k2 = k0
+    x2 = 2 / x
     for n in 1:nu-1
-        a = 2 * n / x
+        a = x2 * n
         k2 = muladd(a, k1, k0)
         k0 = k1
         k1 = k2
