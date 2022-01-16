@@ -34,12 +34,27 @@
 #    precision required in ArbNumerics.jl. 
 #
 #    Horner's scheme is then used to evaluate all polynomials.
+#
+#    Calculation of besselk and besselkx can be done with recursion starting with
+#    besselk0 and besselk1 and using upward recursion for any value of nu (order).
+#
+#                    K_{nu+1} = (2*nu/x)*K_{nu} + K_{nu-1}
+#
+#    When nu is large, a large amount of recurrence is necesary.
+#    At this point as nu -> Inf it is more efficient to use a uniform expansion.
+#    The boundary of the expansion depends on the accuracy required.
+#    For more information see [4]. This approach is not yet implemented, so recurrence
+#    is used for all values of nu.
+#
 # 
 # [1] "Rational Approximations for the Modified Bessel Function of the Second Kind 
 #     - K0(x) for Computations with Double Precision" by Pavel Holoborodko     
 # [2] "Rational Approximations for the Modified Bessel Function of the Second Kind 
 #     - K1(x) for Computations with Double Precision" by Pavel Holoborodko
 # [3] https://github.com/boostorg/math/tree/develop/include/boost/math/special_functions/detail
+# [4] "Computation of Bessel Functions of Complex Argument and Large ORder" by Donald E. Amos
+#      Sandia National Laboratories
+#
 """
     besselk0(x::T) where T <: Union{Float32, Float64}
 
@@ -113,4 +128,47 @@ function besselk1x(x::T) where T <: Union{Float32, Float64}
     else
         return muladd(evalpoly(inv(x), P3_k1(T)), inv(evalpoly(inv(x), Q3_k1(T))), Y2_k1(T)) / sqrt(x)
     end
+end
+#=
+Recurrence is used for all values of nu. If besselk0(x) or besselk1(0) is equal to zero
+this will underflow and always return zero even if besselk(x, nu)
+is larger than the smallest representing floating point value.
+In other words, for large values of x and small to moderate values of nu,
+this routine will underflow to zero.
+For small to medium values of x and large values of nu this will overflow and return Inf.
+
+In the future, a more efficient algorithm for large nu should be incorporated.
+=#
+"""
+    besselk(x::T) where T <: Union{Float32, Float64}
+
+Modified Bessel function of the second kind of order nu, ``K_{nu}(x)``.
+"""
+function besselk(nu::Int, x::T) where T <: Union{Float32, Float64}
+    return three_term_recurrence(x, besselk0(x), besselk1(x), nu)
+end
+"""
+    besselk(x::T) where T <: Union{Float32, Float64}
+
+Scaled modified Bessel function of the second kind of order nu, ``K_{nu}(x)*e^{x}``.
+"""
+function besselkx(nu::Int, x::T) where T <: Union{Float32, Float64}
+    return three_term_recurrence(x, besselk0x(x), besselk1x(x), nu)
+end
+
+@inline function three_term_recurrence(x, k0, k1, nu)
+    nu == 0 && return k0
+    nu == 1 && return k1
+
+    # this prevents us from looping through large values of nu when the loop will always return zero
+    (iszero(k0) || iszero(k1)) && return zero(x) 
+
+    k2 = k0
+    for n in 1:nu-1
+        a = 2 * n / x
+        k2 = muladd(a, k1, k0)
+        k0 = k1
+        k1 = k2
+    end
+    return k2
 end

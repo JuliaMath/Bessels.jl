@@ -12,6 +12,8 @@ export besseli0x
 export besseli1
 export besseli1x
 
+export besselk
+export besselkx
 export besselk0
 export besselk0x
 export besselk1
