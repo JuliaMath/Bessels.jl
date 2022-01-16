@@ -8,7 +8,7 @@
 #
 #    Branch 1: x < 7.75 
 #              besseli0 = [x/2]^2 P16([x/2]^2)
-#    Branch 2: x >=
+#    Branch 2: x >= 7.75
 #              sqrt(x) * exp(-x) * besseli0(x) = P22(1/x)
 #    where P16 and P22 are a 16 and 22 degree polynomial respectively.
 #
@@ -23,8 +23,8 @@
 #
 #    Branch 1: x < 7.75 
 #              besseli1 = x / 2 * (1 + 1/2 * (x/2)^2 + (x/2)^4 * P13([x/2]^2)
-#    Branch 2: x >=
-#              sqrt(x) * exp(-x) * besseli0(x) = P22(1/x)
+#    Branch 2: x >= 7.75
+#              sqrt(x) * exp(-x) * besseli1(x) = P22(1/x)
 #    where P13 and P22 are a 16 and 22 degree polynomial respectively.
 #
 #    Remez.jl is then used to approximate the polynomial coefficients of
