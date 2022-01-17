@@ -12,6 +12,8 @@ export besseli0x
 export besseli1
 export besseli1x
 
+export besselk
+export besselkx
 export besselk0
 export besselk0x
 export besselk1
@@ -29,7 +31,6 @@ include("Float128/besselk.jl")
 include("Float128/bessely.jl")
 include("Float128/constants.jl")
 
-include("chebyshev.jl")
 include("math_constants.jl")
 #include("parse.jl")
 #include("hankel.jl")

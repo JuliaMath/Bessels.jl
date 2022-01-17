@@ -56,3 +56,23 @@ k1x_32 = besselk1x.(Float32.(x))
 # test against SpecialFunctions.jl
 @test k1x_64 ≈ k1x_SpecialFunctions
 @test k1x_32 ≈ k1x_SpecialFunctions
+
+### Tests for besselk
+@test besselk(0, 2.0) == besselk0(2.0)
+@test besselk(1, 2.0) == besselk1(2.0)
+
+@test besselk(5, 8.0) ≈ SpecialFunctions.besselk(5, 8.0)
+@test besselk(5, 88.0) ≈ SpecialFunctions.besselk(5, 88.0)
+
+@test besselk(100, 3.9) ≈ SpecialFunctions.besselk(100, 3.9)
+@test besselk(100, 234.0) ≈ SpecialFunctions.besselk(100, 234.0)
+
+@test iszero(besselk(20, 1000.0))
+@test isinf(besselk(250, 5.0))
+
+### Tests for besselkx
+@test besselkx(0, 12.0) == besselk0x(12.0)
+@test besselkx(1, 89.0) == besselk1x(89.0)
+
+@test besselkx(15, 82.123) ≈ SpecialFunctions.besselk(15, 82.123)*exp(82.123)
+@test besselkx(105, 182.123) ≈ SpecialFunctions.besselk(105, 182.123)*exp(182.123)
