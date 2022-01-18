@@ -41,19 +41,55 @@
 #                    K_{nu+1} = (2*nu/x)*K_{nu} + K_{nu-1}
 #
 #    When nu is large, a large amount of recurrence is necesary.
-#    At this point as nu -> Inf it is more efficient to use a uniform expansion.
-#    The boundary of the expansion depends on the accuracy required.
-#    For more information see [4]. This approach is not yet implemented, so recurrence
-#    is used for all values of nu.
+#    We consider uniform asymptotic expansion for large orders to more efficiently
+#    compute besselk(nu, x) when nu is larger than 100 (Let's double check this cutoff)
+#    The boundary should be carefully determined for accuracy and machine roundoff.
+#    We use 10.41.4 from the Digital Library of Math Functions [5].
+#    This is also 9.7.8 in Abramowitz and Stegun [6].
+#    The U polynomials are the most tricky. They are listed up to order 4 in Table 9.39
+#    of [6]. For Float32, >=4 U polynomials are usually necessary. For Float64 values,
+#    >= 8 orders are needed. However, this largely depends on the cutoff of order you need.
+#    For moderatelly sized orders (nu=50), might need 11-12 orders to reach good enough accuracy
+#    in double precision. 
 #
-# 
+#    However, calculation of these higher order U polynomials are tedious. These have been hand
+#    calculated and somewhat crosschecked with symbolic math. There could be errors. They are listed
+#    here as a reference as higher orders are impossible to find and needed for any meaningfully accurate calculation.
+
+#    u0 = one(x)
+#    u1 = p / 24 * (3 - 5*p^2) * -1 / v
+#    u2 = p^2 / 1152 * (81 - 462*p^2 + 385*p^4) / v^2
+#    u3 = p^3 / 414720 * (30375 - 369603 * p^2 + 765765*p^4 - 425425*p^6) * -1 / v^3
+#    u4 = p^4 / 39813120 * (4465125 - 94121676*p^2 + 349922430*p^4 - 446185740*p^6 + 185910725*p^8) / v^4
+#    u5 = p^5 / 6688604160 * (-188699385875*p^10 + 566098157625*p^8 - 614135872350*p^6 + 284499769554*p^4 - 49286948607*p^2 + 1519035525) * -1 / v^5
+#    u6 = p^6 / 4815794995200 * (1023694168371875*p^12 - 3685299006138750*p^10 + 5104696716244125*p^8 - 3369032068261860*p^6 
+#         + 1050760774457901*p^4 - 127577298354750*p^2 + 2757049477875) * 1 / v^6
+#    u7 = p^7 / 115579079884800 * (-221849150488590625*p^14 + 931766432052080625*p^12 - 1570320948552481125*p^10 + 1347119637570231525*p^8 
+#         - 613221795981706275*p^6 + 138799253740521843*p^4 - 12493049053044375*p^2 + 199689155040375) * -1 / v^7
+#    u8 = p^8 / 22191183337881600 * (448357133137441653125*p^16 - 2152114239059719935000*p^14 + 4272845805510421639500*p^12 - 4513690624987320777000*p^10 
+#         + 2711772922412520971550*p^8 - 914113758588905038248*p^6 + 157768535329832893644*p^4 - 10960565081605263000*p^2 + 134790179652253125) * 1 / v^8
+#    u9 = p^9 / 263631258054033408000 * (-64041091111686478524109375*p^18 + 345821892003106984030190625*p^16 - 790370708270219620781737500*p^14 
+#         + 992115946599792610768672500*p^12 - 741743213039573443221773250*p^10 + 334380732677827878090447630*p^8 - 87432034049652400520788332*p^6 
+#         + 11921080954211358275362500*p^4 - 659033454841709672064375*p^2 + 6427469716717690265625) * -1 / v^9
+#    u10 = p^10 / 88580102706155225088000 * (290938676920391671935028890625*p^20 - 1745632061522350031610173343750*p^18 + 4513386761946134740461797128125*p^16 
+#         - 6564241639632418015173104205000*p^14 + 5876803711285273203043452095250*p^12 - 3327704366990695147540934069220*p^10 + 1177120360439828012193658602930*p^8 
+#         - 246750339886026017414509498824*p^6 + 27299183373230345667273718125*p^4 - 1230031256571145165088463750*p^2 + 9745329584487361980740625) * 1 / v^10
+#   
+#    For large orders these formulas will converge much faster than using upward recurrence.
+#    If using up to the fifth U polynomial, it requires evaluation of a 15 degree polynomial.
+#    For tenth U polynomial, it requires evaluation of a 30 degree polynomial.
+#
+#    
 # [1] "Rational Approximations for the Modified Bessel Function of the Second Kind 
 #     - K0(x) for Computations with Double Precision" by Pavel Holoborodko     
 # [2] "Rational Approximations for the Modified Bessel Function of the Second Kind 
 #     - K1(x) for Computations with Double Precision" by Pavel Holoborodko
 # [3] https://github.com/boostorg/math/tree/develop/include/boost/math/special_functions/detail
-# [4] "Computation of Bessel Functions of Complex Argument and Large ORder" by Donald E. Amos
+# [4] "Computation of Bessel Functions of Complex Argument and Large Order" by Donald E. Amos
 #      Sandia National Laboratories
+# [5] https://dlmf.nist.gov/10.41
+# [6] Abramowitz, Milton, and Irene A. Stegun, eds. Handbook of mathematical functions with formulas, graphs, and mathematical tables. 
+#     Vol. 55. US Government printing office, 1964.
 #
 """
     besselk0(x::T) where T <: Union{Float32, Float64}
@@ -130,14 +166,12 @@ function besselk1x(x::T) where T <: Union{Float32, Float64}
     end
 end
 #=
-Recurrence is used for all values of nu. If besselk0(x) or besselk1(0) is equal to zero
+If besselk0(x) or besselk1(0) is equal to zero
 this will underflow and always return zero even if besselk(x, nu)
 is larger than the smallest representing floating point value.
 In other words, for large values of x and small to moderate values of nu,
 this routine will underflow to zero.
 For small to medium values of x and large values of nu this will overflow and return Inf.
-
-In the future, a more efficient algorithm for large nu should be incorporated.
 =#
 """
     besselk(x::T) where T <: Union{Float32, Float64}
@@ -148,7 +182,7 @@ function besselk(nu::Int, x::T) where T <: Union{Float32, Float64}
     if nu < 100
         return three_term_recurrence(x, besselk0(x), besselk1(x), nu)
     else
-        return k1(BigFloat(nu), BigFloat(x))
+        return besselk_large_orders(BigFloat(nu), BigFloat(x))
     end
 end
 """
@@ -179,7 +213,7 @@ end
 end
 
 
-function k1(v, x::T) where T <: AbstractFloat
+function besselk_large_orders(v, x::T) where T <: AbstractFloat
     z = x / v
     zs = sqrt(1 + z^2)
  
