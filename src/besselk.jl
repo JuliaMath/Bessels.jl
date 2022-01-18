@@ -145,7 +145,11 @@ In the future, a more efficient algorithm for large nu should be incorporated.
 Modified Bessel function of the second kind of order nu, ``K_{nu}(x)``.
 """
 function besselk(nu::Int, x::T) where T <: Union{Float32, Float64}
-    return three_term_recurrence(x, besselk0(x), besselk1(x), nu)
+    if nu < 100
+        return three_term_recurrence(x, besselk0(x), besselk1(x), nu)
+    else
+        return k1(BigFloat(nu), BigFloat(x))
+    end
 end
 """
     besselk(x::T) where T <: Union{Float32, Float64}
@@ -201,5 +205,4 @@ function k1(v, x::T) where T <: AbstractFloat
  
     return coef*out
  end
- 
  
