@@ -46,6 +46,7 @@
 #    The boundary should be carefully determined for accuracy and machine roundoff.
 #    We use 10.41.4 from the Digital Library of Math Functions [5].
 #    This is also 9.7.8 in Abramowitz and Stegun [6].
+#    K_{nu}(nu*z) = sqrt(pi / 2nu) *exp(-nu*n)/(1+z^2)^1/4 * sum((-1^k)U_k(p) /nu^k)) for k=0 -> infty
 #    The U polynomials are the most tricky. They are listed up to order 4 in Table 9.39
 #    of [6]. For Float32, >=4 U polynomials are usually necessary. For Float64 values,
 #    >= 8 orders are needed. However, this largely depends on the cutoff of order you need.
@@ -54,7 +55,7 @@
 #
 #    However, calculation of these higher order U polynomials are tedious. These have been hand
 #    calculated and somewhat crosschecked with symbolic math. There could be errors. They are listed
-#    here as a reference as higher orders are impossible to find and needed for any meaningfully accurate calculation.
+#    here as a reference as higher orders are impossible to find while being needed for any meaningfully accurate calculation.
 
 #    u0 = one(x)
 #    u1 = p / 24 * (3 - 5*p^2) * -1 / v
