@@ -81,6 +81,18 @@ m = 200:5:1000; x = 400.0:10.0:1200.0
 t = Float64.([besselk(m, x) for m in m, x in x])
 @test t ≈ [SpecialFunctions.besselk(m, x) for m in m, x in x]
 
+# Float 32 tests for aysmptotic expansion
+m = 20:5:200; x = 5.0f0:2.0f0:400.0f0
+t = [besselk(m, x) for m in m, x in x]
+@test t[10] isa Float32
+@test t ≈ Float32.([SpecialFunctions.besselk(m, x) for m in m, x in x])
+
+# test for low values and medium orders
+m = 20:5:50; x = [1f-3, 1f-2, 1f-1, 1f0, 1.5f0, 2.0f0, 4.0f0]
+t = [besselk(m, x) for m in m, x in x]
+@test t[5] isa Float32
+@test t ≈ Float32.([SpecialFunctions.besselk(m, x) for m in m, x in x])
+
 @test iszero(besselk(20, 1000.0))
 #@test isinf(besselk(250, 5.0))
 
