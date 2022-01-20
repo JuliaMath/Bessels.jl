@@ -64,3 +64,21 @@ i1x_32 = besseli1x.(Float32.(x32))
 # test against SpecialFunctions.jl
 @test i1x_64 ≈ i1x64_SpecialFunctions
 @test i1x_32 ≈ i1x32_SpecialFunctions
+
+
+# test for besseli
+# test small arguments and order
+m = 0:1:200; x = 0.1f0:0.5f0:90.0f0
+t = [besseli(m, x) for m in m, x in x]
+@test t[10] isa Float32
+@test t ≈ Float32.([SpecialFunctions.besseli(m, x) for m in m, x in x])
+
+#Float 64
+m = 0:1:200; x = 0.1:0.5:150.0
+t = [besseli(m, x) for m in m, x in x]
+
+@test t[10] isa Float64
+@test t ≈ [SpecialFunctions.besseli(m, x) for m in m, x in x]
+
+@test besselix(10, 2.0) ≈ SpecialFunctions.besselix(10, 2.0)
+

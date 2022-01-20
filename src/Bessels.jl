@@ -7,6 +7,8 @@ export besselj
 export bessely0
 export bessely1
 
+export besseli
+export besselix
 export besseli0
 export besseli0x
 export besseli1
@@ -32,6 +34,7 @@ include("Float128/bessely.jl")
 include("Float128/constants.jl")
 
 include("math_constants.jl")
+include("U_polynomials.jl")
 #include("parse.jl")
 #include("hankel.jl")
 

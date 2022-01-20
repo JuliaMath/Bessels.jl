@@ -116,3 +116,84 @@ function besseli1x(x::T) where T <: Union{Float32, Float64}
     end
     return z
 end
+
+"""
+    besseli(nu, x::T) where T <: Union{Float32, Float64}
+
+Modified Bessel function of the first kind of order nu, ``I_{nu}(x)``.
+Nu must be real.
+"""
+function besseli(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
+    nu == 0 && return besseli0(x)
+    nu == 1 && return besseli1(x)
+
+    branch = 30
+    if nu < branch
+        inp1 = besseli_large_orders(branch + 1, x)
+        in = besseli_large_orders(branch, x)
+        return down_recurrence(x, in, inp1, nu, branch)
+    else
+        return besseli_large_orders(nu, x)
+    end
+end
+"""
+    besselix(nu, x::T) where T <: Union{Float32, Float64}
+
+Scaled modified Bessel function of the first kind of order nu, ``I_{nu}(x)*e^{-x}``.
+Nu must be real.
+"""
+function besselix(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
+    nu == 0 && return besseli0x(x)
+    nu == 1 && return besseli1x(x)
+
+    branch = 30
+    if nu < branch
+        inp1 = besseli_large_orders_scaled(branch + 1, x)
+        in = besseli_large_orders_scaled(branch, x)
+        return down_recurrence(x, in, inp1, nu, branch)
+    else
+        return besseli_large_orders_scaled(nu, x)
+    end
+end
+
+
+@inline function down_recurrence(x, in, inp1, nu, branch)
+    # this prevents us from looping through large values of nu when the loop will always return zero
+    (iszero(in) || iszero(inp1)) && return zero(x)
+    (isinf(inp1) || isinf(inp1)) && return in
+
+    inm1 = in
+    x2 = 2 / x
+    for n in branch:-1:nu+1
+        a = x2 * n
+        inm1 = muladd(a, in, inp1)
+        inp1 = in
+        in = inm1
+    end
+    return inm1
+end
+
+function besseli_large_orders(v, x::T) where T <: Union{Float32, Float64, BigFloat}
+    S = promote_type(T, Float64)
+    x = S(x)
+    z = x / v
+    zs = hypot(1, z)
+    n = zs + log(z) - log1p(zs)
+    coef = SQ1O2PI(S) * sqrt(inv(v)) * exp(v*n) / sqrt(zs)
+    p = inv(zs)
+    p2  = v^2/fma(max(v,x), max(v,x), min(v,x)^2)
+
+    return T(coef*Uk_poly_In(p, v, p2, T))
+end
+function besseli_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64, BigFloat}
+    S = promote_type(T, Float64)
+    x = S(x)
+    z = x / v
+    zs = hypot(1, z)
+    n = zs + log(z) - log1p(zs)
+    coef = SQ1O2PI(S) * sqrt(inv(v)) * exp(v*n - x) / sqrt(zs)
+    p = inv(zs)
+    p2  = v^2/fma(max(v,x), max(v,x), min(v,x)^2)
+
+    return T(coef*Uk_poly_In(p, v, p2, T))
+end
