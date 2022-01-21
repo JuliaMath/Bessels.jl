@@ -4,6 +4,9 @@
 #    Scaled modified Bessel functions of the first kind of order zero and one
 #                       besseli0x, besselix
 #
+#    (Scaled) Modified Bessel functions of the first kind of order nu
+#                       besseli, besselix
+#
 #    Calculation of besseli0 is done in two branches using polynomial approximations [1]
 #
 #    Branch 1: x < 7.75 
@@ -35,11 +38,18 @@
 #
 #    Horner's scheme is then used to evaluate all polynomials.
 #    ArbNumerics.jl is used as the reference bessel implementations with 75 digits.
+#
+#    Calculation of besseli and besselkx can be done with downward recursion starting with
+#    besseli_{nu+1} and besseli_{nu}. Higher orders are determined by a uniform asymptotic
+#    expansion similar to besselk (see notes there) using Equation 10.41.3 [3].
+#
 # 
 # [1] "Rational Approximations for the Modified Bessel Function of the First Kind 
 #     - I0(x) for Computations with Double Precision" by Pavel Holoborodko     
 # [2] "Rational Approximations for the Modified Bessel Function of the First Kind 
-#     - I1(x) for Computations with Double Precision" by Pavel Holoborodko        
+#     - I1(x) for Computations with Double Precision" by Pavel Holoborodko
+# [3] https://dlmf.nist.gov/10.41
+
 """
     besseli0(x::T) where T <: Union{Float32, Float64}
 
@@ -56,6 +66,7 @@ function besseli0(x::T) where T <: Union{Float32, Float64}
         return a * s
     end
 end
+
 """
     besseli0x(x::T) where T <: Union{Float32, Float64}
 
@@ -73,6 +84,7 @@ function besseli0x(x::T) where T <: Union{Float32, Float64}
         return evalpoly(inv(x), besseli0_large_coefs(T)) / sqrt(x)
     end
 end
+
 """
     besseli1(x::T) where T <: Union{Float32, Float64}
 
@@ -94,6 +106,7 @@ function besseli1(x::T) where T <: Union{Float32, Float64}
     end
     return z
 end
+
 """
     besseli1x(x::T) where T <: Union{Float32, Float64}
 
@@ -136,6 +149,7 @@ function besseli(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
         return besseli_large_orders(nu, x)
     end
 end
+
 """
     besselix(nu, x::T) where T <: Union{Float32, Float64}
 
@@ -155,24 +169,6 @@ function besselix(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
         return besseli_large_orders_scaled(nu, x)
     end
 end
-
-
-@inline function down_recurrence(x, in, inp1, nu, branch)
-    # this prevents us from looping through large values of nu when the loop will always return zero
-    (iszero(in) || iszero(inp1)) && return zero(x)
-    (isinf(inp1) || isinf(inp1)) && return in
-
-    inm1 = in
-    x2 = 2 / x
-    for n in branch:-1:nu+1
-        a = x2 * n
-        inm1 = muladd(a, in, inp1)
-        inp1 = in
-        in = inm1
-    end
-    return inm1
-end
-
 function besseli_large_orders(v, x::T) where T <: Union{Float32, Float64, BigFloat}
     S = promote_type(T, Float64)
     x = S(x)
