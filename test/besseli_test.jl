@@ -81,4 +81,5 @@ t = [besseli(m, x) for m in m, x in x]
 @test t ≈ [SpecialFunctions.besseli(m, x) for m in m, x in x]
 
 @test besselix(10, 2.0) ≈ SpecialFunctions.besselix(10, 2.0)
-
+@test besselix(100, 14.0) ≈ SpecialFunctions.besselix(100, 14.0)
+@test besselix(120, 504.0) ≈ SpecialFunctions.besselix(120, 504.0)
