@@ -161,7 +161,7 @@ Modified Bessel function of the second kind of order nu, ``K_{nu}(x)``.
 function besselk(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
     T == Float32 ? branch = 20 : branch = 50
     if nu < branch
-        return up_recurrence(x, besselk0(x), besselk1(x), nu)
+        return up_recurrence(x, besselk0(x), besselk1(x), nu)[1]
     else
         return besselk_large_orders(nu, x)
     end
@@ -175,7 +175,7 @@ Scaled modified Bessel function of the second kind of order nu, ``K_{nu}(x)*e^{x
 function besselkx(nu::Int, x::T) where T <: Union{Float32, Float64}
     T == Float32 ? branch = 20 : branch = 50
     if nu < branch
-        return up_recurrence(x, besselk0x(x), besselk1x(x), nu)
+        return up_recurrence(x, besselk0x(x), besselk1x(x), nu)[1]
     else
         return besselk_large_orders_scaled(nu, x)
     end

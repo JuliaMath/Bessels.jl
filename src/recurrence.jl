@@ -28,5 +28,5 @@ end
         k0 = k1
         k1 = k2
     end
-    return k2
+    return k2, k0
 end

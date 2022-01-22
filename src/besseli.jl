@@ -193,3 +193,25 @@ function besseli_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64,
 
     return T(coef*Uk_poly_In(p, v, p2, T))
 end
+
+function _besseli_continued_fractions(nu, x)
+    knu, knum1 = up_recurrence(x, besselk0(x), besselk1(x), nu)
+    return 1 / (x * (knum1 + knu / steed(nu, x)))
+end
+
+function steed(n, x::T) where T
+    xinv = inv(x)
+    xinv2 = 2 * xinv
+    d = x / (n + n)
+    a = d
+    h = a
+    b = muladd(2, n, 2) * xinv
+    for _ in 1:100000
+        d = inv(b + d)
+        a = muladd(b, d, -1) * a
+        h = h + a
+        b = b + xinv2
+        abs(a / h) <= eps(T) && break
+    end
+    return h
+end
