@@ -140,7 +140,7 @@ function besseli(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
     nu == 0 && return besseli0(x)
     nu == 1 && return besseli1(x)
 
-    branch = 30
+    branch = 60
     if nu < branch
         inp1 = besseli_large_orders(branch + 1, x)
         in = besseli_large_orders(branch, x)
@@ -160,7 +160,7 @@ function besselix(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
     nu == 0 && return besseli0x(x)
     nu == 1 && return besseli1x(x)
 
-    branch = 30
+    branch = 60
     if nu < branch
         inp1 = besseli_large_orders_scaled(branch + 1, x)
         in = besseli_large_orders_scaled(branch, x)
