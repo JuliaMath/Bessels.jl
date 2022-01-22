@@ -67,8 +67,34 @@ k1x_32 = besselk1x.(Float32.(x))
 @test besselk(100, 3.9) ≈ SpecialFunctions.besselk(100, 3.9)
 @test besselk(100, 234.0) ≈ SpecialFunctions.besselk(100, 234.0)
 
+# test small arguments and order
+m = 0:40; x = [1e-6; 1e-4; 1e-3; 1e-2; 0.1; 1.0:2.0:700.0]
+@test [besselk(m, x) for m in m, x in x] ≈ [SpecialFunctions.besselk(m, x) for m in m, x in x]
+
+# test medium arguments and order
+m = 30:200; x = 5.0:5.0:100.0
+t = Float64.([besselk(m, x) for m in m, x in x])
+@test t ≈ [SpecialFunctions.besselk(m, x) for m in m, x in x]
+
+# test large orders
+m = 200:5:1000; x = 400.0:10.0:1200.0
+t = Float64.([besselk(m, x) for m in m, x in x])
+@test t ≈ [SpecialFunctions.besselk(m, x) for m in m, x in x]
+
+# Float 32 tests for aysmptotic expansion
+m = 20:5:200; x = 5.0f0:2.0f0:400.0f0
+t = [besselk(m, x) for m in m, x in x]
+@test t[10] isa Float32
+@test t ≈ Float32.([SpecialFunctions.besselk(m, x) for m in m, x in x])
+
+# test for low values and medium orders
+m = 20:5:50; x = [1f-3, 1f-2, 1f-1, 1f0, 1.5f0, 2.0f0, 4.0f0]
+t = [besselk(m, x) for m in m, x in x]
+@test t[5] isa Float32
+@test t ≈ Float32.([SpecialFunctions.besselk(m, x) for m in m, x in x])
+
 @test iszero(besselk(20, 1000.0))
-@test isinf(besselk(250, 5.0))
+#@test isinf(besselk(250, 5.0))
 
 ### Tests for besselkx
 @test besselkx(0, 12.0) == besselk0x(12.0)

@@ -41,20 +41,36 @@
 #                    K_{nu+1} = (2*nu/x)*K_{nu} + K_{nu-1}
 #
 #    When nu is large, a large amount of recurrence is necesary.
-#    At this point as nu -> Inf it is more efficient to use a uniform expansion.
-#    The boundary of the expansion depends on the accuracy required.
-#    For more information see [4]. This approach is not yet implemented, so recurrence
-#    is used for all values of nu.
+#    We consider uniform asymptotic expansion for large orders to more efficiently
+#    compute besselk(nu, x) when nu is larger than 100 (Let's double check this cutoff)
+#    The boundary should be carefully determined for accuracy and machine roundoff.
+#    We use 10.41.4 from the Digital Library of Math Functions [5].
+#    This is also 9.7.8 in Abramowitz and Stegun [6].
+#    K_{nu}(nu*z) = sqrt(pi / 2nu) *exp(-nu*n)/(1+z^2)^1/4 * sum((-1^k)U_k(p) /nu^k)) for k=0 -> infty
+#    The U polynomials are the most tricky. They are listed up to order 4 in Table 9.39
+#    of [6]. For Float32, >=4 U polynomials are usually necessary. For Float64 values,
+#    >= 8 orders are needed. However, this largely depends on the cutoff of order you need.
+#    For moderatelly sized orders (nu=50), might need 11-12 orders to reach good enough accuracy
+#    in double precision. 
 #
-# 
+#    However, calculation of these higher order U polynomials are tedious. These have been hand
+#    calculated and somewhat crosschecked with symbolic math. There could be errors. They are listed
+#    in src/U_polynomials.jl as a reference as higher orders are impossible to find while being needed for any meaningfully accurate calculation.
+#    For large orders these formulas will converge much faster than using upward recurrence.
+#
+#    
 # [1] "Rational Approximations for the Modified Bessel Function of the Second Kind 
 #     - K0(x) for Computations with Double Precision" by Pavel Holoborodko     
 # [2] "Rational Approximations for the Modified Bessel Function of the Second Kind 
 #     - K1(x) for Computations with Double Precision" by Pavel Holoborodko
 # [3] https://github.com/boostorg/math/tree/develop/include/boost/math/special_functions/detail
-# [4] "Computation of Bessel Functions of Complex Argument and Large ORder" by Donald E. Amos
+# [4] "Computation of Bessel Functions of Complex Argument and Large Order" by Donald E. Amos
 #      Sandia National Laboratories
+# [5] https://dlmf.nist.gov/10.41
+# [6] Abramowitz, Milton, and Irene A. Stegun, eds. Handbook of mathematical functions with formulas, graphs, and mathematical tables. 
+#     Vol. 55. US Government printing office, 1964.
 #
+
 """
     besselk0(x::T) where T <: Union{Float32, Float64}
 
@@ -130,46 +146,61 @@ function besselk1x(x::T) where T <: Union{Float32, Float64}
     end
 end
 #=
-Recurrence is used for all values of nu. If besselk0(x) or besselk1(0) is equal to zero
+If besselk0(x) or besselk1(0) is equal to zero
 this will underflow and always return zero even if besselk(x, nu)
 is larger than the smallest representing floating point value.
 In other words, for large values of x and small to moderate values of nu,
 this routine will underflow to zero.
 For small to medium values of x and large values of nu this will overflow and return Inf.
-
-In the future, a more efficient algorithm for large nu should be incorporated.
 =#
 """
     besselk(x::T) where T <: Union{Float32, Float64}
 
 Modified Bessel function of the second kind of order nu, ``K_{nu}(x)``.
 """
-function besselk(nu::Int, x::T) where T <: Union{Float32, Float64}
-    return three_term_recurrence(x, besselk0(x), besselk1(x), nu)
+function besselk(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
+    T == Float32 ? branch = 20 : branch = 50
+    if nu < branch
+        return up_recurrence(x, besselk0(x), besselk1(x), nu)
+    else
+        return besselk_large_orders(nu, x)
+    end
 end
+
 """
     besselk(x::T) where T <: Union{Float32, Float64}
 
 Scaled modified Bessel function of the second kind of order nu, ``K_{nu}(x)*e^{x}``.
 """
 function besselkx(nu::Int, x::T) where T <: Union{Float32, Float64}
-    return three_term_recurrence(x, besselk0x(x), besselk1x(x), nu)
-end
-
-@inline function three_term_recurrence(x, k0, k1, nu)
-    nu == 0 && return k0
-    nu == 1 && return k1
-
-    # this prevents us from looping through large values of nu when the loop will always return zero
-    (iszero(k0) || iszero(k1)) && return zero(x) 
-
-    k2 = k0
-    x2 = 2 / x
-    for n in 1:nu-1
-        a = x2 * n
-        k2 = muladd(a, k1, k0)
-        k0 = k1
-        k1 = k2
+    T == Float32 ? branch = 20 : branch = 50
+    if nu < branch
+        return up_recurrence(x, besselk0x(x), besselk1x(x), nu)
+    else
+        return besselk_large_orders_scaled(nu, x)
     end
-    return k2
+end
+function besselk_large_orders(v, x::T) where T <: Union{Float32, Float64, BigFloat}
+    S = promote_type(T, Float64)
+    x = S(x)
+    z = x / v
+    zs = hypot(1, z)
+    n = zs + log(z) - log1p(zs)
+    coef = SQPIO2(S) * sqrt(inv(v)) * exp(-v*n) / sqrt(zs)
+    p = inv(zs)
+    p2  = v^2/fma(max(v,x), max(v,x), min(v,x)^2)
+
+    return T(coef*Uk_poly_Kn(p, v, p2, T))
+end
+function besselk_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64, BigFloat}
+    S = promote_type(T, Float64)
+    x = S(x)
+    z = x / v
+    zs = hypot(1, z)
+    n = zs + log(z) - log1p(zs)
+    coef = SQPIO2(S) * sqrt(inv(v)) * exp(-v*n + x) / sqrt(zs)
+    p = inv(zs)
+    p2  = v^2/fma(max(v,x), max(v,x), min(v,x)^2)
+
+    return T(coef*Uk_poly_Kn(p, v, p2, T))
 end
