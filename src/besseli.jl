@@ -178,7 +178,7 @@ function besseli_large_orders(v, x::T) where T <: Union{Float32, Float64}
     p = inv(zs)
     p2  = v^2/fma(max(v,x), max(v,x), min(v,x)^2)
 
-    return T(coef*Uk_poly_In(p, v, p2, Float64))
+    return coef*Uk_poly_In(p, v, p2, T)
 end
 function besseli_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64}
     S = promote_type(T, Float64)
