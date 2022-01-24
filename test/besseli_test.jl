@@ -68,13 +68,20 @@ i1x_32 = besseli1x.(Float32.(x32))
 
 # test for besseli
 # test small arguments and order
-m = 0:1:200; x = 0.1f0:0.5f0:90.0f0
-t = [besseli(m, x) for m in m, x in x]
-@test t[10] isa Float32
-@test t ≈ Float32.([SpecialFunctions.besseli(m, x) for m in m, x in x])
+m = 0:1:200; x = 0.5f0:0.5f0:90.0f0
+@test besseli(10, 1.0f0) isa Float32
+@test besseli(2, 80.0f0) isa Float32
+@test besseli(112, 80.0f0) isa Float32
+
+for m in m, x in x
+    @test besseli(m, x) ≈ Float32(SpecialFunctions.besseli(m, x))
+end
 
 #Float 64
 m = 0:1:200; x = 0.1:0.5:150.0
+@test besseli(10, 1.0) isa Float64
+@test besseli(2, 80.0) isa Float64
+@test besseli(112, 80.0) isa Float64
 t = [besseli(m, x) for m in m, x in x]
 
 @test t[10] isa Float64

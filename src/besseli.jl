@@ -136,17 +136,16 @@ end
 Modified Bessel function of the first kind of order nu, ``I_{nu}(x)``.
 Nu must be real.
 """
-function besseli(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
+function besseli(nu, x::T) where T <: Union{Float32, Float64}
     nu == 0 && return besseli0(x)
     nu == 1 && return besseli1(x)
-
-    branch = 60
-    if nu < branch
-        inp1 = besseli_large_orders(branch + 1, x)
-        in = besseli_large_orders(branch, x)
-        return down_recurrence(x, in, inp1, nu, branch)
+    
+    if x > maximum((T(50), nu^2 / 2))
+        return T(besseli_large_argument(nu, x))
+    elseif nu < 100
+        return T(_besseli_continued_fractions(nu, x))
     else
-        return besseli_large_orders(nu, x)
+        return T(besseli_large_orders(nu, x))
     end
 end
 
@@ -156,7 +155,7 @@ end
 Scaled modified Bessel function of the first kind of order nu, ``I_{nu}(x)*e^{-x}``.
 Nu must be real.
 """
-function besselix(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
+function besselix(nu, x::T) where T <: Union{Float32, Float64}
     nu == 0 && return besseli0x(x)
     nu == 1 && return besseli1x(x)
 
@@ -169,7 +168,7 @@ function besselix(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
         return besseli_large_orders_scaled(nu, x)
     end
 end
-function besseli_large_orders(v, x::T) where T <: Union{Float32, Float64, BigFloat}
+function besseli_large_orders(v, x::T) where T <: Union{Float32, Float64}
     S = promote_type(T, Float64)
     x = S(x)
     z = x / v
@@ -179,9 +178,9 @@ function besseli_large_orders(v, x::T) where T <: Union{Float32, Float64, BigFlo
     p = inv(zs)
     p2  = v^2/fma(max(v,x), max(v,x), min(v,x)^2)
 
-    return T(coef*Uk_poly_In(p, v, p2, T))
+    return T(coef*Uk_poly_In(p, v, p2, Float64))
 end
-function besseli_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64, BigFloat}
+function besseli_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64}
     S = promote_type(T, Float64)
     x = S(x)
     z = x / v
@@ -194,19 +193,22 @@ function besseli_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64,
     return T(coef*Uk_poly_In(p, v, p2, T))
 end
 
-function _besseli_continued_fractions(nu, x)
-    knu, knum1 = up_recurrence(x, besselk0(x), besselk1(x), nu)
+function _besseli_continued_fractions(nu, x::T) where T
+    S = promote_type(T, Float64)
+    xx = S(x)
+    knu, knum1 = up_recurrence(xx, besselk0(xx), besselk1(xx), nu)
     return 1 / (x * (knum1 + knu / steed(nu, x)))
 end
 
 function steed(n, x::T) where T
+    MaxIter = 1000
     xinv = inv(x)
     xinv2 = 2 * xinv
     d = x / (n + n)
     a = d
     h = a
     b = muladd(2, n, 2) * xinv
-    for _ in 1:100000
+    for _ in 1:MaxIter
         d = inv(b + d)
         a = muladd(b, d, -1) * a
         h = h + a
@@ -215,3 +217,23 @@ function steed(n, x::T) where T
     end
     return h
 end
+
+function besseli_large_argument(v, z::T) where T
+    MaxIter = 1000
+    S = promote_type(T, Float64)
+    z = S(z)
+    coef = exp(z) / sqrt(2*S(pi)*z)
+    fv2 = 4v^2
+    term = one(S)
+    res = term
+    s = -term
+    for i in 1:MaxIter
+        offset = muladd(2, i, -1)
+        term *= S(0.125)*(muladd(offset, -offset, fv2)) / (z*i)
+        res = muladd(term, s, res)
+        s = -s
+        abs(term) <= eps(T) && break
+    end
+    return res*coef
+end
+
