@@ -140,8 +140,10 @@ function besseli(nu, x::T) where T <: Union{Float32, Float64}
     nu == 0 && return besseli0(x)
     nu == 1 && return besseli1(x)
     
-    if x > maximum((T(50), nu^2 / 2))
+    if x > maximum((T(30), nu^2 / 4))
         return T(besseli_large_argument(nu, x))
+    elseif x <= 2 * sqrt(nu + 1)
+        return T(besseli_small_arguments(nu, x))
     elseif nu < 100
         return T(_besseli_continued_fractions(nu, x))
     else
@@ -162,8 +164,8 @@ function besselix(nu, x::T) where T <: Union{Float32, Float64}
     branch = 60
     if nu < branch
         inp1 = besseli_large_orders_scaled(branch + 1, x)
-        in = besseli_large_orders_scaled(branch, x)
-        return down_recurrence(x, in, inp1, nu, branch)
+        inu = besseli_large_orders_scaled(branch, x)
+        return down_recurrence(x, inu, inp1, nu, branch)
     else
         return besseli_large_orders_scaled(nu, x)
     end
@@ -197,6 +199,7 @@ function _besseli_continued_fractions(nu, x::T) where T
     S = promote_type(T, Float64)
     xx = S(x)
     knu, knum1 = up_recurrence(xx, besselk0(xx), besselk1(xx), nu)
+    (iszero(knu) || iszero(knum1)) && return throw(DomainError(x, "Overflow error"))
     return 1 / (x * (knum1 + knu / steed(nu, x)))
 end
 
@@ -220,20 +223,54 @@ end
 
 function besseli_large_argument(v, z::T) where T
     MaxIter = 1000
-    S = promote_type(T, Float64)
-    z = S(z)
-    coef = exp(z) / sqrt(2*S(pi)*z)
-    fv2 = 4v^2
-    term = one(S)
+    a = exp(z / 2)
+    coef = a / sqrt(2 * T(pi) * z)
+    fv2 = 4 * v^2
+    term = one(T)
     res = term
     s = -term
     for i in 1:MaxIter
+        i = T(i)
         offset = muladd(2, i, -1)
-        term *= S(0.125)*(muladd(offset, -offset, fv2)) / (z*i)
+        term *= T(0.125) * muladd(offset, -offset, fv2) / (z * i)
         res = muladd(term, s, res)
         s = -s
         abs(term) <= eps(T) && break
     end
-    return res*coef
+    return res * coef * a
 end
 
+# power series definition of besseli
+# fast convergence for small arguments
+# for large orders and small arguments there is increased roundoff error ~ 1e-14
+# need to investigate further if this can be mitigated
+function besseli_small_arguments(v, z::T) where T
+    if v < 20
+        coef = (z / 2)^v / factorial(v)
+    else
+        coef = v*log(z / 2)
+        coef -= _loggam(v + 1)
+        coef = exp(coef)
+    end
+
+    MaxIter = 1000
+    out = one(T)
+    zz = z^2 / 4
+    a = one(T)
+    for k in 0:MaxIter
+        a *= zz / (k + 1) / (k + v + 1)
+        out += a
+        a <= eps(T) && break
+    end
+    return coef * out
+end
+@inline function _loggam(x)
+    xinv = inv(x)
+    xinv2 = xinv * xinv
+    out = (x - 0.5) * log(x) - x + 9.1893853320467274178032927e-01
+    out += xinv * evalpoly(
+        xinv2, (8.3333333333333333333333368e-02, -2.7777777777777777777777776e-03,
+        7.9365079365079365079365075e-04, -5.9523809523809523809523806e-04)
+    )
+    return out
+end
