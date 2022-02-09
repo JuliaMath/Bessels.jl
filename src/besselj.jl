@@ -81,7 +81,7 @@ function besselj1(x::Float64)
         w = evalpoly(z, RP_j1(T)) / evalpoly(z, RQ_j1(T))
         w = w * x * (z - 1.46819706421238932572e1) * (z - 4.92184563216946036703e1)
         return w
-    else
+    elseif x < 100.0
         w = 5.0 / x
         z = w * w
         p = evalpoly(z, PP_j1(T)) / evalpoly(z, PQ_j1(T))
@@ -89,6 +89,18 @@ function besselj1(x::Float64)
         xn = x - THPIO4(T)
         p = p * cos(xn) - w * q * sin(xn)
         return p * SQ2OPI(T) / sqrt(x)
+    else
+        xinv = inv(x)
+        x2 = xinv*xinv
+
+        p = (one(T), 3/16, -99/512, 6597/8192, -4057965/524288)
+        p = evalpoly(x2, p)
+        a = SQ2OPI(T) * sqrt(xinv) * p
+
+        q = (3/8, -21/128, 1899/5120, -543483/229376, 8027901/262144)
+        xn = muladd(xinv, evalpoly(x2, q), - 3 * PIO4(T))
+        b = cos(x + xn)
+        return a * b
     end
 end
 

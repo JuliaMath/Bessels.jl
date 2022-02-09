@@ -23,7 +23,7 @@ function _bessely0_compute(x::Float64)
         w = evalpoly(z, YP_y0(T)) / evalpoly(z, YQ_y0(T))
         w += TWOOPI(T) * log(x) * besselj0(x)
         return w
-    else
+    elseif x < 100.0
         w = T(5) / x
         z = w*w
         p = evalpoly(z, PP_y0(T)) / evalpoly(z, PQ_y0(T))
@@ -31,6 +31,18 @@ function _bessely0_compute(x::Float64)
         xn = x - PIO4(T)
         p = p * sin(xn) + w * q * cos(xn);
         return p * SQ2OPI(T) / sqrt(x)
+    else
+        xinv = inv(x)
+        x2 = xinv*xinv
+
+        p = (one(T), -1/16, 53/512, -4447/8192, 5066403/524288)
+        p = evalpoly(x2, p)
+        a = SQ2OPI(T) * sqrt(xinv) * p
+
+        q = (-1/8, 25/384, -1073/5120, 375733/229376, -55384775/2359296)
+        xn = muladd(xinv, evalpoly(x2, q), - PIO4(T))
+        b = sin(x + xn)
+        return a * b
     end
 end
 function _bessely0_compute(x::Float32)
@@ -71,7 +83,7 @@ function _bessely1_compute(x::Float64)
         w = x * (evalpoly(z, YP_y1(T)) / evalpoly(z, YQ_y1(T)))
         w += TWOOPI(T) * (besselj1(x) * log(x) - inv(x))
         return w
-    else
+    elseif x < 100.0
         w = T(5) / x
         z = w * w
         p = evalpoly(z, PP_j1(T)) / evalpoly(z, PQ_j1(T))
@@ -79,6 +91,18 @@ function _bessely1_compute(x::Float64)
         xn = x - THPIO4(T)
         p = p * sin(xn) + w * q * cos(xn)
         return p * SQ2OPI(T) / sqrt(x)
+    else
+        xinv = inv(x)
+        x2 = xinv*xinv
+
+        p = (one(T), 3/16, -99/512, 6597/8192, -4057965/524288)
+        p = evalpoly(x2, p)
+        a = SQ2OPI(T) * sqrt(xinv) * p
+
+        q = (3/8, -21/128, 1899/5120, -543483/229376, 8027901/262144)
+        xn = muladd(xinv, evalpoly(x2, q), - 3 * PIO4(T))
+        b = sin(x + xn)
+        return a * b
     end
 end
 
