@@ -163,9 +163,9 @@ function besselix(nu, x::T) where T <: Union{Float32, Float64}
 
     branch = 60
     if nu < branch
-        inp1 = besseli_large_orders_scaled(branch + 1, x)
+        inup1 = besseli_large_orders_scaled(branch + 1, x)
         inu = besseli_large_orders_scaled(branch, x)
-        return down_recurrence(x, inu, inp1, nu, branch)
+        return down_recurrence(x, inu, inup1, nu, branch)
     else
         return besseli_large_orders_scaled(nu, x)
     end
@@ -199,10 +199,10 @@ function _besseli_continued_fractions(nu, x::T) where T
     S = promote_type(T, Float64)
     xx = S(x)
     knu, knum1 = up_recurrence(xx, besselk0(xx), besselk1(xx), nu)
+    # if knu or knum1 is zero then besseli will likely overflow
     (iszero(knu) || iszero(knum1)) && return throw(DomainError(x, "Overflow error"))
     return 1 / (x * (knum1 + knu / steed(nu, x)))
 end
-
 function steed(n, x::T) where T
     MaxIter = 1000
     xinv = inv(x)
@@ -213,7 +213,7 @@ function steed(n, x::T) where T
     b = muladd(2, n, 2) * xinv
     for _ in 1:MaxIter
         d = inv(b + d)
-        a = muladd(b, d, -1) * a
+        a *= muladd(b, d, -1)
         h = h + a
         b = b + xinv2
         abs(a / h) <= eps(T) && break
@@ -240,37 +240,25 @@ function besseli_large_argument(v, z::T) where T
     return res * coef * a
 end
 
-# power series definition of besseli
-# fast convergence for small arguments
-# for large orders and small arguments there is increased roundoff error ~ 1e-14
-# need to investigate further if this can be mitigated
 function besseli_small_arguments(v, z::T) where T
+    S = promote_type(T, Float64)
+    x = S(z)
     if v < 20
-        coef = (z / 2)^v / factorial(v)
+        coef = (x / 2)^v / factorial(v)
     else
-        coef = v*log(z / 2)
-        coef -= _loggam(v + 1)
-        coef = exp(coef)
+        vinv = inv(v)
+        coef = sqrt(vinv / (2 * π)) * MathConstants.e^(v * (log(x / (2 * v)) + 1)) 
+        coef *= evalpoly(vinv, (1, -1/12, 1/288,  139/51840, -571/2488320, -163879/209018880, 5246819/75246796800, 534703531/902961561600))
     end
 
     MaxIter = 1000
-    out = one(T)
-    zz = z^2 / 4
-    a = one(T)
-    for k in 0:MaxIter
-        a *= zz / (k + 1) / (k + v + 1)
+    out = one(S)
+    zz = x^2 / 4
+    a = one(S)
+    for k in 1:MaxIter
+        a *= zz / (k * (k + v))
         out += a
         a <= eps(T) && break
     end
     return coef * out
-end
-@inline function _loggam(x)
-    xinv = inv(x)
-    xinv2 = xinv * xinv
-    out = (x - 0.5) * log(x) - x + 9.1893853320467274178032927e-01
-    out += xinv * evalpoly(
-        xinv2, (8.3333333333333333333333368e-02, -2.7777777777777777777777776e-03,
-        7.9365079365079365079365075e-04, -5.9523809523809523809523806e-04)
-    )
-    return out
 end
