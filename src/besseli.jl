@@ -136,17 +136,18 @@ end
 Modified Bessel function of the first kind of order nu, ``I_{nu}(x)``.
 Nu must be real.
 """
-function besseli(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
+function besseli(nu, x::T) where T <: Union{Float32, Float64}
     nu == 0 && return besseli0(x)
     nu == 1 && return besseli1(x)
-
-    branch = 60
-    if nu < branch
-        inp1 = besseli_large_orders(branch + 1, x)
-        in = besseli_large_orders(branch, x)
-        return down_recurrence(x, in, inp1, nu, branch)
+    
+    if x > maximum((T(30), nu^2 / 4))
+        return T(besseli_large_argument(nu, x))
+    elseif x <= 2 * sqrt(nu + 1)
+        return T(besseli_small_arguments(nu, x))
+    elseif nu < 100
+        return T(_besseli_continued_fractions(nu, x))
     else
-        return besseli_large_orders(nu, x)
+        return T(besseli_large_orders(nu, x))
     end
 end
 
@@ -156,20 +157,21 @@ end
 Scaled modified Bessel function of the first kind of order nu, ``I_{nu}(x)*e^{-x}``.
 Nu must be real.
 """
-function besselix(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
+function besselix(nu, x::T) where T <: Union{Float32, Float64}
     nu == 0 && return besseli0x(x)
     nu == 1 && return besseli1x(x)
 
-    branch = 60
-    if nu < branch
-        inp1 = besseli_large_orders_scaled(branch + 1, x)
-        in = besseli_large_orders_scaled(branch, x)
-        return down_recurrence(x, in, inp1, nu, branch)
+    if x > maximum((T(30), nu^2 / 4))
+        return T(besseli_large_argument_scaled(nu, x))
+    elseif x <= 2 * sqrt(nu + 1)
+        return T(besseli_small_arguments(nu, x)) * exp(-x)
+    elseif nu < 100
+        return T(_besseli_continued_fractions_scaled(nu, x))
     else
         return besseli_large_orders_scaled(nu, x)
     end
 end
-function besseli_large_orders(v, x::T) where T <: Union{Float32, Float64, BigFloat}
+function besseli_large_orders(v, x::T) where T <: Union{Float32, Float64}
     S = promote_type(T, Float64)
     x = S(x)
     z = x / v
@@ -179,9 +181,9 @@ function besseli_large_orders(v, x::T) where T <: Union{Float32, Float64, BigFlo
     p = inv(zs)
     p2  = v^2/fma(max(v,x), max(v,x), min(v,x)^2)
 
-    return T(coef*Uk_poly_In(p, v, p2, T))
+    return coef*Uk_poly_In(p, v, p2, T)
 end
-function besseli_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64, BigFloat}
+function besseli_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64}
     S = promote_type(T, Float64)
     x = S(x)
     z = x / v
@@ -192,4 +194,95 @@ function besseli_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64,
     p2  = v^2/fma(max(v,x), max(v,x), min(v,x)^2)
 
     return T(coef*Uk_poly_In(p, v, p2, T))
+end
+function _besseli_continued_fractions(nu, x::T) where T
+    S = promote_type(T, Float64)
+    xx = S(x)
+    knu, knum1 = up_recurrence(xx, besselk0(xx), besselk1(xx), nu)
+    # if knu or knum1 is zero then besseli will likely overflow
+    (iszero(knu) || iszero(knum1)) && return throw(DomainError(x, "Overflow error"))
+    return 1 / (x * (knum1 + knu / steed(nu, x)))
+end
+function _besseli_continued_fractions_scaled(nu, x::T) where T
+    S = promote_type(T, Float64)
+    xx = S(x)
+    knu, knum1 = up_recurrence(xx, besselk0x(xx), besselk1x(xx), nu)
+    # if knu or knum1 is zero then besseli will likely overflow
+    (iszero(knu) || iszero(knum1)) && return throw(DomainError(x, "Overflow error"))
+    return 1 / (x * (knum1 + knu / steed(nu, x)))
+end
+function steed(n, x::T) where T
+    MaxIter = 1000
+    xinv = inv(x)
+    xinv2 = 2 * xinv
+    d = x / (n + n)
+    a = d
+    h = a
+    b = muladd(2, n, 2) * xinv
+    for _ in 1:MaxIter
+        d = inv(b + d)
+        a *= muladd(b, d, -1)
+        h = h + a
+        b = b + xinv2
+        abs(a / h) <= eps(T) && break
+    end
+    return h
+end
+function besseli_large_argument(v, z::T) where T
+    MaxIter = 1000
+    a = exp(z / 2)
+    coef = a / sqrt(2 * T(pi) * z)
+    fv2 = 4 * v^2
+    term = one(T)
+    res = term
+    s = -term
+    for i in 1:MaxIter
+        i = T(i)
+        offset = muladd(2, i, -1)
+        term *= T(0.125) * muladd(offset, -offset, fv2) / (z * i)
+        res = muladd(term, s, res)
+        s = -s
+        abs(term) <= eps(T) && break
+    end
+    return res * coef * a
+end
+function besseli_large_argument_scaled(v, z::T) where T
+    MaxIter = 1000
+    coef = inv(sqrt(2 * T(pi) * z))
+    fv2 = 4 * v^2
+    term = one(T)
+    res = term
+    s = -term
+    for i in 1:MaxIter
+        i = T(i)
+        offset = muladd(2, i, -1)
+        term *= T(0.125) * muladd(offset, -offset, fv2) / (z * i)
+        res = muladd(term, s, res)
+        s = -s
+        abs(term) <= eps(T) && break
+    end
+    return res * coef
+end
+
+function besseli_small_arguments(v, z::T) where T
+    S = promote_type(T, Float64)
+    x = S(z)
+    if v < 20
+        coef = (x / 2)^v / factorial(v)
+    else
+        vinv = inv(v)
+        coef = sqrt(vinv / (2 * π)) * MathConstants.e^(v * (log(x / (2 * v)) + 1)) 
+        coef *= evalpoly(vinv, (1, -1/12, 1/288,  139/51840, -571/2488320, -163879/209018880, 5246819/75246796800, 534703531/902961561600))
+    end
+
+    MaxIter = 1000
+    out = one(S)
+    zz = x^2 / 4
+    a = one(S)
+    for k in 1:MaxIter
+        a *= zz / (k * (k + v))
+        out += a
+        a <= eps(T) && break
+    end
+    return coef * out
 end
