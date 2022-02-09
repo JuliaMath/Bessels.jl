@@ -22,7 +22,7 @@ function besselj0(x::Float64)
         p = (z - DR1) * (z - DR2)
         p = p * evalpoly(z, RP_j0(T)) / evalpoly(z, RQ_j0(T))
         return p
-    else
+    elseif x < 100.0
         w = 5.0 / x
         q = 25.0 / (x * x)
 
@@ -31,6 +31,18 @@ function besselj0(x::Float64)
         xn = x - PIO4(T)
         p = p * cos(xn) - w * q * sin(xn)
         return p * SQ2OPI(T) / sqrt(x)
+    else
+        xinv = inv(x)
+        x2 = xinv*xinv
+
+        p = (one(T), -1/16, 53/512, -4447/8192, 5066403/524288)
+        p = evalpoly(x2, p)
+        a = SQ2OPI(T) * sqrt(xinv) * p
+
+        q = (-1/8, 25/384, -1073/5120, 375733/229376, -55384775/2359296)
+        xn = muladd(xinv, evalpoly(x2, q), - PIO4(T))
+        b = cos(x + xn)
+        return a * b
     end
 end
 function besselj0(x::Float32)
