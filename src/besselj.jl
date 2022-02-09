@@ -187,3 +187,53 @@ function besselj(n::Int, x::Float64)
 
     return sign * ans
 end
+
+
+function b2(v, x)
+
+    a = (x/2)^v
+    out = 1 / gamma(v + 1)
+    for k in 1:100
+        out += (-x^2 / 4)^k / factorial(BigFloat(k)) / factorial(v + BigFloat(k))
+    end
+    return out*a
+end
+
+function b(nu, x::T) where T
+    coef =  (x/2)^nu / gamma(nu + 1)
+
+    x2 = (x/2)^2
+
+
+    maxiter = 10000
+    b = one(T)
+    for k in 1:maxiter
+        z = -x2 / (k * (k + nu))
+        b += z*b
+    end
+    return b * coef
+end
+
+
+### for this function dd can be calculated accurately but there is a build up in error for val as we sum 
+## looks like only works for small arguments and smallish orders.... 
+function b3(v, x::T) where T
+    MaxIter = 5000
+    if v < 20
+        coef = (x / 2)^v / factorial(v)
+    else
+        vinv = inv(v)
+        coef = sqrt(vinv / (2 * π)) * MathConstants.e^(v * (log(x / (2 * v)) + 1)) 
+        coef *= evalpoly(vinv, (1, -1/12, 1/288,  139/51840, -571/2488320, -163879/209018880, 5246819/75246796800, 534703531/902961561600))
+    end
+
+    x2 = (x / 2)^2
+    val = zero(T)
+
+    for k in 1:MaxIter
+        val += coef
+        coef = -coef * x2 / (k * (v + k))
+        abs(coef) < eps(T) * abs(val) && break
+    end
+    return val
+end
