@@ -161,11 +161,12 @@ function besselix(nu, x::T) where T <: Union{Float32, Float64}
     nu == 0 && return besseli0x(x)
     nu == 1 && return besseli1x(x)
 
-    branch = 60
-    if nu < branch
-        inup1 = besseli_large_orders_scaled(branch + 1, x)
-        inu = besseli_large_orders_scaled(branch, x)
-        return down_recurrence(x, inu, inup1, nu, branch)
+    if x > maximum((T(30), nu^2 / 4))
+        return T(besseli_large_argument_scaled(nu, x))
+    elseif x <= 2 * sqrt(nu + 1)
+        return T(besseli_small_arguments(nu, x)) * exp(-x)
+    elseif nu < 100
+        return T(_besseli_continued_fractions_scaled(nu, x))
     else
         return besseli_large_orders_scaled(nu, x)
     end
@@ -194,11 +195,18 @@ function besseli_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64}
 
     return T(coef*Uk_poly_In(p, v, p2, T))
 end
-
 function _besseli_continued_fractions(nu, x::T) where T
     S = promote_type(T, Float64)
     xx = S(x)
     knu, knum1 = up_recurrence(xx, besselk0(xx), besselk1(xx), nu)
+    # if knu or knum1 is zero then besseli will likely overflow
+    (iszero(knu) || iszero(knum1)) && return throw(DomainError(x, "Overflow error"))
+    return 1 / (x * (knum1 + knu / steed(nu, x)))
+end
+function _besseli_continued_fractions_scaled(nu, x::T) where T
+    S = promote_type(T, Float64)
+    xx = S(x)
+    knu, knum1 = up_recurrence(xx, besselk0x(xx), besselk1x(xx), nu)
     # if knu or knum1 is zero then besseli will likely overflow
     (iszero(knu) || iszero(knum1)) && return throw(DomainError(x, "Overflow error"))
     return 1 / (x * (knum1 + knu / steed(nu, x)))
@@ -220,7 +228,6 @@ function steed(n, x::T) where T
     end
     return h
 end
-
 function besseli_large_argument(v, z::T) where T
     MaxIter = 1000
     a = exp(z / 2)
@@ -238,6 +245,23 @@ function besseli_large_argument(v, z::T) where T
         abs(term) <= eps(T) && break
     end
     return res * coef * a
+end
+function besseli_large_argument_scaled(v, z::T) where T
+    MaxIter = 1000
+    coef = inv(sqrt(2 * T(pi) * z))
+    fv2 = 4 * v^2
+    term = one(T)
+    res = term
+    s = -term
+    for i in 1:MaxIter
+        i = T(i)
+        offset = muladd(2, i, -1)
+        term *= T(0.125) * muladd(offset, -offset, fv2) / (z * i)
+        res = muladd(term, s, res)
+        s = -s
+        abs(term) <= eps(T) && break
+    end
+    return res * coef
 end
 
 function besseli_small_arguments(v, z::T) where T

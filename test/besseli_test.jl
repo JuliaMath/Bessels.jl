@@ -87,6 +87,7 @@ t = [besseli(m, x) for m in m, x in x]
 @test t[10] isa Float64
 @test t ≈ [SpecialFunctions.besseli(m, x) for m in m, x in x]
 
-@test besselix(10, 2.0) ≈ SpecialFunctions.besselix(10, 2.0)
-@test besselix(100, 14.0) ≈ SpecialFunctions.besselix(100, 14.0)
-@test besselix(120, 504.0) ≈ SpecialFunctions.besselix(120, 504.0)
+t = [besselix(m, x) for m in m, x in x]
+@test t[10] isa Float64
+@test t ≈ [SpecialFunctions.besselix(m, x) for m in m, x in x]
+ 

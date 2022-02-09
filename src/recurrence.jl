@@ -1,3 +1,5 @@
+# no longer used for besseli but could be used in future for Jn, Yn
+#=
 @inline function down_recurrence(x, in, inp1, nu, branch)
     # this prevents us from looping through large values of nu when the loop will always return zero
     (iszero(in) || iszero(inp1)) && return zero(x)
@@ -13,6 +15,7 @@
     end
     return inm1
 end
+=#
 @inline function up_recurrence(x, k0, k1, nu)
     nu == 0 && return k0
     nu == 1 && return k1
