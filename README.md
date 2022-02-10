@@ -41,7 +41,7 @@ Exponentially scaled versions of Modified Bessel's function can also be called w
 
 These results compare the median value from BenchmarkTools obtained on one machine for arguments between 0 and 100.
 
-We compare the relative sped to implementations provided by [SpecialFunctions.jl](https://github.com/JuliaMath/SpecialFunctions.jl).
+We compare the relative [speed](https://github.com/heltonmc/Bessels.jl/blob/master/benchmark/benchmark.jl) to implementations provided by [SpecialFunctions.jl](https://github.com/JuliaMath/SpecialFunctions.jl).
 
 | function | `Float32` | `Float64`
 | ------------- | ------------- | ------------- |
