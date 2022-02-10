@@ -59,3 +59,14 @@ We compare the relative sped to implementations provided by [SpecialFunctions.jl
 | besselk(120, x)  |   2.9x  | 3.4x  |
 
 * SpecialFunctions.jl doesn't always preserve the correct input type so some of the calculations may be done in Float64. This might skew the benchmarks for `Bessels.jl`.
+
+# Current Development Plans
+
+- More robust implementations of `besselj(nu, x)` and `bessely(nu, x)`
+- Support non-integer orders
+- Support complex arguments
+
+# Contributing 
+
+Contributions are very welcome, as are feature requests and suggestions. Please open an [issue](https://github.com/heltonmc/Bessels.jl/issues/new) for discussion on newer implementations, share papers, new features, or if you encounter any problems.
+ 
