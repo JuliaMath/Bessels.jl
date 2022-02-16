@@ -114,7 +114,8 @@ function besselj1(x::Float64)
         p = evalpoly(z, PP_j1(T)) / evalpoly(z, PQ_j1(T))
         q = evalpoly(z, QP_j1(T)) / evalpoly(z, QQ_j1(T))
         xn = x - THPIO4(T)
-        p = p * cos(xn) - w * q * sin(xn)
+        sc = sincos(xn)
+        p = p * sc[2] - w * q * sc[1]
         return p * SQ2OPI(T) / sqrt(x)
     else
         xinv = inv(x)
