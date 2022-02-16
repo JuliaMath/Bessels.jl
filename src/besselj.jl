@@ -1,13 +1,35 @@
-#=
-Cephes Math Library Release 2.8:  June, 2000
-Copyright 1984, 1987, 2000 by Stephen L. Moshier
-https://github.com/jeremybarnes/cephes/blob/master/bessel/j0.c
-https://github.com/jeremybarnes/cephes/blob/master/bessel/j1.c
-=#
-function besselj0(x::Float64)
-    T = Float64
+#    Bessel functions of the first kind of order zero and one
+#                       besselj0, besselj1
+#
+#    Calculation of besselj0 is done in three branches using polynomial approximations
+#
+#    Branch 1: x <= 5.0
+#              besselj0 = (x^2 - r1^2)*(x^2 - r2^2)*P3(x^2) / Q8(x^2)
+#    where r1 and r2 are zeros of J0
+#    and P3 and Q8 are a 3 and 8 degree polynomial respectively
+#    Polynomial coefficients are from [1] which is based on [2]
+#    See [1] for more details and [2] for coefficients of polynomials
+#
+#    Branch 2: 5.0 < x < 80.0
+#              besselj0 = sqrt(2/(pi*x))*(cos(x - pi/4)*R7(x) - sin(x - pi/4)*R8(x))
+#    Hankel's asymptotic expansion is used
+#    where R7 and R8 are rational functions (Pn(x)/Qn(x)) of degree 7 and 8 respectively
+#    See section 4 of [3] for more details and [1] for coefficients of polynomials
+# 
+#   Branch 3: x >= 80.0
+#              besselj0 = sqrt(2/(pi*x))*beta(x)*(cos(x - pi/4 - alpha(x))
+#   See modified expansions given in [3]. Exact coefficients are used
+#
+#   Calculation of besselj1 is done in a similar way as besselj0.
+#   See [3] for details on similarities.
+# 
+# [1] https://github.com/deepmind/torch-cephes
+# [2] Cephes Math Library Release 2.8:  June, 2000 by Stephen L. Moshier
+# [3] Harrison, John. "Fast and accurate Bessel function computation." 
+#     2009 19th IEEE Symposium on Computer Arithmetic. IEEE, 2009.
+
+function besselj0(x::T) where T
     x = abs(x)
-    iszero(x) && return one(x)
     isinf(x) && return zero(x)
 
     if x <= 5
@@ -15,14 +37,12 @@ function besselj0(x::Float64)
         if x < 1.0e-5
             return 1.0 - z / 4.0
         end
-
-        DR1 = 5.78318596294678452118E0
-        DR2 = 3.04712623436620863991E1
-
+        DR1 = 5.78318596294678452118e0
+        DR2 = 3.04712623436620863991e1
         p = (z - DR1) * (z - DR2)
         p = p * evalpoly(z, RP_j0(T)) / evalpoly(z, RQ_j0(T))
         return p
-    elseif x < 100.0
+    elseif x < 80.0
         w = 5.0 / x
         q = 25.0 / (x * x)
 
@@ -40,8 +60,9 @@ function besselj0(x::Float64)
         a = SQ2OPI(T) * sqrt(xinv) * p
 
         q = (-1/8, 25/384, -1073/5120, 375733/229376, -55384775/2359296)
-        xn = muladd(xinv, evalpoly(x2, q), - PIO4(T))
-        b = cos(x + xn)
+        xn = fma(xinv, evalpoly(x2, q), - PIO4(T))
+        b = cos(x)*cos(xn) - sin(x)*sin(xn)#cos(x + xn)
+        #b = cos(x + xn)
         return a * b
     end
 end
@@ -186,54 +207,4 @@ function besselj(n::Int, x::Float64)
     end
 
     return sign * ans
-end
-
-
-function b2(v, x)
-
-    a = (x/2)^v
-    out = 1 / gamma(v + 1)
-    for k in 1:100
-        out += (-x^2 / 4)^k / factorial(BigFloat(k)) / factorial(v + BigFloat(k))
-    end
-    return out*a
-end
-
-function b(nu, x::T) where T
-    coef =  (x/2)^nu / gamma(nu + 1)
-
-    x2 = (x/2)^2
-
-
-    maxiter = 10000
-    b = one(T)
-    for k in 1:maxiter
-        z = -x2 / (k * (k + nu))
-        b += z*b
-    end
-    return b * coef
-end
-
-
-### for this function dd can be calculated accurately but there is a build up in error for val as we sum 
-## looks like only works for small arguments and smallish orders.... 
-function b3(v, x::T) where T
-    MaxIter = 5000
-    if v < 20
-        coef = (x / 2)^v / factorial(v)
-    else
-        vinv = inv(v)
-        coef = sqrt(vinv / (2 * π)) * MathConstants.e^(v * (log(x / (2 * v)) + 1)) 
-        coef *= evalpoly(vinv, (1, -1/12, 1/288,  139/51840, -571/2488320, -163879/209018880, 5246819/75246796800, 534703531/902961561600))
-    end
-
-    x2 = (x / 2)^2
-    val = zero(T)
-
-    for k in 1:MaxIter
-        val += coef
-        coef = -coef * x2 / (k * (v + k))
-        abs(coef) < eps(T) * abs(val) && break
-    end
-    return val
 end
