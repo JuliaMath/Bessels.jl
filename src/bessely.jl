@@ -23,7 +23,7 @@ function _bessely0_compute(x::Float64)
         w = evalpoly(z, YP_y0(T)) / evalpoly(z, YQ_y0(T))
         w += TWOOPI(T) * log(x) * besselj0(x)
         return w
-    elseif x < 100.0
+    elseif x < 75.0
         w = T(5) / x
         z = w*w
         p = evalpoly(z, PP_y0(T)) / evalpoly(z, PQ_y0(T))
@@ -41,7 +41,13 @@ function _bessely0_compute(x::Float64)
 
         q = (-1/8, 25/384, -1073/5120, 375733/229376, -55384775/2359296)
         xn = muladd(xinv, evalpoly(x2, q), - PIO4(T))
-        b = sin(x + xn)
+
+        # the following computes b = sin(x + xn)
+        # but uses cos(x)*sin(xn) + sin(x)*cos(xn)
+        # to improve accuracy when x >> xn
+        c1 = sincos(x)
+        c2 = sincos(xn)
+        b = c1[2] * c2[1] + c1[1] * c2[2]
         return a * b
     end
 end
@@ -101,7 +107,13 @@ function _bessely1_compute(x::Float64)
 
         q = (3/8, -21/128, 1899/5120, -543483/229376, 8027901/262144)
         xn = muladd(xinv, evalpoly(x2, q), - 3 * PIO4(T))
-        b = sin(x + xn)
+
+        # the following computes b = sin(x + xn)
+        # but uses cos(x)*sin(xn) + sin(x)*cos(xn)
+        # to improve accuracy when x >> xn
+        c1 = sincos(x)
+        c2 = sincos(xn)
+        b = c1[2] * c2[1] + c1[1] * c2[2]
         return a * b
     end
 end

@@ -42,14 +42,15 @@ function besselj0(x::T) where T
         p = (z - DR1) * (z - DR2)
         p = p * evalpoly(z, RP_j0(T)) / evalpoly(z, RQ_j0(T))
         return p
-    elseif x < 80.0
+    elseif x < 75.0
         w = 5.0 / x
         q = 25.0 / (x * x)
 
         p = evalpoly(q, PP_j0(T)) / evalpoly(q, PQ_j0(T))
         q = evalpoly(q, QP_j0(T)) / evalpoly(q, QQ_j0(T))
         xn = x - PIO4(T)
-        p = p * cos(xn) - w * q * sin(xn)
+        sc = sincos(xn)
+        p = p * sc[2] - w * q * sc[1]
         return p * SQ2OPI(T) / sqrt(x)
     else
         xinv = inv(x)
@@ -61,8 +62,13 @@ function besselj0(x::T) where T
 
         q = (-1/8, 25/384, -1073/5120, 375733/229376, -55384775/2359296)
         xn = muladd(xinv, evalpoly(x2, q), - PIO4(T))
-        b = cos(x)*cos(xn) - sin(x)*sin(xn)
-        #b = cos(x + xn)
+
+        # the following computes b = cos(x + xn)
+        # but uses cos(x)*cos(xn) - sin(x)*sin(xn)
+        # to improve accuracy when x >> xn
+        c1 = sincos(x)
+        c2 = sincos(xn)
+        b = c1[2] * c2[2] - c1[1] * c2[1]
         return a * b
     end
 end
@@ -120,7 +126,13 @@ function besselj1(x::Float64)
 
         q = (3/8, -21/128, 1899/5120, -543483/229376, 8027901/262144)
         xn = muladd(xinv, evalpoly(x2, q), - 3 * PIO4(T))
-        b = cos(x + xn)
+
+        # the following computes b = cos(x + xn)
+        # but uses cos(x)*cos(xn) - sin(x)*sin(xn)
+        # to improve accuracy when x >> xn
+        c1 = sincos(x)
+        c2 = sincos(xn)
+        b = c1[2] * c2[2] - c1[1] * c2[1]
         return a * b
     end
 end
