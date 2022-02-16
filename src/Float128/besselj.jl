@@ -1,4 +1,4 @@
-#=function besselj0(x::BigFloat)
+function besselj0(x::BigFloat)
     x = abs(x)
     T = eltype(x)
     if iszero(x)
@@ -67,4 +67,4 @@
         return z
     end
 end
-=#
+

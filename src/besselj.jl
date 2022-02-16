@@ -60,8 +60,8 @@ function besselj0(x::T) where T
         a = SQ2OPI(T) * sqrt(xinv) * p
 
         q = (-1/8, 25/384, -1073/5120, 375733/229376, -55384775/2359296)
-        xn = fma(xinv, evalpoly(x2, q), - PIO4(T))
-        b = cos(x)*cos(xn) - sin(x)*sin(xn)#cos(x + xn)
+        xn = muladd(xinv, evalpoly(x2, q), - PIO4(T))
+        b = cos(x)*cos(xn) - sin(x)*sin(xn)
         #b = cos(x + xn)
         return a * b
     end
