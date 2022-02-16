@@ -8,7 +8,8 @@
 #    where r1 and r2 are zeros of J0
 #    and P3 and Q8 are a 3 and 8 degree polynomial respectively
 #    Polynomial coefficients are from [1] which is based on [2]
-#    See [1] for more details and [2] for coefficients of polynomials
+#    See [1] for more details and [2] for coefficients of polynomials.
+#    For tiny arugments the power series expansion is used.
 #
 #    Branch 2: 5.0 < x < 80.0
 #              besselj0 = sqrt(2/(pi*x))*(cos(x - pi/4)*R7(x) - sin(x - pi/4)*R8(x))
@@ -75,7 +76,6 @@ end
 function besselj0(x::Float32)
     T = Float32
     x = abs(x)
-    iszero(x) && return one(x)
     isinf(x) && return zero(x)
 
     if x <= 2.0f0
@@ -100,7 +100,6 @@ end
 function besselj1(x::Float64)
     T = Float64
     x = abs(x)
-    iszero(x) && return zero(x)
     isinf(x) && return zero(x)
 
     if x <= 5.0
@@ -108,7 +107,7 @@ function besselj1(x::Float64)
         w = evalpoly(z, RP_j1(T)) / evalpoly(z, RQ_j1(T))
         w = w * x * (z - 1.46819706421238932572e1) * (z - 4.92184563216946036703e1)
         return w
-    elseif x < 100.0
+    elseif x < 75.0
         w = 5.0 / x
         z = w * w
         p = evalpoly(z, PP_j1(T)) / evalpoly(z, PQ_j1(T))
@@ -140,7 +139,6 @@ end
 
 function besselj1(x::Float32)
     x = abs(x)
-    iszero(x) && return zero(x)
     isinf(x) && return zero(x)
 
     if x <= 2.0f0
@@ -157,67 +155,4 @@ function besselj1(x::Float32)
         p = p * cos(xn + x)
         return p
     end
-end
-
-function besselj(n::Int, x::Float64)
-    if n < 0
-        n = -n
-        if (n & 1) == 0
-            sign = 1
-        else
-            sign = -1
-        end
-    else
-        sign = 1
-    end
-
-    if x < zero(x)
-        if (n & 1)
-            sign = -sign
-            x = -x
-        end
-    end
-
-    if n == 0
-        return sign * besselj0(x)
-    elseif n == 1
-        return sign * besselj1(x)
-    elseif n == 2
-        return sign * (2.0 * besselj1(x) / x  -  besselj0(x))
-    end
-
-    #if x < MACHEP
-     #   return 0.0
-    #end
-
-    k = 40 # or 53
-    pk = 2 * (n + k)
-    ans = pk
-    xk = x * x
-
-    for _ in 1:k
-        pk -= 2.0
-        ans = pk - (xk / ans)
-    end
-
-    ans = x / ans
-
-    pk = 1.0
-    pkm1 = inv(ans)
-    k = n - 1
-    r = 2 * k
-
-    for _ in 1:k
-        pkm2 = (pkm1 * r  -  pk * x) / x
-	    pk = pkm1
-	    pkm1 = pkm2
-	    r -= 2.0
-    end
-    if abs(pk) > abs(pkm1)
-        ans = besselj1(x) / pk
-    else
-        ans = besselj0(x) / pkm1
-    end
-
-    return sign * ans
 end
