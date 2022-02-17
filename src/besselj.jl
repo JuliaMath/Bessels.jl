@@ -11,13 +11,13 @@
 #    See [1] for more details and [2] for coefficients of polynomials.
 #    For tiny arugments the power series expansion is used.
 #
-#    Branch 2: 5.0 < x < 80.0
+#    Branch 2: 5.0 < x < 75.0
 #              besselj0 = sqrt(2/(pi*x))*(cos(x - pi/4)*R7(x) - sin(x - pi/4)*R8(x))
 #    Hankel's asymptotic expansion is used
 #    where R7 and R8 are rational functions (Pn(x)/Qn(x)) of degree 7 and 8 respectively
 #    See section 4 of [3] for more details and [1] for coefficients of polynomials
 # 
-#   Branch 3: x >= 80.0
+#   Branch 3: x >= 75.0
 #              besselj0 = sqrt(2/(pi*x))*beta(x)*(cos(x - pi/4 - alpha(x))
 #   See modified expansions given in [3]. Exact coefficients are used
 #
@@ -28,7 +28,7 @@
 # [2] Cephes Math Library Release 2.8:  June, 2000 by Stephen L. Moshier
 # [3] Harrison, John. "Fast and accurate Bessel function computation." 
 #     2009 19th IEEE Symposium on Computer Arithmetic. IEEE, 2009.
-
+#
 function besselj0(x::T) where T
     x = abs(x)
     isinf(x) && return zero(x)
@@ -64,12 +64,9 @@ function besselj0(x::T) where T
         q = (-1/8, 25/384, -1073/5120, 375733/229376, -55384775/2359296)
         xn = muladd(xinv, evalpoly(x2, q), - PIO4(T))
 
-        # the following computes b = cos(x + xn)
-        # but uses cos(x)*cos(xn) - sin(x)*sin(xn)
-        # to improve accuracy when x >> xn
-        c1 = sincos(x)
-        c2 = sincos(xn)
-        b = c1[2] * c2[2] - c1[1] * c2[1]
+        # the following computes b = cos(x + xn) more accurately
+        # see src/misc.jl
+        b = mycos(x, xn)
         return a * b
     end
 end
@@ -127,12 +124,9 @@ function besselj1(x::Float64)
         q = (3/8, -21/128, 1899/5120, -543483/229376, 8027901/262144)
         xn = muladd(xinv, evalpoly(x2, q), - 3 * PIO4(T))
 
-        # the following computes b = cos(x + xn)
-        # but uses cos(x)*cos(xn) - sin(x)*sin(xn)
-        # to improve accuracy when x >> xn
-        c1 = sincos(x)
-        c2 = sincos(xn)
-        b = c1[2] * c2[2] - c1[1] * c2[1]
+        # the following computes b = cos(x + xn) more accurately
+        # see src/misc.jl
+        b = mycos(x, xn)
         return a * b
     end
 end

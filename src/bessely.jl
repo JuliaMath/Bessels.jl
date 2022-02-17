@@ -1,9 +1,34 @@
-#=
-Cephes Math Library Release 2.8:  June, 2000
-Copyright 1984, 1987, 2000 by Stephen L. Moshier
-https://github.com/jeremybarnes/cephes/blob/master/bessel/j0.c
-https://github.com/jeremybarnes/cephes/blob/master/bessel/j1.c
-=#
+#    Bessel functions of the second kind of order zero and one
+#                       bessely0, bessely1
+#
+#    Calculation of bessely0 is done in three branches using polynomial approximations
+#
+#    Branch 1: x <= 5.0
+#              bessely0 = R(x^2) + 2*log(x)*besselj0(x) / pi
+#    where r1 and r2 are zeros of J0
+#    and P3 and Q8 are a 3 and 8 degree polynomial respectively
+#    Polynomial coefficients are from [1] which is based on [2]
+#    See [1] for more details and [2] for coefficients of polynomials.
+#    For tiny arugments the power series expansion is used.
+#
+#    Branch 2: 5.0 < x < 75.0
+#              bessely0 = sqrt(2/(pi*x))*(sin(x - pi/4)*R7(x) - cos(x - pi/4)*R8(x))
+#    Hankel's asymptotic expansion is used
+#    where R7 and R8 are rational functions (Pn(x)/Qn(x)) of degree 7 and 8 respectively
+#    See section 4 of [3] for more details and [1] for coefficients of polynomials
+# 
+#   Branch 3: x >= 75.0
+#              bessely0 = sqrt(2/(pi*x))*beta(x)*(sin(x - pi/4 - alpha(x))
+#   See modified expansions given in [3]. Exact coefficients are used.
+#
+#   Calculation of bessely1 is done in a similar way as bessely0.
+#   See [3] for details on similarities.
+# 
+# [1] https://github.com/deepmind/torch-cephes
+# [2] Cephes Math Library Release 2.8:  June, 2000 by Stephen L. Moshier
+# [3] Harrison, John. "Fast and accurate Bessel function computation." 
+#     2009 19th IEEE Symposium on Computer Arithmetic. IEEE, 2009.
+#
 function bessely0(x::T) where T <: Union{Float32, Float64}
     if x <= zero(x)
         if iszero(x)
@@ -43,12 +68,9 @@ function _bessely0_compute(x::Float64)
         q = (-1/8, 25/384, -1073/5120, 375733/229376, -55384775/2359296)
         xn = muladd(xinv, evalpoly(x2, q), - PIO4(T))
 
-        # the following computes b = sin(x + xn)
-        # but uses cos(x)*sin(xn) + sin(x)*cos(xn)
-        # to improve accuracy when x >> xn
-        c1 = sincos(x)
-        c2 = sincos(xn)
-        b = c1[2] * c2[1] + c1[1] * c2[2]
+        # the following computes b = sin(x + xn) more accurately
+        # see src/misc.jl
+        b = mysin(x, xn)
         return a * b
     end
 end
@@ -110,12 +132,9 @@ function _bessely1_compute(x::Float64)
         q = (3/8, -21/128, 1899/5120, -543483/229376, 8027901/262144)
         xn = muladd(xinv, evalpoly(x2, q), - 3 * PIO4(T))
 
-        # the following computes b = sin(x + xn)
-        # but uses cos(x)*sin(xn) + sin(x)*cos(xn)
-        # to improve accuracy when x >> xn
-        c1 = sincos(x)
-        c2 = sincos(xn)
-        b = c1[2] * c2[1] + c1[1] * c2[2]
+        # the following computes b = sin(x + xn) more accurately
+        # see src/misc.jl
+        b = mysin(x, xn)
         return a * b
     end
 end
@@ -124,7 +143,7 @@ function _bessely1_compute(x::Float32)
     T = Float32
     if x <= 2.0f0
         z = x * x
-        YO1 =  4.66539330185668857532f0
+        YO1 = 4.66539330185668857532f0
         w = (z - YO1) * x * evalpoly(z, YP32)
         w += TWOOPI(Float32) * (besselj1(x) * log(x) - inv(x))
         return w

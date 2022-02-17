@@ -36,6 +36,7 @@ include("Float128/constants.jl")
 include("math_constants.jl")
 include("U_polynomials.jl")
 include("recurrence.jl")
+include("misc.jl")
 #include("hankel.jl")
 
 end
