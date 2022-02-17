@@ -8,7 +8,6 @@
 #    where r1 and r2 are zeros of J0
 #    and P3 and Q8 are a 3 and 8 degree polynomial respectively
 #    Polynomial coefficients are from [1] which is based on [2]
-#    See [1] for more details and [2] for coefficients of polynomials.
 #    For tiny arugments the power series expansion is used.
 #
 #    Branch 2: 5.0 < x < 75.0

@@ -15,7 +15,6 @@ j0_big = besselj0.(big.(x))
 @test j0_big[1] isa BigFloat
 
 # test against SpecialFunctions.jl
-@show maximum(abs.(j0_64 .- j0_SpecialFunctions))
 @test j0_32 ≈ j0_SpecialFunctions
 
 # BigFloat precision only computed to 128 bits
