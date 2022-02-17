@@ -69,7 +69,7 @@ function _bessely0_compute(x::Float64)
 
         # the following computes b = sin(x + xn) more accurately
         # see src/misc.jl
-        b = mysin(x, xn)
+        b = sin_sum(x, xn)
         return a * b
     end
 end
@@ -133,7 +133,7 @@ function _bessely1_compute(x::Float64)
 
         # the following computes b = sin(x + xn) more accurately
         # see src/misc.jl
-        b = mysin(x, xn)
+        b = sin_sum(x, xn)
         return a * b
     end
 end

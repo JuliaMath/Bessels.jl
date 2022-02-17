@@ -1,8 +1,7 @@
 # function to more accurately compute cos(x + xn)
-# when x >> xn
 # see https://github.com/heltonmc/Bessels.jl/pull/13
 # written by @oscardssmith
-function mycos(x, xn)
+function cos_sum(x, xn)
     s = x + xn
     n, r = Base.Math.rem_pio2_kernel(s)
     lo = r.lo - ((s - x) - xn)
@@ -20,7 +19,7 @@ function mycos(x, xn)
     end
 end
 # function to more accurately compute sin(x + xn)
-function mysin(x, xn)
+function sin_sum(x, xn)
     s = x + xn
     n, r = Base.Math.rem_pio2_kernel(s)
     lo = r.lo - ((s - x) - xn)

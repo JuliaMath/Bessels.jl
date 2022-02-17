@@ -65,7 +65,7 @@ function besselj0(x::T) where T
 
         # the following computes b = cos(x + xn) more accurately
         # see src/misc.jl
-        b = mycos(x, xn)
+        b = cos_sum(x, xn)
         return a * b
     end
 end
@@ -125,7 +125,7 @@ function besselj1(x::Float64)
 
         # the following computes b = cos(x + xn) more accurately
         # see src/misc.jl
-        b = mycos(x, xn)
+        b = cos_sum(x, xn)
         return a * b
     end
 end
