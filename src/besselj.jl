@@ -28,7 +28,8 @@
 # [3] Harrison, John. "Fast and accurate Bessel function computation." 
 #     2009 19th IEEE Symposium on Computer Arithmetic. IEEE, 2009.
 #
-function besselj0(x::T) where T
+function besselj0(x::Float64)
+    T = Float64
     x = abs(x)
     isinf(x) && return zero(x)
 
@@ -42,7 +43,7 @@ function besselj0(x::T) where T
         p = (z - DR1) * (z - DR2)
         p = p * evalpoly(z, RP_j0(T)) / evalpoly(z, RQ_j0(T))
         return p
-    elseif x < 75.0
+    elseif x < 25.0
         w = 5.0 / x
         q = 25.0 / (x * x)
 
@@ -52,11 +53,26 @@ function besselj0(x::T) where T
         sc = sincos(xn)
         p = p * sc[2] - w * q * sc[1]
         return p * SQ2OPI(T) / sqrt(x)
+    elseif x < 75.0
+        xinv = inv(x)
+        x2 = xinv * xinv
+        p = (one(T), -9/128, 3675/32768, - 2401245/4194304, 13043905875/2147483648, - 30241281245175/274877906944, 213786613951685775/70368744177664, -1070401384414690453125/9007199254740992, 57673297952355815927071875/9223372036854775808)
+        q = (-1/8, 75/1024, - 59535/262144, 57972915/33554432, - 418854310875/17179869184, 1212400457192925/2199023255552, - 10278202593831046875/562949953421312, 60013837619516978071875/72057594037927936, - 3694483615889146090857721875/73786976294838206464)
+
+        p = evalpoly(x2, p)
+        q = evalpoly(x2, q) * xinv
+
+        pq = (one(T), -1/16, 53/512, -4447/8192, 3066403/524288, -896631415/8388608, 796754802993/268435456, -500528959023471/4294967296)
+        beta = evalpoly(x2, pq)
+
+        alpha = atan(-q/p)
+        
+        return SQ2OPI(T) * sqrt(xinv) * beta * cos_sum(x, - T(pi)/4 - alpha)
     else
         xinv = inv(x)
         x2 = xinv*xinv
 
-        p = (one(T), -1/16, 53/512, -4447/8192, 5066403/524288)
+        p = (one(T), -1/16, 53/512, -4447/8192, 3066403/524288)
         p = evalpoly(x2, p)
         a = SQ2OPI(T) * sqrt(xinv) * p
 
