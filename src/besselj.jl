@@ -10,13 +10,13 @@
 #    Polynomial coefficients are from [1] which is based on [2]
 #    For tiny arugments the power series expansion is used.
 #
-#    Branch 2: 5.0 < x < 75.0
+#    Branch 2: 5.0 < x < 25.0
 #              besselj0 = sqrt(2/(pi*x))*(cos(x - pi/4)*R7(x) - sin(x - pi/4)*R8(x))
 #    Hankel's asymptotic expansion is used
 #    where R7 and R8 are rational functions (Pn(x)/Qn(x)) of degree 7 and 8 respectively
 #    See section 4 of [3] for more details and [1] for coefficients of polynomials
 # 
-#   Branch 3: x >= 75.0
+#   Branch 3: x >= 25.0
 #              besselj0 = sqrt(2/(pi*x))*beta(x)*(cos(x - pi/4 - alpha(x))
 #   See modified expansions given in [3]. Exact coefficients are used
 #
@@ -28,6 +28,12 @@
 # [3] Harrison, John. "Fast and accurate Bessel function computation." 
 #     2009 19th IEEE Symposium on Computer Arithmetic. IEEE, 2009.
 #
+
+"""
+    besselj0(x::T) where T <: Union{Float32, Float64}
+
+Bessel function of the first kind of order zero, ``J_0(x)``.
+"""
 function besselj0(x::Float64)
     T = Float64
     x = abs(x)
@@ -54,12 +60,12 @@ function besselj0(x::Float64)
         p = p * sc[2] - w * q * sc[1]
         return p * SQ2OPI(T) / sqrt(x)
     else
-        if x < 75.0
+        if x < 120.0
             p = (one(T), -1/16, 53/512, -4447/8192, 3066403/524288, -896631415/8388608, 796754802993/268435456, -500528959023471/4294967296)
             q = (-1/8, 25/384, -1073/5120, 375733/229376, -55384775/2359296, 24713030909/46137344, -7780757249041/436207616)
         else
-            p = (one(T), -1/16, 53/512, -4447/8192, 3066403/524288)
-            q = (-1/8, 25/384, -1073/5120, 375733/229376, -55384775/2359296)
+            p = (one(T), -1/16, 53/512, -4447/8192)
+            q = (-1/8, 25/384, -1073/5120, 375733/229376)
         end
         xinv = inv(x)
         x2 = xinv*xinv
@@ -74,8 +80,6 @@ function besselj0(x::Float64)
         return a * b
     end
 end
-
-
 function besselj0(x::Float32)
     T = Float32
     x = abs(x)
@@ -100,6 +104,11 @@ function besselj0(x::Float32)
     end
 end
 
+"""
+    besselj1(x::T) where T <: Union{Float32, Float64}
+
+Bessel function of the first kind of order one, ``J_1(x)``.
+"""
 function besselj1(x::Float64)
     T = Float64
     x = abs(x)
