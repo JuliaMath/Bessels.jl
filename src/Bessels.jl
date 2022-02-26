@@ -2,7 +2,6 @@ module Bessels
 
 export besselj0
 export besselj1
-export besselj
 
 export bessely0
 export bessely1

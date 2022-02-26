@@ -3,7 +3,7 @@
 # written by @oscardssmith
 function cos_sum(x, xn)
     s = x + xn
-    n, r = Base.Math.rem_pio2_kernel(s)
+    n, r = reduce_pi02_med(s)
     lo = r.lo - ((s - x) - xn)
     hi = r.hi + lo
     y = Base.Math.DoubleFloat64(hi, r.hi-hi+lo)
@@ -21,7 +21,7 @@ end
 # function to more accurately compute sin(x + xn)
 function sin_sum(x, xn)
     s = x + xn
-    n, r = Base.Math.rem_pio2_kernel(s)
+    n, r = reduce_pi02_med(s)
     lo = r.lo - ((s - x) - xn)
     hi = r.hi + lo
     y = Base.Math.DoubleFloat64(hi, r.hi-hi+lo)
@@ -35,4 +35,13 @@ function sin_sum(x, xn)
     else
         return -Base.Math.cos_kernel(y)
     end
+end
+@inline function reduce_pi02_med(x::Float64)
+    pio2_1 = 1.57079632673412561417e+00
+
+    fn = round(x*(2/pi))
+    r  = muladd(-fn, pio2_1, x)
+    w  = fn * 6.07710050650619224932e-11
+    y = r-w
+    return unsafe_trunc(Int, fn), Base.Math.DoubleFloat64(y, (r-y)-w)
 end

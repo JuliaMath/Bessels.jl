@@ -10,13 +10,13 @@
 #    Polynomial coefficients are from [1] which is based on [2]
 #    For tiny arugments the power series expansion is used.
 #
-#    Branch 2: 5.0 < x < 75.0
+#    Branch 2: 5.0 < x < 25.0
 #              besselj0 = sqrt(2/(pi*x))*(cos(x - pi/4)*R7(x) - sin(x - pi/4)*R8(x))
 #    Hankel's asymptotic expansion is used
 #    where R7 and R8 are rational functions (Pn(x)/Qn(x)) of degree 7 and 8 respectively
 #    See section 4 of [3] for more details and [1] for coefficients of polynomials
 # 
-#   Branch 3: x >= 75.0
+#   Branch 3: x >= 25.0
 #              besselj0 = sqrt(2/(pi*x))*beta(x)*(cos(x - pi/4 - alpha(x))
 #   See modified expansions given in [3]. Exact coefficients are used
 #
@@ -28,7 +28,14 @@
 # [3] Harrison, John. "Fast and accurate Bessel function computation." 
 #     2009 19th IEEE Symposium on Computer Arithmetic. IEEE, 2009.
 #
-function besselj0(x::T) where T
+
+"""
+    besselj0(x::T) where T <: Union{Float32, Float64}
+
+Bessel function of the first kind of order zero, ``J_0(x)``.
+"""
+function besselj0(x::Float64)
+    T = Float64
     x = abs(x)
     isinf(x) && return zero(x)
 
@@ -42,7 +49,7 @@ function besselj0(x::T) where T
         p = (z - DR1) * (z - DR2)
         p = p * evalpoly(z, RP_j0(T)) / evalpoly(z, RQ_j0(T))
         return p
-    elseif x < 75.0
+    elseif x < 25.0
         w = 5.0 / x
         q = 25.0 / (x * x)
 
@@ -53,14 +60,18 @@ function besselj0(x::T) where T
         p = p * sc[2] - w * q * sc[1]
         return p * SQ2OPI(T) / sqrt(x)
     else
+        if x < 120.0
+            p = (one(T), -1/16, 53/512, -4447/8192, 3066403/524288, -896631415/8388608, 796754802993/268435456, -500528959023471/4294967296)
+            q = (-1/8, 25/384, -1073/5120, 375733/229376, -55384775/2359296, 24713030909/46137344, -7780757249041/436207616)
+        else
+            p = (one(T), -1/16, 53/512, -4447/8192)
+            q = (-1/8, 25/384, -1073/5120, 375733/229376)
+        end
         xinv = inv(x)
         x2 = xinv*xinv
 
-        p = (one(T), -1/16, 53/512, -4447/8192, 5066403/524288)
         p = evalpoly(x2, p)
         a = SQ2OPI(T) * sqrt(xinv) * p
-
-        q = (-1/8, 25/384, -1073/5120, 375733/229376, -55384775/2359296)
         xn = muladd(xinv, evalpoly(x2, q), - PIO4(T))
 
         # the following computes b = cos(x + xn) more accurately
@@ -93,6 +104,11 @@ function besselj0(x::Float32)
     end
 end
 
+"""
+    besselj1(x::T) where T <: Union{Float32, Float64}
+
+Bessel function of the first kind of order one, ``J_1(x)``.
+"""
 function besselj1(x::Float64)
     T = Float64
     x = abs(x)
@@ -103,7 +119,7 @@ function besselj1(x::Float64)
         w = evalpoly(z, RP_j1(T)) / evalpoly(z, RQ_j1(T))
         w = w * x * (z - 1.46819706421238932572e1) * (z - 4.92184563216946036703e1)
         return w
-    elseif x < 75.0
+    elseif x < 25.0
         w = 5.0 / x
         z = w * w
         p = evalpoly(z, PP_j1(T)) / evalpoly(z, PQ_j1(T))
@@ -113,14 +129,18 @@ function besselj1(x::Float64)
         p = p * sc[2] - w * q * sc[1]
         return p * SQ2OPI(T) / sqrt(x)
     else
+        if x < 120.0
+            p = (one(T), 3/16, -99/512, 6597/8192, -4057965/524288, 1113686901/8388608, -951148335159/268435456, 581513783771781/4294967296) 
+            q = (3/8, -21/128, 1899/5120, -543483/229376, 8027901/262144, -30413055339/46137344, 9228545313147/436207616)
+        else
+            p = (one(T), 3/16, -99/512, 6597/8192)
+            q = (3/8, -21/128, 1899/5120, -543483/229376)
+        end
         xinv = inv(x)
         x2 = xinv*xinv
 
-        p = (one(T), 3/16, -99/512, 6597/8192, -4057965/524288)
         p = evalpoly(x2, p)
         a = SQ2OPI(T) * sqrt(xinv) * p
-
-        q = (3/8, -21/128, 1899/5120, -543483/229376, 8027901/262144)
         xn = muladd(xinv, evalpoly(x2, q), - 3 * PIO4(T))
 
         # the following computes b = cos(x + xn) more accurately
@@ -129,7 +149,6 @@ function besselj1(x::Float64)
         return a * b
     end
 end
-
 function besselj1(x::Float32)
     x = abs(x)
     isinf(x) && return zero(x)
