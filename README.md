@@ -45,10 +45,10 @@ We compare the relative [speed](https://github.com/heltonmc/Bessels.jl/blob/mast
 
 | function | `Float32` | `Float64`
 | ------------- | ------------- | ------------- |
-| besselj0  | 1.7x  | 1.8x
-| besselj1  | 1.7x | 1.9x 
-| bessely0  | 1.9x  | 1.8x
-| bessely1  | 1.7x  | 1.7x
+| besselj0  | 1.7x  | 2.9x
+| besselj1  | 1.7x | 2.8x 
+| bessely0  | 1.9x  | 2.5x
+| bessely1  | 1.7x  | 2.7x
 | besseli0  | 26x  | 13.2x
 | besseli1  | 22x  | 13.9x
 | besseli(20, x)  |   5.4x   | 2.1x  |
