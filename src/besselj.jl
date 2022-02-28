@@ -3,33 +3,25 @@
 #
 #    Calculation of besselj0 is done in three branches using polynomial approximations
 #
-#    Branch 1: x <= 5.0
-#              besselj0 = (x^2 - r1^2)*(x^2 - r2^2)*P3(x^2) / Q8(x^2)
-#    where r1 and r2 are zeros of J0
-#    and P3 and Q8 are a 3 and 8 degree polynomial respectively
-#    Polynomial coefficients are from [1] which is based on [2]
-#    For tiny arugments the power series expansion is used.
+#    Branch 1: x <= pi/2
+#              besselj0 is calculated using a 9 term, even minimax polynomial
 #
-#    Branch 2: 5.0 < x < 25.0
-#              besselj0 = sqrt(2/(pi*x))*(cos(x - pi/4)*R7(x) - sin(x - pi/4)*R8(x))
-#    Hankel's asymptotic expansion is used
-#    where R7 and R8 are rational functions (Pn(x)/Qn(x)) of degree 7 and 8 respectively
-#    See section 4 of [3] for more details and [1] for coefficients of polynomials
+#    Branch 1: pi/2 < x < 26.0
+#              besselj0 is calculated by one of 16 different degree 13 minimax polynomials
+#       Each polynomial is an expansion around either a root or extrema of the besselj0.
+#       This ensures accuracy near the roots. Method taken from [2]
 #
-#   Branch 3: x >= 25.0
+#   Branch 2: x >= 26.0
 #              besselj0 = sqrt(2/(pi*x))*beta(x)*(cos(x - pi/4 - alpha(x))
-#   See modified expansions given in [3]. Exact coefficients are used
+#   See modified expansions given in [2]. Exact coefficients are used
 #
 #   Calculation of besselj1 is done in a similar way as besselj0.
-#   See [3] for details on similarities.
+#   See [2] for details on similarities.
 #
 # [1] https://github.com/deepmind/torch-cephes
-# [2] Cephes Math Library Release 2.8:  June, 2000 by Stephen L. Moshier
-# [3] Harrison, John. "Fast and accurate Bessel function computation."
+# [2] Harrison, John. "Fast and accurate Bessel function computation."
 #     2009 19th IEEE Symposium on Computer Arithmetic. IEEE, 2009.
 #
-
-#poly = Float64.(Tuple(ratfn_minimax(x->r(x,pts[i]), ((pts[i][1]-pts[i-1][1])/2, (pts[i][1]-pts[i+1][1])/2), 13, 0)[1]))
 
 const PTS = (( 2.404825557695773 , -1.176691651530894e-16),
            ( 3.8317059702075125, -1.5269184090088067e-16),
