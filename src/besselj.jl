@@ -217,7 +217,7 @@ function besselj1(x::Float64)
     x = abs(x)
     isinf(x) && return zero(x)
 
-    if x <= 5.0
+    if x <= 26.0
         x <= pi/2 && return x*evalpoly(x*x, J1_POLY_PIO2(T))
         n = unsafe_trunc(Int, TWOOPI(T)*x)
         root = @inbounds J1_ROOTS(T)[n]
