@@ -15,17 +15,17 @@
 #    Hankel's asymptotic expansion is used
 #    where R7 and R8 are rational functions (Pn(x)/Qn(x)) of degree 7 and 8 respectively
 #    See section 4 of [3] for more details and [1] for coefficients of polynomials
-# 
+#
 #   Branch 3: x >= 25.0
 #              bessely0 = sqrt(2/(pi*x))*beta(x)*(sin(x - pi/4 - alpha(x))
 #   See modified expansions given in [3]. Exact coefficients are used.
 #
 #   Calculation of bessely1 is done in a similar way as bessely0.
 #   See [3] for details on similarities.
-# 
+#
 # [1] https://github.com/deepmind/torch-cephes
 # [2] Cephes Math Library Release 2.8:  June, 2000 by Stephen L. Moshier
-# [3] Harrison, John. "Fast and accurate Bessel function computation." 
+# [3] Harrison, John. "Fast and accurate Bessel function computation."
 #     2009 19th IEEE Symposium on Computer Arithmetic. IEEE, 2009.
 #
 
@@ -63,19 +63,22 @@ function _bessely0_compute(x::Float64)
         p = p * sc[1] + w * q * sc[2]
         return p * SQ2OPI(T) / sqrt(x)
     else
-        if x < 120.0
-            p = (one(T), -1/16, 53/512, -4447/8192, 3066403/524288, -896631415/8388608, 796754802993/268435456, -500528959023471/4294967296)
-            q = (-1/8, 25/384, -1073/5120, 375733/229376, -55384775/2359296, 24713030909/46137344, -7780757249041/436207616)
-        else
-            p = (one(T), -1/16, 53/512, -4447/8192)
-            q = (-1/8, 25/384, -1073/5120, 375733/229376)
-        end
         xinv = inv(x)
         x2 = xinv*xinv
+        if x < 120.0
+            p1 = (one(T), -1/16, 53/512, -4447/8192, 3066403/524288, -896631415/8388608, 796754802993/268435456, -500528959023471/4294967296)
+            q1 = (-1/8, 25/384, -1073/5120, 375733/229376, -55384775/2359296, 24713030909/46137344, -7780757249041/436207616)
+            p = evalpoly(x2, p1)
+            q = evalpoly(x2, q1)
+        else
+            p2 = (one(T), -1/16, 53/512, -4447/8192)
+            q2 = (-1/8, 25/384, -1073/5120, 375733/229376)
+            p = evalpoly(x2, p2)
+            evalpoly(x2, q2)
+        end
 
-        p = evalpoly(x2, p)
         a = SQ2OPI(T) * sqrt(xinv) * p
-        xn = muladd(xinv, evalpoly(x2, q), - PIO4(T))
+        xn = muladd(xinv, q, - PIO4(T))
 
         # the following computes b = sin(x + xn) more accurately
         # see src/misc.jl
@@ -136,19 +139,22 @@ function _bessely1_compute(x::Float64)
         p = p * sc[1] + w * q * sc[2]
         return p * SQ2OPI(T) / sqrt(x)
     else
-        if x < 120.0
-            p = (one(T), 3/16, -99/512, 6597/8192, -4057965/524288, 1113686901/8388608, -951148335159/268435456, 581513783771781/4294967296) 
-            q = (3/8, -21/128, 1899/5120, -543483/229376, 8027901/262144, -30413055339/46137344, 9228545313147/436207616)
-        else
-            p = (one(T), 3/16, -99/512, 6597/8192)
-            q = (3/8, -21/128, 1899/5120, -543483/229376)
-        end
         xinv = inv(x)
         x2 = xinv*xinv
+        if x < 120.0
+            p1 = (one(T), 3/16, -99/512, 6597/8192, -4057965/524288, 1113686901/8388608, -951148335159/268435456, 581513783771781/4294967296)
+            q1 = (3/8, -21/128, 1899/5120, -543483/229376, 8027901/262144, -30413055339/46137344, 9228545313147/436207616)
+            p = evalpoly(x2, p1)
+            q = evalpoly(x2, q1)
+        else
+            p2 = (one(T), 3/16, -99/512, 6597/8192)
+            q2 = (3/8, -21/128, 1899/5120, -543483/229376)
+            p = evalpoly(x2, q2)
+            q = evalpoly(x2, q2)
+        end
 
-        p = evalpoly(x2, p)
         a = SQ2OPI(T) * sqrt(xinv) * p
-        xn = muladd(xinv, evalpoly(x2, q), - 3 * PIO4(T))
+        xn = muladd(xinv, q, - 3 * PIO4(T))
 
         # the following computes b = sin(x + xn) more accurately
         # see src/misc.jl
