@@ -74,7 +74,7 @@ function _bessely0_compute(x::Float64)
             p2 = (one(T), -1/16, 53/512, -4447/8192)
             q2 = (-1/8, 25/384, -1073/5120, 375733/229376)
             p = evalpoly(x2, p2)
-            evalpoly(x2, q2)
+            q = evalpoly(x2, q2)
         end
 
         a = SQ2OPI(T) * sqrt(xinv) * p
