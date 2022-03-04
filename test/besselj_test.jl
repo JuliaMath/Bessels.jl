@@ -32,6 +32,12 @@ j0_big = besselj0.(big.(x))
 @test besselj0(Inf32) == zero(Float32)
 @test besselj0(Inf64) == zero(Float64)
 
+# test negative inputs
+@test besselj0(-2.0f0) ≈ SpecialFunctions.besselj0(-2.0f0)
+@test besselj0(-2.0) ≈ SpecialFunctions.besselj0(-2.0)
+@test besselj0(-80.0f0) ≈ SpecialFunctions.besselj0(-80.0f0)
+@test besselj0(-80.0) ≈ SpecialFunctions.besselj0(-80.0)
+
 ### Tests for besselj1
 j1_SpecialFunctions = SpecialFunctions.besselj1.(big.(x)) # array to be tested against computed in BigFloats
 @assert j1_SpecialFunctions[1] isa BigFloat               # just double check the higher precision
@@ -57,6 +63,12 @@ j1_32 = besselj1.(Float32.(x))
 # test that Inf inputs go to zero
 @test besselj1(Inf32) == zero(Float32)
 @test besselj1(Inf64) == zero(Float64)
+
+# test negative inputs
+@test besselj1(-2.0f0) ≈ SpecialFunctions.besselj1(-2.0f0)
+@test besselj1(-2.0) ≈ SpecialFunctions.besselj1(-2.0)
+@test besselj1(-80.0f0) ≈ SpecialFunctions.besselj1(-80.0f0)
+@test besselj1(-80.0) ≈ SpecialFunctions.besselj1(-80.0)
 
 ## Tests for besselj 
 # note this is not complete just a simple test
