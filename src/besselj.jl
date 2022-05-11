@@ -87,6 +87,52 @@ function besselj0(x::Float32)
         return p
     end
 end
+function besselj0_Float16(x)
+    T = Float64
+    x = abs(x)
+
+    if x < 4.0f0
+        if x < π/2
+            x2 = x^2 / 4
+            a = 1 - x2 / 16
+            a *= x2 / 9
+            a = 1 - a
+            a *= x2 / 4
+            a = 1 - a
+            a *= x2
+            a = 1 - a
+            return T(a)
+        end
+        n = unsafe_trunc(Int, TWOOPI(T) * x)
+
+        p = (
+            (0.0, -0.5191487554520834, 0.10790399574793225, 0.0566232468374599, -0.008446267761744852, -0.00221810537631505),
+            (-0.4027561188004425, 1.039937688061814e-5, 0.20129222678721104, -0.017598722036221127, -0.012997348638071653, 0.0011417667162768777)
+        )
+
+        root = @inbounds J0_ROOTS(T)[n]
+        r = x - root[1] - root[2]
+        return evalpoly(r, @inbounds p[n])
+    else
+        xinv = inv(x)
+        iszero(xinv) && return zero(T)
+        x2 = xinv * xinv
+        if x < 50.0
+            p2 = (one(T), -1/16, 53/512)
+            q2 = (-1/8, 25/384, -1073/5120)
+            p = evalpoly(x2, p2)
+            q = evalpoly(x2, q2)
+        else
+            p = 1.0
+            q = -0.125
+        end
+
+        a = SQ2OPI(T) * sqrt(xinv) * p
+        xn = muladd(xinv, q, -PIO4(T))
+        b = cos(x + xn)
+        return T(a * b)
+    end
+end
 
 """
     besselj1(x::T) where T <: Union{Float32, Float64}
