@@ -180,7 +180,7 @@ end
 function besselj_small_arguments_orders(v, x::T) where T
     MaxIter = 100
     out = zero(T)
-    a = inv(factorial(v)) * (x/2)^v
+    a = (x/2)^v / factorial(v)
     t2 = (x/2)^2
     for i in 1:MaxIter
         out += a
