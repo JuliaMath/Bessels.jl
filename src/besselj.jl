@@ -176,3 +176,16 @@ function besselj_large_argument(v, x::T) where T
     b = sqrt(2 / T(pi)) / sqrt(αp * x)
     return cos(α)*b
 end
+
+function besselj_small_arguments_orders(v, x::T) where T
+    MaxIter = 100
+    out = zero(T)
+    a = inv(factorial(v)) * (x/2)^v
+    t2 = (x/2)^2
+    for i in 1:MaxIter
+        out += a
+        abs(a) < eps(T) * abs(out) && break
+        a = -a / (v + i) * inv(i) * t2
+    end
+    return out
+end
