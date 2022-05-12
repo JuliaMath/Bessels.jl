@@ -178,14 +178,14 @@ function besselj_large_argument(v, x::T) where T
 end
 
 function besselj_small_arguments_orders(v, x::T) where T
-    MaxIter = 100
+    MaxIter = 200
     out = zero(T)
-    a = (x/2)^v / factorial(v)
+    a = (x/2)^v / gamma(v + one(T))
     t2 = (x/2)^2
-    for i in 1:MaxIter
+    for i in 0:MaxIter
         out += a
-        abs(a) < eps(T) * abs(out) && break
-        a = -a / (v + i) * inv(i) * t2
+        abs(a) < eps(T)*abs(out) && break
+        a = -a / (v + i + one(T)) * inv(i + one(T)) * t2
     end
     return out
 end
