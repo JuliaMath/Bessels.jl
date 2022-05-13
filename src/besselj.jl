@@ -226,11 +226,15 @@ function besselj_debye(v, x)
     T = eltype(x)
     S = promote_type(T, Float64)
     x = S(x)
-    b = sqrt(v^2 - x^2)
-    n = v * log(v/x + sqrt((v/x)^2 - 1)) - b
-    coef = inv(sqrt(2*T(pi))) * exp(-n) / sqrt(b)
-    p = v / sqrt(v^2 - x^2)
-    p2  = v^2/fma(v,v, -x^2)
+    
+    vmx = fma(v,v, -x^2)
+    vdx = v/x
+    b = sqrt(vmx)
+
+    n = v * log(vdx + sqrt(vdx^2 - 1)) - b
+    coef = SQ1O2PI(S) * exp(-n) / sqrt(b)
+    p = v / b
+    p2  = v^2 / vmx
 
     return coef * Uk_poly_Jn(p, v, p2, T)
 end
