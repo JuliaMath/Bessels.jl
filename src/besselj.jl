@@ -220,3 +220,16 @@ function log_besselj_small_arguments_orders(v, x::T) where T
     logout = -loggamma(v + 1) + v * log(x/2) + log(out)
     return logout
 end
+
+# valid when x < v (uniform asymptotic expansions)
+function besselj_debye(v, x)
+    T = eltype(x)
+    S = promote_type(T, Float64)
+    x = S(x)
+    n = v*log(v/x + sqrt((v/x)^2 - 1)) - sqrt(v^2 - x^2)
+    coef = inv(sqrt(2*T(pi))) * exp(-n) / (v^2 - x^2)^(1/4)
+    p = v / sqrt(v^2 - x^2)
+    p2  = v^2/fma(max(v,x), max(v,x), -min(v,x)^2)
+
+    return coef * Uk_poly_Jn(p, v, p2, T)
+end
