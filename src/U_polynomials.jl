@@ -26,7 +26,7 @@ function Uk_poly_In(p, v, p2, ::Type{Float32})
     u2 = 1 / 1152 * evalpoly(p2, (81, -462, 385))
     return evalpoly(-p/v, (u0, u1, u2))
  end
- function Uk_poly_Jn(p, v, p2, ::Type{T}) where T <: Float64
+ function Uk_poly_Jn(p, v, p2, ::Type{T}) where T <: Union{Float64, BigFloat}
     u0 = one(T)
     u1 = -1 / 24 * evalpoly(p2, (3, -5))
     u2 = 1 / 1152 * evalpoly(p2, (81, -462, 385))
