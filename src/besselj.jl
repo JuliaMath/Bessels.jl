@@ -159,7 +159,7 @@ Nu must be real.
 function _besselj(nu, x)
     nu == 0 && return besselj0(x)
     nu == 1 && return besselj1(x)
-    if x < 30.0
+    if x < 20.0
         if nu > 60.0
             return log_besselj_small_arguments_orders(nu, x)
         else
@@ -215,9 +215,10 @@ end
 
 # this needs a better way to sum these as it produces large errors
 # only valid in non-oscillatory regime (v>1/2, 0<t<sqrt(v^2 - 0.25))
-# power series has premature underflow for large orders 
+# power series has premature underflow for large orders
+# gives wrong answers for x > 20.0 (might want to fix this)
 function besselj_small_arguments_orders(v, x::T) where T
-    MaxIter = 1_000
+    MaxIter = 1000
     out = zero(T)
     a = (x/2)^v / gamma(v + one(T))
     t2 = (x/2)^2
@@ -230,10 +231,10 @@ function besselj_small_arguments_orders(v, x::T) where T
 end
 
 # this needs a better way to sum these as it produces large errors
-# perhaps use when v is small i believe v also has to be positive for this to work
+# use when v is large and x is small
 # need for bessely 
 function log_besselj_small_arguments_orders(v, x::T) where T
-    MaxIter = 500
+    MaxIter = 1000
     out = zero(T)
     a   = one(T)
     x2 = (x/2)^2
@@ -242,7 +243,6 @@ function log_besselj_small_arguments_orders(v, x::T) where T
         a = -a * x2 * inv((i + one(T)) * (v + i + one(T)))
         (abs(a) < eps(T) * abs(out)) && break
     end
-    @show out
     logout = -loggamma(v + 1) + fma(v, log(x/2), log(out))
     return exp(logout)
 end
@@ -284,6 +284,7 @@ function gamma(x)
     end
 end
 function large_gamma(x)
+    isinf(x) && return x
     T = Float64
     w = inv(x)
     s = (
@@ -294,15 +295,10 @@ function large_gamma(x)
     w = w * evalpoly(w, s) + one(T)
     # lose precision on following block
     y = exp((x)) 
-    if x > 143.01608
-        isinf(x) && return x
-        # avoid overflow
-        v = x^(0.5 * x - 0.25)
-        y = v * (v / y)
-    else
-        y = x^(x - 0.5) / y
-        # (x - 0.5) * log(x) - x
-    end
+    # avoid overflow
+    v = x^(0.5 * x - 0.25)
+    y = v * (v / y)
+    
     return SQ2PI(T) * y * w
 end
 function small_gamma(x)
