@@ -1,5 +1,7 @@
 module Bessels
 
+using SpecialFunctions: loggamma
+
 export besselj0
 export besselj1
 

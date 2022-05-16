@@ -150,6 +150,29 @@ function besselj1(x::Float32)
         return p * s
     end
 end
+"""
+    besselj(nu, x::T) where T <: Union{Float32, Float64}
+
+Bessel function of the first kind of order nu, ``J_{nu}(x)``.
+Nu must be real.
+"""
+function _besselj(nu, x)
+    nu == 0 && return besselj0(x)
+    nu == 1 && return besselj1(x)
+    if x < 30.0
+        if nu > 60.0
+            return log_besselj_small_arguments_orders(nu, x)
+        else
+            return besselj_small_arguments_orders(nu, x)
+        end
+    elseif 2*x < nu
+        return besselj_debye(nu, x)
+    elseif x > 2*nu
+        return besselj_large_argument(nu, x)
+    else
+        return nothing
+    end
+end
 
 function _α_αp_asymptotic(v, x::T) where T
     μ = 4 * v^2
@@ -190,8 +213,9 @@ function bessely_large_argument(v, x::T) where T
     return sin(α)*b
 end
 
-
+# this needs a better way to sum these as it produces large errors
 # only valid in non-oscillatory regime (v>1/2, 0<t<sqrt(v^2 - 0.25))
+# power series has premature underflow for large orders 
 function besselj_small_arguments_orders(v, x::T) where T
     MaxIter = 1_000
     out = zero(T)
@@ -200,25 +224,27 @@ function besselj_small_arguments_orders(v, x::T) where T
     for i in 0:MaxIter
         out += a
         abs(a) < eps(T) * abs(out) && break
-        a = -a * inv((v + i + one(T)) * (i + one(T))) * t2
+        a *= -inv((v + i + one(T)) * (i + one(T))) * t2
     end
     return out
 end
 
+# this needs a better way to sum these as it produces large errors
 # perhaps use when v is small i believe v also has to be positive for this to work
 # need for bessely 
 function log_besselj_small_arguments_orders(v, x::T) where T
-    MaxIter = 200
+    MaxIter = 500
     out = zero(T)
     a   = one(T)
     x2 = (x/2)^2
     for i in 0:MaxIter
         out += a
         a = -a * x2 * inv((i + one(T)) * (v + i + one(T)))
-        #(abs(a) < eps(T) * abs(out)) && break
+        (abs(a) < eps(T) * abs(out)) && break
     end
-    logout = -loggamma(v + 1) + v * log(x/2) + log(out)
-    return logout
+    @show out
+    logout = -loggamma(v + 1) + fma(v, log(x/2), log(out))
+    return exp(logout)
 end
 
 # valid when x < v (uniform asymptotic expansions)
@@ -226,7 +252,7 @@ function besselj_debye(v, x)
     T = eltype(x)
     S = promote_type(T, Float64)
     x = S(x)
-    
+
     vmx = fma(v,v, -x^2)
     vdx = v/x
     b = sqrt(vmx)
@@ -237,4 +263,72 @@ function besselj_debye(v, x)
     p2  = v^2 / vmx
 
     return coef * Uk_poly_Jn(p, v, p2, T)
+end
+
+# For 0.0 <= x < 171.5
+# Mean ULP = 0.55
+# Max ULP = 2.4
+# Adapted from Cephes Mathematical Library (MIT license https://en.smath.com/view/CephesMathLibrary/license) by Stephen L. Moshier
+function gamma(x)
+    if x > 11.5
+        return large_gamma(x)
+    elseif x < 0.0
+        #p = floor(x)
+        #isequal(p, abs(x)) && return throw(DomainError(x, "NaN result for non-NaN input."))
+        # need reflection formula
+        return throw(DomainError(x, "Negative numbers are currently not implemented"))
+    elseif x <= 11.5
+        return small_gamma(x)
+    elseif isnan(x)
+        return x
+    end
+end
+function large_gamma(x)
+    T = Float64
+    w = inv(x)
+    s = (
+        8.333333333333331800504e-2, 3.472222222230075327854e-3, -2.681327161876304418288e-3, -2.294719747873185405699e-4,
+        7.840334842744753003862e-4, 6.989332260623193171870e-5, -5.950237554056330156018e-4, -2.363848809501759061727e-5,
+        7.147391378143610789273e-4
+    )
+    w = w * evalpoly(w, s) + one(T)
+    # lose precision on following block
+    y = exp((x)) 
+    if x > 143.01608
+        isinf(x) && return x
+        # avoid overflow
+        v = x^(0.5 * x - 0.25)
+        y = v * (v / y)
+    else
+        y = x^(x - 0.5) / y
+        # (x - 0.5) * log(x) - x
+    end
+    return SQ2PI(T) * y * w
+end
+function small_gamma(x)
+    T = Float64
+    P = (
+        1.000000000000000000009e0, 8.378004301573126728826e-1, 3.629515436640239168939e-1, 1.113062816019361559013e-1,
+        2.385363243461108252554e-2, 4.092666828394035500949e-3, 4.542931960608009155600e-4, 4.212760487471622013093e-5
+    )
+    Q = (
+        9.999999999999999999908e-1, 4.150160950588455434583e-1, -2.243510905670329164562e-1, -4.633887671244534213831e-2,
+        2.773706565840072979165e-2, -7.955933682494738320586e-4, -1.237799246653152231188e-3, 2.346584059160635244282e-4,
+        -1.397148517476170440917e-5
+    )
+
+    z = one(T)
+    while x >= 3.0
+        x -= one(T)
+        z *= x
+    end
+    while x < 2.0
+        z /= x
+        x += one(T)
+    end
+
+    x -= T(2)
+    p = evalpoly(x, P)
+    q = evalpoly(x, Q)
+    return z * p / q
 end

@@ -76,3 +76,13 @@ j1_32 = besselj1.(Float32.(x))
 
 #@test besselj(3, 1.0) ≈ SpecialFunctions.besselj(3, 1.0)
 #@test besselj(-5, 6.1) ≈ SpecialFunctions.besselj(-5, 6.1)
+
+## test the small value approximation using power series 
+
+nu = [0.5, 1.5, 3.0, 10.0, 22.2, 35.0, 52.1, 100.0, 250.2, 500.0, 1000.0]
+x = [0.001, 1.0, 5.0, 15.0, 29.9]
+
+for v in nu, x in x
+    @show v, x
+    @test Bessels._besselj(v, x) ≈ SpecialFunctions.besselj(v, x)
+end

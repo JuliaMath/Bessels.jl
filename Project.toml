@@ -3,6 +3,9 @@ uuid = "0e736298-9ec6-45e8-9647-e4fc86a2fe38"
 authors = ["Michael Helton <heltonmc@protonmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
+
 [compat]
 julia = "1.5"
 
