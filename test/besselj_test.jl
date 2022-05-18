@@ -96,7 +96,24 @@ end
 vnu = ((60.5, 21.0), (100.5, 45.0), (150.5, 61.0))
 
 for (v, x) in vnu
-    @show v, x
     @test Bessels._besselj(v, x) ≈ SpecialFunctions.besselj(v, x)
+end
+
+## test all numbers and orders for 0<nu<100
+x = 0.1:0.5:100.0
+nu = 2:100
+for v in nu, xx in x
+    @test isapprox(Bessels._besselj(BigFloat(v), BigFloat(xx)), SpecialFunctions.besselj(BigFloat(v), BigFloat(xx)), rtol=1e-15)
+end
+
+# test half orders (SpecialFunctions does not give big float precision)
+# The SpecialFunctions implementation is actually very inaccurate
+# julia> 1 - SpecialFunctions.besselj(10.5, 29.6) / -0.009263478934797420709865
+#-1.63202784619898e-13
+# with value from https://keisan.casio.com/exec/system/1180573474
+x = 0.1:0.5:100.0
+nu = 2.5:1.0:10.5
+for v in nu, xx in x
+    @test isapprox(Bessels._besselj(BigFloat(v), BigFloat(xx)), SpecialFunctions.besselj(v, xx), rtol=1e-12)
 end
 
