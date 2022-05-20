@@ -39,6 +39,7 @@ include("U_polynomials.jl")
 include("recurrence.jl")
 include("misc.jl")
 include("Polynomials/besselj_polys.jl")
+include("asymptotics.jl")
 #include("hankel.jl")
 
 end

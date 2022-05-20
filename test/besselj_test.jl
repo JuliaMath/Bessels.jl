@@ -103,7 +103,8 @@ end
 x = 0.1:0.5:100.0
 nu = 2:100
 for v in nu, xx in x
-    @test isapprox(Bessels._besselj(BigFloat(v), BigFloat(xx)), SpecialFunctions.besselj(BigFloat(v), BigFloat(xx)), rtol=1e-15)
+    @show v, xx
+    @test isapprox(Bessels._besselj(BigFloat(v), BigFloat(xx)), SpecialFunctions.besselj(BigFloat(v), BigFloat(xx)), rtol=1e-12)
 end
 
 # test half orders (SpecialFunctions does not give big float precision)
