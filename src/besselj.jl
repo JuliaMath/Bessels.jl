@@ -159,11 +159,20 @@ Nu must be real.
 function _besselj(nu, x)
     nu == 0 && return besselj0(x)
     nu == 1 && return besselj1(x)
-    if x < 20.0
+    if x < 4.0
         if nu > 60.0
             return log_besselj_small_arguments_orders(nu, x)
         else
             return besselj_small_arguments_orders(nu, x)
+        end
+    elseif x < 20.0
+        if nu > 45
+            return besselj_debye(nu, x)
+        else
+            v = nu + 45
+            jnu = besselj_debye(v, x)
+            jnup1 = besselj_debye(v+1, x)
+            return besselj_down_recurrence(x, jnu, jnup1, v, nu)[2]
         end
     elseif x > 1.85*nu
         return besselj_large_argument(nu, x)
@@ -190,8 +199,18 @@ function _besselj(nu, x)
             jnum1 = besselj_large_argument(v2 -1, x)
             return besselj_up_recurrence(x, jnu, jnum1, v2, nu)[2]
         end
-    elseif 2*x < nu
+    elseif 1.5*x < nu
         return besselj_debye(nu, x)
+    elseif nu < 1000
+        v = nu + ceil(nu*1.3)
+        jnu = besselj_debye(v, x)
+        jnup1 = besselj_debye(v+1, x)
+        return besselj_down_recurrence(x, jnu, jnup1, v, nu)[2]
+    else
+        v = nu + 500
+        jnu = besselj_debye(v, x)
+        jnup1 = besselj_debye(v+1, x)
+        return besselj_down_recurrence(x, jnu, jnup1, v, nu)[2]
     end
 end
 
@@ -204,12 +223,13 @@ function besselj_large_argument(v, x::T) where T
     return cos_sum(α, -xn)*b
 end
 
+# generally can only use for x < 4.0
 # this needs a better way to sum these as it produces large errors
 # only valid in non-oscillatory regime (v>1/2, 0<t<sqrt(v^2 - 0.25))
 # power series has premature underflow for large orders
 # gives wrong answers for x > 20.0 (might want to fix this)
 function besselj_small_arguments_orders(v, x::T) where T
-    MaxIter = 1000
+    MaxIter = 2000
     out = zero(T)
     a = (x/2)^v / gamma(v + one(T))
     t2 = (x/2)^2

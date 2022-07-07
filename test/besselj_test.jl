@@ -100,11 +100,10 @@ for (v, x) in vnu
 end
 
 ## test all numbers and orders for 0<nu<100
-x = 0.1:0.5:100.0
-nu = 2:100
+x = 0.1:3.0:800.0
+nu = 2:4:500
 for v in nu, xx in x
-    @show v, xx
-    @test isapprox(Bessels._besselj(BigFloat(v), BigFloat(xx)), SpecialFunctions.besselj(BigFloat(v), BigFloat(xx)), rtol=1e-12)
+    @test isapprox(Bessels._besselj(BigFloat(v), BigFloat(xx)), SpecialFunctions.besselj(BigFloat(v), BigFloat(xx)), rtol=1e-14)
 end
 
 # test half orders (SpecialFunctions does not give big float precision)
