@@ -174,7 +174,7 @@ function _besselj(nu, x)
             jnup1 = besselj_debye(v+1, x)
             return besselj_down_recurrence(x, jnu, jnup1, v, nu)[2]
         end
-    elseif x > 1.85*nu
+    elseif x > 1.65*nu
         return besselj_large_argument(nu, x)
     end
     if nu <= 100
@@ -269,20 +269,10 @@ function besselj_debye(v, x)
     b = sqrt(vmx)
 
     n = v * log(vdx + sqrt(vdx^2 - 1)) - b
+
     coef = SQ1O2PI(S) * exp(-n) / sqrt(b)
     p = v / b
     p2  = v^2 / vmx
-
-    return coef * Uk_poly_Jn(p, v, p2, T)
-end
-
-function besselj_debye_large_order(v, x)
-    T = eltype(x)
-    α = asech(x/v)
-    coef = exp(v*(tanh(α) - α))
-    coef /= sqrt(2*T(pi)*v*tanh(α))
-    p = coth(α)
-    p2 = p^2
 
     return coef * Uk_poly_Jn(p, v, p2, T)
 end
