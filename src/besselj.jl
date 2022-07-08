@@ -159,55 +159,42 @@ Nu must be real.
 function _besselj(nu, x)
     nu == 0 && return besselj0(x)
     nu == 1 && return besselj1(x)
-    if x < 4.0
-        if nu > 60.0
-            return log_besselj_small_arguments_orders(nu, x)
-        else
-            return besselj_small_arguments_orders(nu, x)
-        end
-    elseif x < 20.0
-        if nu > 45
-            return besselj_debye(nu, x)
-        else
-            v = nu + 45
-            jnu = besselj_debye(v, x)
-            jnup1 = besselj_debye(v+1, x)
-            return besselj_down_recurrence(x, jnu, jnup1, v, nu)[2]
-        end
-    elseif x > 1.65*nu
-        return besselj_large_argument(nu, x)
-    end
-    if nu <= 100
-        if 2.5*x < nu
-            return besselj_debye(nu, x)
-        elseif x <= nu
-            # this can produce inaccurate results when x is close to root of J0 or J1
-            #if isinteger(nu)
-            #    jnu = besselj1(x)
-            #    jnum1 = besselj0(x)
-            #    return besselj_up_recurrence(x, jnu, jnum1, 1.0, nu)[2]
-            #else
-                v = nu + ceil(nu*1.3)
-                jnu = besselj_debye(v, x)
-                jnup1 = besselj_debye(v+1, x)
-                return besselj_down_recurrence(x, jnu, jnup1, v, nu)[2]
-            #end
-        else
-            v = floor(nu - x/3)
-            v2 = nu - v
-            jnu = besselj_large_argument(v2, x)
-            jnum1 = besselj_large_argument(v2 -1, x)
-            return besselj_up_recurrence(x, jnu, jnum1, v2, nu)[2]
-        end
-    elseif 1.5*x < nu
-        return besselj_debye(nu, x)
-    elseif nu < 1000
-        v = nu + ceil(nu*1.3)
+
+    x < 4.0 && return besselj_small_arguments_orders(nu, x)
+
+    large_arg_cutoff = 1.65*nu
+    (x > large_arg_cutoff && x > 20.0) && return besselj_large_argument(nu, x)
+
+
+    debye_cutoff = 2.0 + 1.00035*x + (302.681*x)^(1/3)
+    nu > debye_cutoff && return besselj_debye(nu, x)
+
+    if nu >= x
+        nu_shift = ceil(7.0 + 1.00033*x + (1427.61*x)^(1/3))
+        v = nu + nu_shift
         jnu = besselj_debye(v, x)
         jnup1 = besselj_debye(v+1, x)
         return besselj_down_recurrence(x, jnu, jnup1, v, nu)[2]
+    end
+
+    # at this point x > nu and  x < nu * 1.65
+    # in this region forward recurrence is stable
+    # we must decide if we should do backward recurrence if we are closer to debye accuracy
+    # or if we should do forward recurrence if we are closer to large argument expansion
+    debye_cutoff = 5.0 + 1.00033*x + (1427.61*x)^(1/3)
+
+    debye_diff = debye_cutoff - nu
+    large_arg_diff = nu - x / 2.0
+
+    if (debye_diff > large_arg_diff && x > 20.0)
+        nu_shift = ceil(large_arg_diff)
+        v2 = nu - nu_shift
+        jnu = besselj_large_argument(v2, x)
+        jnum1 = besselj_large_argument(v2 - 1, x)
+        return besselj_up_recurrence(x, jnu, jnum1, v2, nu)[2]
     else
-        v = nu + 500
+        nu_shift = ceil(debye_diff)
+        v = nu + nu_shift
         jnu = besselj_debye(v, x)
         jnup1 = besselj_debye(v+1, x)
         return besselj_down_recurrence(x, jnu, jnup1, v, nu)[2]
@@ -227,8 +214,9 @@ end
 # this needs a better way to sum these as it produces large errors
 # only valid in non-oscillatory regime (v>1/2, 0<t<sqrt(v^2 - 0.25))
 # power series has premature underflow for large orders
-# gives wrong answers for x > 20.0 (might want to fix this)
 function besselj_small_arguments_orders(v, x::T) where T
+    v > 60 && return log_besselj_small_arguments_orders(v, x)
+
     MaxIter = 2000
     out = zero(T)
     a = (x/2)^v / gamma(v + one(T))
@@ -245,7 +233,7 @@ end
 # use when v is large and x is small
 # need for bessely 
 function log_besselj_small_arguments_orders(v, x::T) where T
-    MaxIter = 1000
+    MaxIter = 2000
     out = zero(T)
     a = one(T)
     x2 = (x/2)^2
