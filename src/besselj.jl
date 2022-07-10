@@ -203,11 +203,17 @@ end
 
 # for moderate size arguments of x and v this has relative errors ~9e-15
 # for large arguments relative errors ~1e-13
-function besselj_large_argument(v, x::T) where T
+function besselj_large_argument(v, x::T) where T <: Float64
     α, αp = _α_αp_asymptotic(v, x)
     xn = fma(v, PIO2(T), PIO4(T))
     b = SQ2OPI(T) / sqrt(αp * x)
     return cos_sum(α, -xn)*b
+end
+function besselj_large_argument(v, x::T) where T <: Float32
+    α, αp = _α_αp_asymptotic(v, x)
+    xn = fma(v, PIO2(T), PIO4(T))
+    b = SQ2OPI(T) / sqrt(αp * x)
+    return cos(Float64(α) - Float64(xn))*b
 end
 
 # generally can only use for x < 4.0
