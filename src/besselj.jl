@@ -170,7 +170,7 @@ function _besselj(nu, x)
     nu > debye_cutoff && return besselj_debye(nu, x)
 
     if nu >= x
-        nu_shift = ceil(Int, 7.2 + 1.00033*x + (1427.61*x)^(1/3) - nu)
+        nu_shift = ceil(Int, 5.2 + 1.00033*x + (1427.61*x)^(1/3) - nu)
         v = nu + nu_shift
         arr = range(v, stop = nu, length = nu_shift + 1)
         jnu = besselj_debye(v, x)
@@ -267,7 +267,7 @@ function besselj_debye(v, x)
     p = v / vs
     p2  = v^2 / vmx
 
-    return coef * Uk_poly_Jn(p, v, p2, T)
+    return coef * Uk_poly_Jn(p, v, p2, x, T)
 end
 
 # For 0.0 <= x < 171.5
