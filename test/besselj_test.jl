@@ -104,3 +104,10 @@ for v in nu, xx in x
     xx *= v
     @test isapprox(Bessels._besselj(v, xx), SpecialFunctions.besselj(v, xx), rtol=5e-11)
 end
+
+## test large arguments
+@test isapprox(Bessels._besselj(10.0, 150.0), SpecialFunctions.besselj(10.0, 150.0), rtol=1e-12)
+
+# test BigFloat for single point
+@test isapprox(Bessels._besselj(big"2000", big"1500.0"), SpecialFunctions.besselj(big"2000", big"1500"), rtol=5e-20)
+@test isapprox(Bessels._besselj(big"20", big"1500.0"), SpecialFunctions.besselj(big"20", big"1500"), rtol=5e-20)
