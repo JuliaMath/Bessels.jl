@@ -170,11 +170,12 @@ function _besselj(nu, x)
     nu > debye_cutoff && return besselj_debye(nu, x)
 
     if nu >= x
-        nu_shift = ceil(7.0 + 1.00033*x + (1427.61*x)^(1/3))
+        nu_shift = ceil(Int, 7.2 + 1.00033*x + (1427.61*x)^(1/3) - nu)
         v = nu + nu_shift
+        arr = range(v, stop = nu, length = nu_shift + 1)
         jnu = besselj_debye(v, x)
         jnup1 = besselj_debye(v+1, x)
-        return besselj_down_recurrence(x, jnu, jnup1, v, nu)[2]
+        return besselj_down_recurrence(x, jnu, jnup1, arr)[2]
     end
 
     # at this point x > nu and  x < nu * 1.65
@@ -193,11 +194,12 @@ function _besselj(nu, x)
         jnum1 = besselj_large_argument(v2 - 1, x)
         return besselj_up_recurrence(x, jnu, jnum1, v2, nu)[2]
     else
-        nu_shift = ceil(debye_diff)
+        nu_shift = ceil(Int, debye_diff)
         v = nu + nu_shift
+        arr = range(v, stop = nu, length = nu_shift + 1)
         jnu = besselj_debye(v, x)
         jnup1 = besselj_debye(v+1, x)
-        return besselj_down_recurrence(x, jnu, jnup1, v, nu)[2]
+        return besselj_down_recurrence(x, jnu, jnup1, arr)[2]
     end
 end
 
@@ -257,7 +259,7 @@ function besselj_debye(v, x)
     S = promote_type(T, Float64)
     x = S(x)
 
-    vmx = (v + x) * (v − x)
+    vmx = (v + x) * (v - x)
     vs = sqrt(vmx)
     n  = fma(v, -log(x / (v + vs)), -vs)
 
