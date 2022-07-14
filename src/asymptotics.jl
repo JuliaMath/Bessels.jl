@@ -180,13 +180,6 @@ function _α_αp_poly_30(v, x::T) where T
 end
 
 # the following are the coefficients in exact fractions which can be used for arbitrary precision calculations
-function besselj_large_argument(v, x::BigFloat)
-    T = BigFloat
-    α, αp = _α_αp_asymptotic(v, x)
-    xn = fma(v, PIO2(T), PIO4(T))
-    b = SQ2OPI(T) / sqrt(αp * x)
-    return cos(α - xn)*b
-end
 function _α_αp_asymptotic(v, x::BigFloat)
     T = BigFloat
     xinv = inv(x)^2

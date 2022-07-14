@@ -203,17 +203,16 @@ end
 
 # for moderate size arguments of x and v this has relative errors ~9e-15
 # for large arguments relative errors ~1e-13
-function besselj_large_argument(v, x::T) where T <: Float64
+function besselj_large_argument(v, x::T) where T
     α, αp = _α_αp_asymptotic(v, x)
-    xn = fma(v, PIO2(T), PIO4(T))
     b = SQ2OPI(T) / sqrt(αp * x)
-    return cos_sum(α, -xn)*b
-end
-function besselj_large_argument(v, x::T) where T <: Float32
-    α, αp = _α_αp_asymptotic(v, x)
-    xn = fma(v, PIO2(T), PIO4(T))
-    b = SQ2OPI(T) / sqrt(αp * x)
-    return cos(Float64(α) - Float64(xn))*b
+
+    S, C = sincos(PIO2(T)*v)
+    Sα, Cα = sincos(α)
+    s1 = (C - S) * Cα
+    s2 = (C + S) * Sα
+
+    return SQ2O2(T) * (s1 + s2) * b
 end
 
 # generally can only use for x < 4.0
@@ -258,14 +257,12 @@ function besselj_debye(v, x)
     S = promote_type(T, Float64)
     x = S(x)
 
-    vmx = fma(v,v, -x^2)
-    vdx = v/x
-    b = sqrt(vmx)
+    vmx = (v + x) * (v − x)
+    vs = sqrt(vmx)
+    n  = fma(v, -log(x / (v + vs)), -vs)
 
-    n = v * log(vdx + sqrt(vdx^2 - 1)) - b
-
-    coef = SQ1O2PI(S) * exp(-n) / sqrt(b)
-    p = v / b
+    coef = SQ1O2PI(S) * exp(-n) / sqrt(vs)
+    p = v / vs
     p2  = v^2 / vmx
 
     return coef * Uk_poly_Jn(p, v, p2, T)
