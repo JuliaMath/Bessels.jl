@@ -261,7 +261,7 @@ function besselj_debye(v, x)
 
     vmx = (v + x) * (v - x)
     vs = sqrt(vmx)
-    n  = fma(v, -log(x / (v + vs)), -vs)
+    n  = muladd(v, -log(x / (v + vs)), -vs)
 
     coef = SQ1O2PI(S) * exp(-n) / sqrt(vs)
     p = v / vs
