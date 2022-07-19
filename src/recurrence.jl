@@ -33,3 +33,30 @@ end
     end
     return k2, k0
 end
+
+@inline function besselj_up_recurrence(x, jnu, jnum1, nu_start, nu_end)
+    jnup1 = jnum1
+    x2 = 2 / x
+    for n in nu_start:nu_end
+        a = x2 * n
+        jnup1 = muladd(a, jnu, -jnum1)
+        jnum1 = jnu
+        jnu = jnup1
+    end
+    return jnup1, jnum1
+end
+@inline function besselj_down_recurrence(x, jnu, jnup1, arr)
+    # arr is the index of Bessel orders arr = nu_start:-1:nu_end
+    # but needs special care if nu is a decimal
+    # use  v = nu + nu_shift
+    # arr = range(v, stop = nu, length = nu_shift + 1)
+    jnum1 = jnup1
+    x2 = 2 / x
+    for n in arr
+        a = x2 * n
+        jnum1 = muladd(a, jnu, -jnup1)
+        jnup1 = jnu
+        jnu = jnum1
+    end
+    return jnum1, jnup1
+end

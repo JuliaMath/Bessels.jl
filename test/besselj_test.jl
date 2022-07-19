@@ -71,8 +71,43 @@ j1_32 = besselj1.(Float32.(x))
 @test besselj1(-80.0) ≈ SpecialFunctions.besselj1(-80.0)
 
 ## Tests for besselj 
-# note this is not complete just a simple test
-# this needs work and removing for now
 
-#@test besselj(3, 1.0) ≈ SpecialFunctions.besselj(3, 1.0)
-#@test besselj(-5, 6.1) ≈ SpecialFunctions.besselj(-5, 6.1)
+#=
+Notes
+    - power series shows larger error when nu is large (146) and x is small (1.46)
+    - asymptotic expansion shows larger error when nu is large or x is large
+=#
+
+## test all numbers and orders for 0<nu<100
+x = [0.05, 0.1, 0.2, 0.4, 0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.92, 0.95, 0.97, 0.99, 1.0, 1.01, 1.05]
+nu = [2, 4, 6, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100]
+for v in nu, xx in x
+    xx *= v
+    sf = SpecialFunctions.besselj(BigFloat(v), BigFloat(xx))
+    @test isapprox(Bessels._besselj(v, xx), Float64(sf), rtol=5e-14)
+end
+
+# test half orders (SpecialFunctions does not give big float precision)
+# The SpecialFunctions implementation is only accurate to about 1e-11 - 1e-13
+
+x = [0.05, 0.1, 0.2, 0.4, 0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.92, 0.95, 0.97, 0.99, 1.0, 1.01, 1.05, 1.08, 1.1, 1.2, 1.4, 1.5, 1.6, 1.8, 2.0, 2.5, 3.0]
+nu = [0.1, 0.4567, 0.8123, 1.5, 2.5, 4.1234, 6.8, 12.3, 18.9, 28.2345, 38.1235, 51.23, 72.23435, 80.5, 98.5, 104.2]
+for v in nu, xx in x
+    xx *= v
+    @test isapprox(Bessels._besselj(v, xx), SpecialFunctions.besselj(v, xx), rtol=1e-12)
+end
+
+## test large orders
+nu = [150, 165.2, 200.0, 300.0, 500.0, 1000.0, 5000.2, 10000.0, 50000.0]
+x = [0.2, 0.4, 0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.92,0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99,0.995, 0.999, 1.0, 1.01, 1.05, 1.08, 1.1, 1.2]
+for v in nu, xx in x
+    xx *= v
+    @test isapprox(Bessels._besselj(v, xx), SpecialFunctions.besselj(v, xx), rtol=5e-11)
+end
+
+## test large arguments
+@test isapprox(Bessels._besselj(10.0, 150.0), SpecialFunctions.besselj(10.0, 150.0), rtol=1e-12)
+
+# test BigFloat for single point
+@test isapprox(Bessels._besselj(big"2000", big"1500.0"), SpecialFunctions.besselj(big"2000", big"1500"), rtol=5e-20)
+@test isapprox(Bessels._besselj(big"20", big"1500.0"), SpecialFunctions.besselj(big"20", big"1500"), rtol=5e-20)
