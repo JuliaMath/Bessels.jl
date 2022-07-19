@@ -267,7 +267,7 @@ function besselj_debye(v, x)
     p = v / vs
     p2  = v^2 / vmx
 
-    return coef * Uk_poly_Jn(p, v, p2, x, T)
+    return coef * Uk_poly_Jn(p, v, p2, x)
 end
 
 # For 0.0 <= x < 171.5
