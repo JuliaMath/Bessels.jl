@@ -64,3 +64,7 @@ y1_32 = bessely1.(Float32.(x))
 # test that Inf inputs go to zero
 @test bessely1(Inf32) == zero(Float32)
 @test bessely1(Inf64) == zero(Float64)
+
+
+# briefly test the large argument is working
+@test Bessels.besseljy_large_argument(10.0, 100.0)[2] ≈ SpecialFunctions.bessely(10.0, 100.0)
