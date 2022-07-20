@@ -1,17 +1,17 @@
 function Uk_poly_Jn(p, v, p2, x::T) where T <: Float64
     if v > 5.0 + 1.00033*x + (1427.61*x)^(1/3)
-        return Uk_poly11(p, v, p2)[1]
+        return Uk_poly10(p, v, p2, even_odd_poly_minus)
     else
-        return Uk_poly21(p, v, p2)[1]
+        return Uk_poly20(p, v, p2, even_odd_poly_minus)
     end
 end
 
-Uk_poly_In(p, v, p2, ::Type{Float32}) = Uk_poly3(p, v, p2)[1]
-Uk_poly_In(p, v, p2, ::Type{Float64}) = Uk_poly5(p, v, p2)[1]
-Uk_poly_Kn(p, v, p2, ::Type{Float32}) = Uk_poly3(p, v, p2)[2]
-Uk_poly_Kn(p, v, p2, ::Type{Float64}) = Uk_poly5(p, v, p2)[2]
+Uk_poly_In(p, v, p2, ::Type{Float32}) = Uk_poly3(p, v, p2, even_odd_poly_minus)
+Uk_poly_In(p, v, p2, ::Type{Float64}) = Uk_poly5(p, v, p2, even_odd_poly_minus)
+Uk_poly_Kn(p, v, p2, ::Type{Float32}) = Uk_poly3(p, v, p2, even_odd_poly_add)
+Uk_poly_Kn(p, v, p2, ::Type{Float64}) = Uk_poly5(p, v, p2, even_odd_poly_add)
 
-@inline function split_evalpoly(x, P)
+@inline function even_odd_poly_add(x, P)
     # polynomial P must have an even number of terms
     N = length(P)
     xx = x*x
@@ -23,11 +23,34 @@ Uk_poly_Kn(p, v, p2, ::Type{Float64}) = Uk_poly5(p, v, p2)[2]
         out = muladd(xx, out, P[i])
         out2 = muladd(xx, out2, P[i-1])
     end
-
-    out = x*out
-    return out2 - out, out2 + out
+    if iszero(rem(N, 2)) 
+        return muladd(out, x, out2) 
+    else 
+        out = muladd(xx, out, P[1]) 
+        return muladd(x, out2, out) 
+    end
 end
-function Uk_poly3(p, v, p2)
+@inline function even_odd_poly_minus(x, P)
+    # polynomial P must have an even number of terms
+    N = length(P)
+    xx = x*x
+
+    out = P[end]
+    out2 = P[end-1]
+
+    for i in N-2:-2:2
+        out = muladd(xx, out, P[i])
+        out2 = muladd(xx, out2, P[i-1])
+    end
+    if iszero(rem(N, 2)) 
+        return muladd(-out, x, out2) 
+    else 
+        out = muladd(xx, out, P[1]) 
+        return muladd(x, -out2, out) 
+    end
+end
+
+function Uk_poly3(p, v, p2, even_odd_poly)
     u0 = 1.0
     u1 = evalpoly(p2, (0.125, -0.20833333333333334))
     u2 = evalpoly(p2, (0.0703125, -0.4010416666666667, 0.3342013888888889))
@@ -35,9 +58,9 @@ function Uk_poly3(p, v, p2)
 
     Poly = (u0, u1, u2, u3)
 
-   return split_evalpoly(-p/v, Poly)
+   return even_odd_poly(-p/v, Poly)
 end
-function Uk_poly5(p, v, p2)
+function Uk_poly5(p, v, p2, even_odd_poly)
     u0 = 1.0
     u1 = evalpoly(p2, (0.125, -0.20833333333333334))
     u2 = evalpoly(p2, (0.0703125, -0.4010416666666667, 0.3342013888888889))
@@ -46,10 +69,10 @@ function Uk_poly5(p, v, p2)
     u5 = evalpoly(p2, (0.22710800170898438, -7.368794359479632, 42.53499874538846, -91.81824154324002, 84.63621767460073, -28.212072558200244))
     
     Poly = (u0, u1, u2, u3, u4, u5)
-    return split_evalpoly(-p/v, Poly)
+    return even_odd_poly(-p/v, Poly)
 end
 
-function Uk_poly11(p, v, p2)
+function Uk_poly10(p, v, p2, even_odd_poly)
     u0 = 1.0
     u1 = evalpoly(p2, (0.125, -0.20833333333333334))
     u2 = evalpoly(p2, (0.0703125, -0.4010416666666667, 0.3342013888888889))
@@ -64,11 +87,10 @@ function Uk_poly11(p, v, p2)
     u11 = evalpoly(p2, (551.3358961220206, -84005.4336030241, 2.2437681779224495e6, -2.4474062725738727e7, 1.420629077975331e8, -4.9588978427503026e8, 1.1068428168230145e9, -1.6210805521083372e9, 1.5535968995705802e9, -9.394623596815784e8, 3.2557307418576574e8, -4.932925366450996e7))
 
     Poly = (u0, u1, u2, u3, u4, u5, u6, u7, u8, u9, u10, u11)
-
-    return split_evalpoly(-p/v, Poly)
+    return even_odd_poly(-p/v, Poly)
 end
 
-function Uk_poly21(p, v, p2)
+function Uk_poly20(p, v, p2, even_odd_poly)
     u0 = 1.0
     u1 = evalpoly(p2, (0.125, -0.20833333333333334))
     u2 = evalpoly(p2, (0.0703125, -0.4010416666666667, 0.3342013888888889))
@@ -91,10 +113,9 @@ function Uk_poly21(p, v, p2)
     u19 = evalpoly(p2, (3.8362551802304335e9, -1.7277040123529995e12, 1.3412416915180639e14, -4.2619355104268985e15, 7.351663610930971e16, -7.921651119323832e17, 5.789887667664653e18, -3.025566598990372e19, 1.1707490535797259e20, -3.434621399768417e20, 7.756704953461136e20, -1.360203777284994e21, 1.8571089321463453e21, -1.9677247077053125e21, 1.6016898573693598e21, -9.824438427689858e20, 4.392792200888712e20, -1.351217503435996e20, 2.5563802960529236e19, -2.242438856186775e18))
     u20 = evalpoly(p2, (3.646840080706556e10, -1.818726203851104e13, 1.5613123930484672e15, -5.48403360388329e16, 1.0461721131134344e18, -1.2483700995047234e19, 1.0126774169536592e20, -5.8917941350694964e20, 2.548961114664972e21, -8.405915817108351e21, 2.1487414815055883e22, -4.302534303482379e22, 6.783661642951883e22, -8.423222750084323e22, 8.19433100543513e22, -6.173206302884415e22, 3.528435843903409e22, -1.4787743528433614e22, 4.285296082829494e21, -7.671943936729004e20, 6.393286613940837e19))
     u21 = evalpoly(p2, (3.6490108188498334e11, -2.0052440123627112e14, 1.894406984252143e16, -7.319501491566134e17, 1.5365025218443373e19, -2.0197335419300872e20, 1.8081594057131945e21, -1.1640246461465369e22, 5.591591380366263e22, -2.0566149136271542e23, 5.8965434619782445e23, -1.3337178907798302e24, 2.3967237744351682e24, -3.430872898515746e24, 3.905264103536985e24, -3.511096528332644e24, 2.461506085403875e24, -1.3170969618092387e24, 5.194289094766812e23, -1.4228394823321413e23, 2.417461500896379e22, -1.91862023880665e21))
-    
-    Poly = (u0, u1, u2, u3, u4, u5, u6, u7, u8, u9, u10, u11, u12, u13, u14, u15, u16,  u17, u18, u19, u20, u21)
 
-    return split_evalpoly(-p/v, Poly)
+    Poly = (u0, u1, u2, u3, u4, u5, u6, u7, u8, u9, u10, u11, u12, u13, u14, u15, u16,  u17, u18, u19, u20, u21)
+    return even_odd_poly(-p/v, Poly)
 end
 
 function Uk_poly_Jn(p, v, p2, x::T) where T <: BigFloat
