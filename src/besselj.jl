@@ -166,7 +166,7 @@ function _besselj(nu, x)
     (x > large_arg_cutoff && x > 20.0) && return besselj_large_argument(nu, x)
 
 
-    debye_cutoff = 2.0 + 1.00035*x + (302.681*x)^(1/3)
+    debye_cutoff = 2.0 + 1.00035*x + cbrt(302.681*x)
     nu > debye_cutoff && return besselj_debye(nu, x)
 
     if nu >= x

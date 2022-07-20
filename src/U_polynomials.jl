@@ -1,5 +1,5 @@
 function Uk_poly_Jn(p, v, p2, x::T) where T <: Float64
-    if v > 5.0 + 1.00033*x + (1427.61*x)^(1/3)
+    if v > 5.0 + 1.00033*x + cbrt(1427.61*x)
         return Uk_poly10(p, v, p2, even_odd_poly_minus)
     else
         return Uk_poly20(p, v, p2, even_odd_poly_minus)
