@@ -188,7 +188,7 @@ function _besselj(nu, x)
     large_arg_diff = nu - x / 2.0
 
     if (debye_diff > large_arg_diff && x > 20.0)
-        nu_shift = ceil(large_arg_diff)
+        nu_shift = ceil(Int, large_arg_diff)
         v2 = nu - nu_shift
         jnu = besselj_large_argument(v2, x)
         jnum1 = besselj_large_argument(v2 - 1, x)
