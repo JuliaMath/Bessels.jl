@@ -163,7 +163,7 @@ function _besselj(nu, x)
     x < 4.0 && return besselj_small_arguments_orders(nu, x)
 
     large_arg_cutoff = 1.65*nu
-    (x > large_arg_cutoff && x > 20.0) && return besselj_large_argument(nu, x)
+    (x > large_arg_cutoff && x > 20.0) && return besseljy_large_argument(nu, x)[1]
 
 
     debye_cutoff = 2.0 + 1.00035*x + (302.681*x)^(1/3)
@@ -190,8 +190,8 @@ function _besselj(nu, x)
     if (debye_diff > large_arg_diff && x > 20.0)
         nu_shift = ceil(large_arg_diff)
         v2 = nu - nu_shift
-        jnu = besselj_large_argument(v2, x)
-        jnum1 = besselj_large_argument(v2 - 1, x)
+        jnu = besseljy_large_argument(v2, x)[1]
+        jnum1 = besseljy_large_argument(v2 - 1, x)[1]
         return besselj_up_recurrence(x, jnu, jnum1, v2, nu)[2]
     else
         nu_shift = ceil(Int, debye_diff)
@@ -201,20 +201,6 @@ function _besselj(nu, x)
         jnup1 = besselj_debye(v+1, x)
         return besselj_down_recurrence(x, jnu, jnup1, arr)[2]
     end
-end
-
-# for moderate size arguments of x and v this has relative errors ~9e-15
-# for large arguments relative errors ~1e-13
-function besselj_large_argument(v, x::T) where T
-    α, αp = _α_αp_asymptotic(v, x)
-    b = SQ2OPI(T) / sqrt(αp * x)
-
-    S, C = sincos(PIO2(T)*v)
-    Sα, Cα = sincos(α)
-    s1 = (C - S) * Cα
-    s2 = (C + S) * Sα
-
-    return SQ2O2(T) * (s1 + s2) * b
 end
 
 # generally can only use for x < 4.0

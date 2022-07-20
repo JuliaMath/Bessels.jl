@@ -1,3 +1,26 @@
+function besseljy_large_argument(v, x::T) where T
+    # gives both (besselj, bessely) for x > 1.6*v
+    α, αp = _α_αp_asymptotic(v, x)
+    b = SQ2OPI(T) / sqrt(αp * x)
+
+    # we need to calculate sin(x - v*pi/2 - pi/4) and cos(x - v*pi/2 - pi/4)
+    # For improved accuracy this is expanded using the formula for sin(x+y+z)
+
+    S, C = sincos(PIO2(T) * v)
+    Sα, Cα = sincos(α)
+
+    CMS = C - S
+    CPS = C + S
+
+    s1 = CMS * Cα
+    s2 = CPS * Sα
+
+    s3 = CMS * Sα
+    s4 = CPS * Cα
+
+    return SQ2O2(T) * (s1 + s2) * b, SQ2O2(T) * (s3 - s4) * b
+end
+
 function _α_αp_asymptotic(v, x::Float64)
     if x > 5*v
         return _α_αp_poly_10(v, x)
