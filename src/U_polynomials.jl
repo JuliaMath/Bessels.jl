@@ -12,13 +12,14 @@ Uk_poly_Kn(p, v, p2, ::Type{Float32}) = Uk_poly3(p, v, p2)[2]
 Uk_poly_Kn(p, v, p2, ::Type{Float64}) = Uk_poly5(p, v, p2)[2]
 
 @inline function split_evalpoly(x, P)
+    # polynomial P must have an even number of terms
     N = length(P)
     xx = x*x
 
     out = P[end]
     out2 = P[end-1]
 
-    for i in N-2:-2:1
+    for i in N-2:-2:2
         out = muladd(xx, out, P[i])
         out2 = muladd(xx, out2, P[i-1])
     end
