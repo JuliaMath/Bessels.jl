@@ -1,5 +1,5 @@
 function Uk_poly_Jn(p, v, p2, x::T) where T <: Float64
-    if v > 5.0 + 1.00033*x + cbrt(1427.61*x)
+    if v > 5.0 + 1.00033*x + Base.Math._approx_cbrt(1427.61*Float64(x))
         return Uk_poly10(p, v, p2, even_odd_poly_minus)
     else
         return Uk_poly20(p, v, p2, even_odd_poly_minus)

@@ -166,11 +166,11 @@ function _besselj(nu, x)
     (x > large_arg_cutoff && x > 20.0) && return besselj_large_argument(nu, x)
 
 
-    debye_cutoff = 2.0 + 1.00035*x + cbrt(302.681*x)
+    debye_cutoff = 2.0 + 1.00035*x + Base.Math._approx_cbrt(302.681*Float64(x))
     nu > debye_cutoff && return besselj_debye(nu, x)
 
     if nu >= x
-        nu_shift = ceil(Int, 5.2 + 1.00033*x + (1427.61*x)^(1/3) - nu)
+        nu_shift = ceil(Int, debye_cutoff - nu)
         v = nu + nu_shift
         arr = range(v, stop = nu, length = nu_shift + 1)
         jnu = besselj_debye(v, x)
@@ -182,7 +182,7 @@ function _besselj(nu, x)
     # in this region forward recurrence is stable
     # we must decide if we should do backward recurrence if we are closer to debye accuracy
     # or if we should do forward recurrence if we are closer to large argument expansion
-    debye_cutoff = 5.0 + 1.00033*x + (1427.61*x)^(1/3)
+    debye_cutoff = 5.0 + 1.00033*x + Base.Math._approx_cbrt(1427.61*Float64(x))
 
     debye_diff = debye_cutoff - nu
     large_arg_diff = nu - x / 2.0
