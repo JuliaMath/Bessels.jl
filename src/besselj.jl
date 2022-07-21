@@ -166,15 +166,15 @@ function _besselj(nu, x)
     (x > large_arg_cutoff && x > 20.0) && return besselj_large_argument(nu, x)
 
 
-    debye_cutoff = 2.0 + 1.00035*x + (302.681*x)^(1/3)
-    nu > debye_cutoff && return besselj_debye(nu, x)
+    debye_cutoff = 2.0 + 1.00035*x + Base.Math._approx_cbrt(302.681*Float64(x))
+    nu > debye_cutoff && return besseljy_debye(nu, x)[1]
 
     if nu >= x
-        nu_shift = ceil(Int, 5.2 + 1.00033*x + (1427.61*x)^(1/3) - nu)
+        nu_shift = ceil(Int, debye_cutoff - nu)
         v = nu + nu_shift
         arr = range(v, stop = nu, length = nu_shift + 1)
-        jnu = besselj_debye(v, x)
-        jnup1 = besselj_debye(v+1, x)
+        jnu = besseljy_debye(v, x)[1]
+        jnup1 = besseljy_debye(v+1, x)[1]
         return besselj_down_recurrence(x, jnu, jnup1, arr)[2]
     end
 
@@ -182,13 +182,13 @@ function _besselj(nu, x)
     # in this region forward recurrence is stable
     # we must decide if we should do backward recurrence if we are closer to debye accuracy
     # or if we should do forward recurrence if we are closer to large argument expansion
-    debye_cutoff = 5.0 + 1.00033*x + (1427.61*x)^(1/3)
+    debye_cutoff = 5.0 + 1.00033*x + Base.Math._approx_cbrt(1427.61*Float64(x))
 
     debye_diff = debye_cutoff - nu
     large_arg_diff = nu - x / 2.0
 
     if (debye_diff > large_arg_diff && x > 20.0)
-        nu_shift = ceil(large_arg_diff)
+        nu_shift = ceil(Int, large_arg_diff)
         v2 = nu - nu_shift
         jnu = besselj_large_argument(v2, x)
         jnum1 = besselj_large_argument(v2 - 1, x)
@@ -197,8 +197,8 @@ function _besselj(nu, x)
         nu_shift = ceil(Int, debye_diff)
         v = nu + nu_shift
         arr = range(v, stop = nu, length = nu_shift + 1)
-        jnu = besselj_debye(v, x)
-        jnup1 = besselj_debye(v+1, x)
+        jnu = besseljy_debye(v, x)[1]
+        jnup1 = besseljy_debye(v+1, x)[1]
         return besselj_down_recurrence(x, jnu, jnup1, arr)[2]
     end
 end
@@ -251,23 +251,6 @@ function log_besselj_small_arguments_orders(v, x::T) where T
     end
     logout = -loggamma(v + 1) + fma(v, log(x/2), log(out))
     return exp(logout)
-end
-
-# valid when x < v (uniform asymptotic expansions)
-function besselj_debye(v, x)
-    T = eltype(x)
-    S = promote_type(T, Float64)
-    x = S(x)
-
-    vmx = (v + x) * (v - x)
-    vs = sqrt(vmx)
-    n  = muladd(v, -log(x / (v + vs)), -vs)
-
-    coef = SQ1O2PI(S) * exp(-n) / sqrt(vs)
-    p = v / vs
-    p2  = v^2 / vmx
-
-    return coef * Uk_poly_Jn(p, v, p2, x, T)
 end
 
 # For 0.0 <= x < 171.5
