@@ -213,6 +213,25 @@ function split_phase_evalpoly(x, P)
         return  muladd(x, α2, α1), muladd(x, αp2, αp1)
     end
 end
+@inline function even_odd_poly_add(x, P)
+    # polynomial P must have an even number of terms
+    N = length(P)
+    xx = x*x
+
+    out = P[end]
+    out2 = P[end-1]
+
+    for i in N-2:-2:2
+        out = muladd(xx, out, P[i])
+        out2 = muladd(xx, out2, P[i-1])
+    end
+    if iszero(rem(N, 2)) 
+        return muladd(out, x, out2) 
+    else 
+        out = muladd(xx, out, P[1]) 
+        return muladd(x, out2, out) 
+    end
+end
 
 # the following are the coefficients in exact fractions which can be used for arbitrary precision calculations
 function _α_αp_asymptotic(v, x::BigFloat)
