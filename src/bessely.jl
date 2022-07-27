@@ -139,27 +139,8 @@ function _bessely1_compute(x::Float64)
         p = p * sc[1] + w * q * sc[2]
         return p * SQ2OPI(T) / sqrt(x)
     else
-        xinv = inv(x)
-        x2 = xinv*xinv
-        if x < 120.0
-            p1 = (one(T), 3/16, -99/512, 6597/8192, -4057965/524288, 1113686901/8388608, -951148335159/268435456, 581513783771781/4294967296)
-            q1 = (3/8, -21/128, 1899/5120, -543483/229376, 8027901/262144, -30413055339/46137344, 9228545313147/436207616)
-            p = evalpoly(x2, p1)
-            q = evalpoly(x2, q1)
-        else
-            p2 = (one(T), 3/16, -99/512, 6597/8192)
-            q2 = (3/8, -21/128, 1899/5120, -543483/229376)
-            p = evalpoly(x2, q2)
-            q = evalpoly(x2, q2)
-        end
-
-        a = SQ2OPI(T) * sqrt(xinv) * p
-        xn = muladd(xinv, q, - 3 * PIO4(T))
-
-        # the following computes b = sin(x + xn) more accurately
-        # see src/misc.jl
-        b = sin_sum(x, xn)
-        return a * b
+      
+        return besseljy_large_argument(1.0, x)[2]
     end
 end
 function _bessely1_compute(x::Float32)
@@ -211,18 +192,14 @@ function _bessely(nu, x::T) where T
     # if x > besseljy_large_argument_min (see src/asymptotics.jl) we can shift nu down and use large arg. expansion for start values
     # if x <= 20.0 we can shift nu such that nu < -1.5*x where the power series can be used 
     if x > besseljy_large_argument_min(T)
-        large_arg_diff = ceil(Int, nu - x * T(0.625))
+        large_arg_diff = ceil(Int, nu - x * T(0.6))
         v2 = nu - large_arg_diff
         ynu = besseljy_large_argument(v2, x)[2]
         ynum1 = besseljy_large_argument(v2 - 1, x)[2]
         return besselj_up_recurrence(x, ynu, ynum1, v2, nu)[2]
     else
         # this method is very inefficient so ideally we could swap out a different algorithm here in the future
-        nu_shift = ceil(Int, nu + 1.6*x + 10)
-        v2 = nu - nu_shift
-        ynu = bessely_power_series(v2, x)
-        ynum1 = bessely_power_series(v2 - 1, x)
-        return besselj_up_recurrence(x, ynu, ynum1, v2, nu)[2]
+        return bessely_intermediate_args(nu, x)
     end
 end
 
@@ -245,7 +222,6 @@ function bessely_power_series(v, x::T) where T
     b = inv(a)
     a /= gamma(v + one(T))
     b /= gamma(-v + one(T))
-    @show a,b
     t2 = (x/2)^2
     for i in 0:3000
         out += a
@@ -292,3 +268,82 @@ function log_bessely_power_series(v, x::T) where T
     return -exp(tmp)
 end
 =#
+function bessely_hyper(v, x)
+    spi, cpi = sincospi(v)
+    a = besselj_hyper(v,x)*cpi - besselj_hyper(-v,x)
+    return a/sinpi(v)
+end
+
+function bessely_intermediate_args(v, x)
+    v < 2 && return bessely_hyper(v, x)
+
+    v_floor = v - floor(v) 
+    Jnv = besselj_hyper(-v_floor,x)
+    Jnvm1 = Jnv / steed_j(-v_floor, x)
+
+    Jv = besselj_hyper(v_floor + 1,x)
+    Jvm1 = Jv / steed_j(v_floor + 1, x)
+
+    spi, cpi = sincospi(v_floor + 1)
+    Yv = (Jv*cpi - Jnvm1) / spi
+
+    spi, cpi = sincospi(v_floor)
+    Yvm1 = (Jvm1*cpi - Jnv) / spi
+
+    return  besselj_up_recurrence(x, Yv, Yvm1, v_floor+1, v)[2]
+end
+
+function steed_j(n, x::T) where T
+    MaxIter = 1000
+    xinv = inv(x)
+    xinv2 = 2 * xinv
+    d = x / (n + n)
+    a = d
+    h = a
+    b = muladd(2, n, 2) * xinv
+    for _ in 1:MaxIter
+        d = inv(b - d)
+        a *= muladd(b, d, -1)
+        h = h + a
+        b = b + xinv2
+        abs(a / h) <= eps(T) && break
+    end
+    return h
+end
+
+function besselj_hyper(v, x)
+       a = drummond0F1(v + 1, -x^2/4)
+       return (x/2)^v / gamma(v+1) * a
+end
+
+function drummond0F1(β::T1, z::T2; kmax::Int = 10_000) where {T1, T2}
+    T = promote_type(T1, T2)
+    if norm(z) < eps(real(T))
+        return one(T)
+    end
+    ζ = inv(z)
+    Nlo = β*ζ
+    Dlo = β*ζ
+    Tlo = Nlo/Dlo
+    Nmid = ((β+1)*(2)*ζ - 1)*Nlo + (β+1)*(2)*ζ
+    Dmid = ((β+1)*(2)*ζ - 1)*Dlo
+    Tmid = Nmid/Dmid
+    Nhi = ((β+2)*(3)*ζ - 1)*Nmid + (β+4)*ζ*Nlo + (β+4)*ζ
+    Dhi = ((β+2)*(3)*ζ - 1)*Dmid + (β+4)*ζ*Dlo
+    Thi = Nhi/Dhi
+    k = 2
+    Nhi, Nmid, Nlo = ((β+k+1)*(k+2)*ζ-1)*Nhi + k*(β+2k+2)*ζ*Nmid + k*(k-1)*ζ*Nlo + 2ζ, Nhi, Nmid
+    Dhi, Dmid, Dlo = ((β+k+1)*(k+2)*ζ-1)*Dhi + k*(β+2k+2)*ζ*Dmid + k*(k-1)*ζ*Dlo, Dhi, Dmid
+    Thi, Tmid, Tlo = Nhi/Dhi, Thi, Tmid
+    k += 1
+    while k < kmax && errcheck(Tmid, Thi, eps(real(T)))
+        Nhi, Nmid, Nlo = ((β+k+1)*(k+2)*ζ-1)*Nhi + k*(β+2k+2)*ζ*Nmid + k*(k-1)*ζ*Nlo, Nhi, Nmid
+        Dhi, Dmid, Dlo = ((β+k+1)*(k+2)*ζ-1)*Dhi + k*(β+2k+2)*ζ*Dmid + k*(k-1)*ζ*Dlo, Dhi, Dmid
+        Thi, Tmid, Tlo = Nhi/Dhi, Thi, Tmid
+        k += 1
+    end
+    return isfinite(Thi) ? Thi : isfinite(Tmid) ? Tmid : Tlo
+end
+@inline errcheck(x, y, tol) = isfinite(x) && isfinite(y) && (norm2(x-y) > max(norm2(x), norm2(y))*tol)
+@inline norm2(x) = norm(x)
+

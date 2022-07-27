@@ -1,6 +1,7 @@
 module Bessels
 
 using SpecialFunctions: loggamma
+using LinearAlgebra: norm
 
 export besselj0
 export besselj1
