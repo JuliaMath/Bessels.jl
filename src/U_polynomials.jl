@@ -26,6 +26,31 @@ function besseljy_debye(v, x)
 
     return coef_Jn * Uk_Jn, coef_Yn * Uk_Yn
 end
+# valid when v < x (uniform asymptotic expansions)
+"""
+    hankel_debye(nu, x::T)
+
+Debey's asymptotic expansion for large order valid when v < x.
+Return the Hankel function H(nu, x) = J(nu, x) + Y(nu, x)*im
+"""
+function hankel_debye(v, x::T) where T
+    S = promote_type(T, Float64)
+    x = S(x)
+
+    vmx = abs((v + x) * (x - v))
+    vs = sqrt(vmx)
+    sqvs = inv(sqrt(vs))
+    n  = vs - v*acos(v/x) - PIO4(S)
+
+    coef_Yn = SQ2OPI(S) * exp(n*im) * sqvs
+
+    p = v / vs
+    p2  = v^2 / vmx
+
+    _, Uk_Yn = Uk_poly_Jn(p*im, v, -p2, x)
+
+    return coef_Yn * Uk_Yn
+end
 
 function Uk_poly_Jn(p, v, p2, x::T) where T <: Float64
     if v > 5.0 + 1.00033*x + Base.Math._approx_cbrt(1427.61*x)

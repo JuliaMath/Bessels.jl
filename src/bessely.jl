@@ -222,7 +222,6 @@ function _bessely(nu, x::T) where T
         v2 = nu - nu_shift
         ynu = bessely_power_series(v2, x)
         ynum1 = bessely_power_series(v2 - 1, x)
-        @show nu_shift, v2, ynu, ynum1
         return besselj_up_recurrence(x, ynu, ynum1, v2, nu)[2]
     end
 end
