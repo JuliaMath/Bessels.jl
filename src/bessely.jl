@@ -180,3 +180,116 @@ function _bessely1_compute(x::Float32)
         return p
     end
 end
+
+"""
+    bessely(nu, x::T) where T <: Union{Float32, Float64}
+
+Bessel function of the first kind of order nu, ``J_{nu}(x)``.
+Nu must be real.
+"""
+function _bessely(nu, x::T) where T
+    nu == 0 && return bessely0(x)
+    nu == 1 && return bessely1(x)
+
+    # large argument branch see src/asymptotics.jl
+    besseljy_large_argument_cutoff(nu, x) && return besseljy_large_argument(nu, x)[2]
+
+    # x < nu branch see src/U_polynomials.jl
+    besseljy_debye_cutoff(nu, x) && return besseljy_debye(nu, x)[2]
+
+    # use forward recurrence if nu is an integer up until it becomes inefficient 
+    if (isinteger(nu) && nu < 250)
+        ynum1 = bessely0(x)
+        ynu = bessely1(x)
+        return besselj_up_recurrence(x, ynu, ynum1, 1, nu)[2]
+    end
+
+    # use power series for small x and for when nu > x
+    bessely_series_cutoff(nu, x) && return bessely_power_series(nu, x)
+
+    # use forward recurrence by shifting nu down
+    # if x > besseljy_large_argument_min (see src/asymptotics.jl) we can shift nu down and use large arg. expansion for start values
+    # if x <= 20.0 we can shift nu such that nu < -1.5*x where the power series can be used 
+    if x > besseljy_large_argument_min(T)
+        large_arg_diff = ceil(Int, nu - x * T(0.625))
+        v2 = nu - large_arg_diff
+        ynu = besseljy_large_argument(v2, x)[2]
+        ynum1 = besseljy_large_argument(v2 - 1, x)[2]
+        return besselj_up_recurrence(x, ynu, ynum1, v2, nu)[2]
+    else
+        # this method is very inefficient so ideally we could swap out a different algorithm here in the future
+        nu_shift = ceil(Int, nu + 1.6*x + 10)
+        v2 = nu - nu_shift
+        ynu = bessely_power_series(v2, x)
+        ynum1 = bessely_power_series(v2 - 1, x)
+        @show nu_shift, v2, ynu, ynum1
+        return besselj_up_recurrence(x, ynu, ynum1, v2, nu)[2]
+    end
+end
+
+
+# Use power series form of J_v(x) to calculate Y_v(x) with
+# Y_v(x) = (J_v(x)cos(v*π) - J_{-v}(x)) / sin(v*π),    v ~= 0, 1, 2, ...
+# combined to calculate both J_v and J_{-v} in the same loop
+# J_{-v} always converges slower so just check that convergence
+# Combining the loop was faster than using two separate loops
+# 
+# this seems to work well for small arguments x < 7.0 for rel. error ~1e-14
+# this also works well for nu > 1.35x - 4.5
+# for nu > 25 more cancellation occurs near integer values
+bessely_series_cutoff(v, x) = (x < 7.0) || v > 1.35*x - 4.5
+function bessely_power_series(v, x::T) where T
+    MaxIter = 3000
+    out = zero(T)
+    out2 = zero(T)
+    a = (x/2)^v
+    b = inv(a)
+    a /= gamma(v + one(T))
+    b /= gamma(-v + one(T))
+    @show a,b
+    t2 = (x/2)^2
+    for i in 0:3000
+        out += a
+        out2 += b
+        abs(b) < eps(Float64) * abs(out2) && break
+        a *= -inv((v + i + one(T)) * (i + one(T))) * t2
+        b *= -inv((-v + i + one(T)) * (i + one(T))) * t2
+    end
+    s, c = sincospi(v)
+    return (out*c - out2) / s
+end
+
+#=
+### don't quite have this right
+# probably not needed because we should use debye exapnsion for large nu
+function log_bessely_power_series(v, x::T) where T
+    MaxIter = 2000
+    out = zero(T)
+    out2 = zero(T)
+    a = one(T)
+    b = inv(gamma(1-v))
+    x2 = (x/2)^2
+    for i in 0:MaxIter
+        out += a
+        out2 += b
+        a *= -x2 * inv((i + one(T)) * (v + i + one(T)))
+        b *= -x2 * inv((i + one(T)) * (-v + i + one(T)))
+        (abs(b) < eps(T) * abs(out2)) && break
+    end
+    logout = -loggamma(v + 1) + fma(v, log(x/2), log(out))
+    sign = 1
+
+    if out2 <= zero(T)
+        sign = -1
+        out2 = -out2
+    end
+    logout2 = -v * log(x/2) + log(out2)
+
+    spi, cpi = sincospi(v)
+   
+    #tmp = logout2 + log(abs(sign*(inv(spi)) - exp(logout - logout2) * cpi / spi))
+    tmp = logout + log((-cpi + exp(logout2) - logout) / spi)
+
+    return -exp(tmp)
+end
+=#

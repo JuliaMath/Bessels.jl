@@ -1,3 +1,4 @@
+besseljy_debye_cutoff(nu, x) = nu > 2.0 + 1.00035*x + Base.Math._approx_cbrt(Float64(302.681)*x) && x > 15
 # valid when x < v (uniform asymptotic expansions)
 """
     besseljy_debye(nu, x::T)

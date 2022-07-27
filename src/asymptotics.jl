@@ -1,3 +1,12 @@
+besseljy_large_argument_min(::Type{Float32}) = 15.0f0
+besseljy_large_argument_min(::Type{Float64}) = 20.0
+besseljy_large_argument_min(::Type{T}) where T <: AbstractFloat = 40.0
+
+besseljy_large_argument_cutoff(v, x::Float32) = (x > 1.2f0*v && x > besseljy_large_argument_min(Float32))
+besseljy_large_argument_cutoff(v, x::Float64) = (x > 1.65*v && x > besseljy_large_argument_min(Float64))
+besseljy_large_argument_cutoff(v, x::T) where T = (x > 4*v && x > besseljy_large_argument_min(T))
+
+
 function besseljy_large_argument(v, x::T) where T
     # gives both (besselj, bessely) for x > 1.6*v
     α, αp = _α_αp_asymptotic(v, x)

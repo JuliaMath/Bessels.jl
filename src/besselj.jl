@@ -244,13 +244,17 @@ end
 # Max ULP = 2.4
 # Adapted from Cephes Mathematical Library (MIT license https://en.smath.com/view/CephesMathLibrary/license) by Stephen L. Moshier
 function gamma(x)
+    if x < 0
+        isinteger(x) && throw(DomainError(x, "NaN result for non-NaN input."))
+        xp1 = abs(x) + 1.0
+        return π / sinpi(xp1) / _gamma(xp1)
+    else
+        return _gamma(x)
+    end
+end
+function _gamma(x)
     if x > 11.5
         return large_gamma(x)
-    elseif x < 0.0
-        #p = floor(x)
-        #isequal(p, abs(x)) && return throw(DomainError(x, "NaN result for non-NaN input."))
-        # need reflection formula
-        return throw(DomainError(x, "Negative numbers are currently not implemented"))
     elseif x <= 11.5
         return small_gamma(x)
     elseif isnan(x)
@@ -268,7 +272,7 @@ function large_gamma(x)
     )
     w = w * evalpoly(w, s) + one(T)
     # lose precision on following block
-    y = exp((x)) 
+    y = exp((x))
     # avoid overflow
     v = x^(0.5 * x - 0.25)
     y = v * (v / y)
