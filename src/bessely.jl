@@ -175,8 +175,11 @@ function _bessely(nu, x::T) where T
     # large argument branch see src/asymptotics.jl
     besseljy_large_argument_cutoff(nu, x) && return besseljy_large_argument(nu, x)[2]
 
-    # x < nu branch see src/U_polynomials.jl
+    # x < ~nu branch see src/U_polynomials.jl
     besseljy_debye_cutoff(nu, x) && return besseljy_debye(nu, x)[2]
+
+    # x > ~nu branch see src/U_polynomials.jl on computing Hankel function
+    hankel_debye_cutoff(nu, x) && return imag(hankel_debye(nu, x))
 
     # use forward recurrence if nu is an integer up until it becomes inefficient 
     if (isinteger(nu) && nu < 250)
@@ -188,9 +191,12 @@ function _bessely(nu, x::T) where T
     # use power series for small x and for when nu > x
     bessely_series_cutoff(nu, x) && return bessely_power_series(nu, x)
 
-    # use forward recurrence by shifting nu down
-    # if x > besseljy_large_argument_min (see src/asymptotics.jl) we can shift nu down and use large arg. expansion for start values
-    # if x <= 20.0 we can shift nu such that nu < -1.5*x where the power series can be used 
+    # for x ∈ (6, 19) we use chebyshev approximation and forward recurrence
+    besseljy_chebyshev_cutoff(nu, x) && return bessely_chebyshev(nu, x)
+
+    # at this point x > 19.0 (for Float64) and fairly close to nu
+    # the strategy is to shift nu down and use the debye calculation for the Hankel function then use forward recurrence
+    #=
     if x > besseljy_large_argument_min(T)
         large_arg_diff = ceil(Int, nu - x * T(0.6))
         v2 = nu - large_arg_diff
@@ -199,8 +205,14 @@ function _bessely(nu, x::T) where T
         return besselj_up_recurrence(x, ynu, ynum1, v2, nu)[2]
     else
         # this method is very inefficient so ideally we could swap out a different algorithm here in the future
-        return bessely_intermediate_args(nu, x)
+        return bessely_chebyshev(nu, x)
     end
+    =#
+    nu_shift = floor(nu) - ceil(Int, -4.0657 + 0.9976*x + Base.Math._approx_cbrt(-276.915*x))
+    v2 = nu - maximum((nu_shift, modf(nu)[1] + 1))
+    Y1 = imag(hankel_debye(v2, x))
+    Y0 = imag(hankel_debye(v2 - 1, x))
+    return besselj_up_recurrence(x, Y1, Y0, v2, nu)[2]
 end
 
 
@@ -269,7 +281,8 @@ function log_bessely_power_series(v, x::T) where T
 end
 =#
 
-
+# only implemented for Float64 so far
+besseljy_chebyshev_cutoff(nu, x) = (x <= 19.0 && x >= 6.0)
 function bessely_chebyshev(v, x)
     v_floor, itr = modf(v)
     Y0, Y1 = bessely_chebyshev_low_orders(v_floor, x)
@@ -333,83 +346,3 @@ const bessely_cheb_weights = (
     (4.9388506677207545e-15, -8.11264980108463e-15, 8.15564695267678e-15, -6.6179014247901285e-15, 1.2560443562777774e-15, -1.1626485837362674e-15, -8.428647433288211e-15, 8.040878625052107e-15, 7.604076442794149e-16, -2.509940602859596e-15, 4.433411320740124e-16, 2.4051574424535735e-16, -7.97263854654364e-17, -8.468775456115063e-18, 3.0977204928150507e-18, -2.763609694292828e-18, -4.528057493615123e-18, 8.090667992714159e-18, -5.7670273029389466e-18, 6.935237082901993e-18, 2.3956539089710175e-18, 3.5297683311975285e-18, -2.6680862870119677e-19, -1.124331067925833e-18, -3.969891564639305e-18, 3.4988194829519685e-18, 8.636411459915624e-19, -1.3895984430563314e-18, 1.7657006809049643e-18),
     (-2.058125495426769e-16, 6.08114692374987e-16, -4.430737266654462e-16, 7.070791826861885e-16, -4.496672312473068e-16, 4.992680927678948e-16, -2.0005398723221536e-16, -4.085152288266179e-16, 2.963046065367326e-16, 1.9081397648228198e-17, -6.065778883208153e-17, 1.2267254817829564e-17, 2.5241246780253446e-18, 5.364001077188067e-19, -1.1151793774136653e-18, -2.647497194530543e-19, -9.99558548618923e-19, 1.9545043306813755e-18, 1.0295729550672243e-18, 5.850363951633064e-19, 2.039938658283451e-19, -1.622964422184252e-18, -2.1240860691038883e-18, 2.0835979355758296e-18, -1.5423943263121515e-19, -5.576729517866199e-19, -3.7259501367076117e-20, -1.8905808347578018e-19, -1.4869058365515489e-18)
 )
-
-function bessely_hyper(v, x)
-    spi, cpi = sincospi(v)
-    a = besselj_hyper(v,x)*cpi - besselj_hyper(-v,x)
-    return a/sinpi(v)
-end
-
-function bessely_intermediate_args(v, x)
-    v < 2 && return bessely_hyper(v, x)
-
-    v_floor = v - floor(v) 
-    Jnv = besselj_hyper(-v_floor,x)
-    Jnvm1 = Jnv / steed_j(-v_floor, x)
-
-    Jv = besselj_hyper(v_floor + 1,x)
-    Jvm1 = Jv / steed_j(v_floor + 1, x)
-
-    spi, cpi = sincospi(v_floor + 1)
-    Yv = (Jv*cpi - Jnvm1) / spi
-
-    spi, cpi = sincospi(v_floor)
-    Yvm1 = (Jvm1*cpi - Jnv) / spi
-
-    return  besselj_up_recurrence(x, Yv, Yvm1, v_floor+1, v)[2]
-end
-
-function steed_j(n, x::T) where T
-    MaxIter = 1000
-    xinv = inv(x)
-    xinv2 = 2 * xinv
-    d = x / (n + n)
-    a = d
-    h = a
-    b = muladd(2, n, 2) * xinv
-    for _ in 1:MaxIter
-        d = inv(b - d)
-        a *= muladd(b, d, -1)
-        h = h + a
-        b = b + xinv2
-        abs(a / h) <= eps(T) && break
-    end
-    return h
-end
-
-function besselj_hyper(v, x)
-       a = drummond0F1(v + 1, -x^2/4)
-       return (x/2)^v / gamma(v+1) * a
-end
-
-function drummond0F1(β::T1, z::T2; kmax::Int = 10_000) where {T1, T2}
-    T = promote_type(T1, T2)
-    if norm(z) < eps(real(T))
-        return one(T)
-    end
-    ζ = inv(z)
-    Nlo = β*ζ
-    Dlo = β*ζ
-    Tlo = Nlo/Dlo
-    Nmid = ((β+1)*(2)*ζ - 1)*Nlo + (β+1)*(2)*ζ
-    Dmid = ((β+1)*(2)*ζ - 1)*Dlo
-    Tmid = Nmid/Dmid
-    Nhi = ((β+2)*(3)*ζ - 1)*Nmid + (β+4)*ζ*Nlo + (β+4)*ζ
-    Dhi = ((β+2)*(3)*ζ - 1)*Dmid + (β+4)*ζ*Dlo
-    Thi = Nhi/Dhi
-    k = 2
-    Nhi, Nmid, Nlo = ((β+k+1)*(k+2)*ζ-1)*Nhi + k*(β+2k+2)*ζ*Nmid + k*(k-1)*ζ*Nlo + 2ζ, Nhi, Nmid
-    Dhi, Dmid, Dlo = ((β+k+1)*(k+2)*ζ-1)*Dhi + k*(β+2k+2)*ζ*Dmid + k*(k-1)*ζ*Dlo, Dhi, Dmid
-    Thi, Tmid, Tlo = Nhi/Dhi, Thi, Tmid
-    k += 1
-    while k < kmax && errcheck(Tmid, Thi, eps(real(T)))
-        Nhi, Nmid, Nlo = ((β+k+1)*(k+2)*ζ-1)*Nhi + k*(β+2k+2)*ζ*Nmid + k*(k-1)*ζ*Nlo, Nhi, Nmid
-        Dhi, Dmid, Dlo = ((β+k+1)*(k+2)*ζ-1)*Dhi + k*(β+2k+2)*ζ*Dmid + k*(k-1)*ζ*Dlo, Dhi, Dmid
-        Thi, Tmid, Tlo = Nhi/Dhi, Thi, Tmid
-        k += 1
-    end
-    return isfinite(Thi) ? Thi : isfinite(Tmid) ? Tmid : Tlo
-end
-@inline errcheck(x, y, tol) = isfinite(x) && isfinite(y) && (norm2(x-y) > max(norm2(x), norm2(y))*tol)
-@inline norm2(x) = norm(x)
-
