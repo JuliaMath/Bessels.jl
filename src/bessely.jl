@@ -182,12 +182,8 @@ function _bessely(nu, x::T) where T
     hankel_debye_cutoff(nu, x) && return imag(hankel_debye(nu, x))
 
     # use forward recurrence if nu is an integer up until it becomes inefficient 
-    if (isinteger(nu) && nu < 250)
-        ynum1 = bessely0(x)
-        ynu = bessely1(x)
-        return besselj_up_recurrence(x, ynu, ynum1, 1, nu)[2]
-    end
-
+    (isinteger(nu) && nu < 250) && return besselj_up_recurrence(x, bessely1(x), bessely0(x), 1, nu)[2]
+  
     # use power series for small x and for when nu > x
     bessely_series_cutoff(nu, x) && return bessely_power_series(nu, x)
 
@@ -235,7 +231,7 @@ function bessely_power_series(v, x::T) where T
     a /= gamma(v + one(T))
     b /= gamma(-v + one(T))
     t2 = (x/2)^2
-    for i in 0:3000
+    for i in 0:MaxIter
         out += a
         out2 += b
         abs(b) < eps(Float64) * abs(out2) && break
@@ -284,15 +280,9 @@ end
 # only implemented for Float64 so far
 besseljy_chebyshev_cutoff(nu, x) = (x <= 19.0 && x >= 6.0)
 function bessely_chebyshev(v, x)
-    v_floor, itr = modf(v)
+    v_floor, _ = modf(v)
     Y0, Y1 = bessely_chebyshev_low_orders(v_floor, x)
-
-    x2 = 2 / x
-    while v_floor < itr
-        v_floor += 1
-        Y0, Y1 = Y1, muladd(v_floor*x2, Y1, -Y0)
-    end
-    return Y0
+    return besselj_up_recurrence(x, Y1, Y0, v_floor + 1, v)[1]
 end
 
 # compute bessely for x ∈ (6, 19) and ν ∈ (0, 2) using chebyshev approximation with a (16, 28) grid (see notes to generate below)

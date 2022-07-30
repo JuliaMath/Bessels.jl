@@ -175,7 +175,7 @@ function _besselj(nu, x)
         arr = range(v, stop = nu, length = nu_shift + 1)
         jnu = besseljy_debye(v, x)[1]
         jnup1 = besseljy_debye(v+1, x)[1]
-        return besselj_down_recurrence(x, jnu, jnup1, arr)[2]
+        return besselj_down_recurrence(x, jnu, jnup1, v, nu)[1]
     end
 
     # at this point x > nu and  x < nu * 1.65
@@ -192,14 +192,14 @@ function _besselj(nu, x)
         v2 = nu - nu_shift
         jnu = besseljy_large_argument(v2, x)[1]
         jnum1 = besseljy_large_argument(v2 - 1, x)[1]
-        return besselj_up_recurrence(x, jnu, jnum1, v2, nu)[2]
+        return besselj_up_recurrence(x, jnu, jnum1, v2, nu)[1]
     else
         nu_shift = ceil(Int, debye_diff)
         v = nu + nu_shift
         arr = range(v, stop = nu, length = nu_shift + 1)
         jnu = besseljy_debye(v, x)[1]
         jnup1 = besseljy_debye(v+1, x)[1]
-        return besselj_down_recurrence(x, jnu, jnup1, arr)[2]
+        return besselj_down_recurrence(x, jnu, jnup1, v, nu)[1]
     end
 end
 
