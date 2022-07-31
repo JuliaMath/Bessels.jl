@@ -182,7 +182,7 @@ function _bessely(nu, x::T) where T
     hankel_debye_cutoff(nu, x) && return imag(hankel_debye(nu, x))
 
     # use forward recurrence if nu is an integer up until it becomes inefficient 
-    (isinteger(nu) && nu < 250) && return besselj_up_recurrence(x, bessely1(x), bessely0(x), 1, nu)[2]
+    (isinteger(nu) && nu < 250) && return besselj_up_recurrence(x, bessely1(x), bessely0(x), 1, nu)[1]
   
     # use power series for small x and for when nu > x
     bessely_series_cutoff(nu, x) && return bessely_power_series(nu, x)
@@ -191,26 +191,11 @@ function _bessely(nu, x::T) where T
     besseljy_chebyshev_cutoff(nu, x) && return bessely_chebyshev(nu, x)
 
     # at this point x > 19.0 (for Float64) and fairly close to nu
-    # the strategy is to shift nu down and use the debye calculation for the Hankel function then use forward recurrence
-    #=
-    if x > besseljy_large_argument_min(T)
-        large_arg_diff = ceil(Int, nu - x * T(0.6))
-        v2 = nu - large_arg_diff
-        ynu = besseljy_large_argument(v2, x)[2]
-        ynum1 = besseljy_large_argument(v2 - 1, x)[2]
-        return besselj_up_recurrence(x, ynu, ynum1, v2, nu)[2]
-    else
-        # this method is very inefficient so ideally we could swap out a different algorithm here in the future
-        return bessely_chebyshev(nu, x)
-    end
-    =#
+    # shift nu down and use the debye expansion for Hankel function (valid x > nu) then use forward recurrence
     nu_shift = floor(nu) - ceil(Int, -4.0657 + 0.9976*x + Base.Math._approx_cbrt(-276.915*x))
     v2 = nu - maximum((nu_shift, modf(nu)[1] + 1))
-    Y1 = imag(hankel_debye(v2, x))
-    Y0 = imag(hankel_debye(v2 - 1, x))
-    return besselj_up_recurrence(x, Y1, Y0, v2, nu)[2]
+    return besselj_up_recurrence(x, imag(hankel_debye(v2, x)), imag(hankel_debye(v2 - 1, x)), v2, nu)[1]
 end
-
 
 # Use power series form of J_v(x) to calculate Y_v(x) with
 # Y_v(x) = (J_v(x)cos(v*π) - J_{-v}(x)) / sin(v*π),    v ~= 0, 1, 2, ...
