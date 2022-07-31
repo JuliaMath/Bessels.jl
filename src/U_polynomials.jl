@@ -26,7 +26,7 @@ function besseljy_debye(v, x)
 
     return coef_Jn * Uk_Jn, coef_Yn * Uk_Yn
 end
-hankel_debye_cutoff(nu, x) = nu < -0.0657 + 0.9976*x + Base.Math._approx_cbrt(-276.915*x)
+hankel_debye_cutoff(nu, x) = nu < 0.2 + x + Base.Math._approx_cbrt(-411*x)
 
 # valid when v < x (uniform asymptotic expansions)
 """

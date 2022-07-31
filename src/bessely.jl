@@ -139,8 +139,27 @@ function _bessely1_compute(x::Float64)
         p = p * sc[1] + w * q * sc[2]
         return p * SQ2OPI(T) / sqrt(x)
     else
-      
-        return besseljy_large_argument(1.0, x)[2]
+        xinv = inv(x)
+        x2 = xinv*xinv
+        if x < 130.0
+            p1 = (one(T), 3/16, -99/512, 6597/8192, -4057965/524288, 1113686901/8388608, -951148335159/268435456, 581513783771781/4294967296)
+            q1 = (3/8, -21/128, 1899/5120, -543483/229376, 8027901/262144, -30413055339/46137344, 9228545313147/436207616)
+            p = evalpoly(x2, p1)
+            q = evalpoly(x2, q1)
+        else
+            p2 = (one(T), 3/16, -99/512, 6597/8192)
+            q2 = (3/8, -21/128, 1899/5120, -543483/229376)
+            p = evalpoly(x2, p2)
+            q = evalpoly(x2, q2)
+        end
+
+        a = SQ2OPI(T) * sqrt(xinv) * p
+        xn = muladd(xinv, q, - 3 * PIO4(T))
+
+        # the following computes b = sin(x + xn) more accurately
+        # see src/misc.jl
+        b = sin_sum(x, xn)
+        return a * b
     end
 end
 function _bessely1_compute(x::Float32)
@@ -172,18 +191,18 @@ function _bessely(nu, x::T) where T
     nu == 0 && return bessely0(x)
     nu == 1 && return bessely1(x)
 
-    # large argument branch see src/asymptotics.jl
-    besseljy_large_argument_cutoff(nu, x) && return besseljy_large_argument(nu, x)[2]
-
     # x < ~nu branch see src/U_polynomials.jl
     besseljy_debye_cutoff(nu, x) && return besseljy_debye(nu, x)[2]
 
     # x > ~nu branch see src/U_polynomials.jl on computing Hankel function
     hankel_debye_cutoff(nu, x) && return imag(hankel_debye(nu, x))
 
-    # use forward recurrence if nu is an integer up until it becomes inefficient 
+    # large argument branch see src/asymptotics.jl
+    besseljy_large_argument_cutoff(nu, x) && return besseljy_large_argument(nu, x)[2]
+
+    # use forward recurrence if nu is an integer up until it becomes inefficient
     (isinteger(nu) && nu < 250) && return besselj_up_recurrence(x, bessely1(x), bessely0(x), 1, nu)[1]
-  
+
     # use power series for small x and for when nu > x
     bessely_series_cutoff(nu, x) && return bessely_power_series(nu, x)
 
@@ -192,7 +211,7 @@ function _bessely(nu, x::T) where T
 
     # at this point x > 19.0 (for Float64) and fairly close to nu
     # shift nu down and use the debye expansion for Hankel function (valid x > nu) then use forward recurrence
-    nu_shift = floor(nu) - ceil(Int, -4.0657 + 0.9976*x + Base.Math._approx_cbrt(-276.915*x))
+    nu_shift = floor(nu) - ceil(Int, -1.5 + x + Base.Math._approx_cbrt(-411*x))
     v2 = nu - maximum((nu_shift, modf(nu)[1] + 1))
     return besselj_up_recurrence(x, imag(hankel_debye(v2, x)), imag(hankel_debye(v2 - 1, x)), v2, nu)[1]
 end
