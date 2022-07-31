@@ -172,7 +172,6 @@ function _besselj(nu, x)
     if nu >= x
         nu_shift = ceil(Int, debye_cutoff - nu)
         v = nu + nu_shift
-        arr = range(v, stop = nu, length = nu_shift + 1)
         jnu = besseljy_debye(v, x)[1]
         jnup1 = besseljy_debye(v+1, x)[1]
         return besselj_down_recurrence(x, jnu, jnup1, v, nu)[1]
@@ -196,7 +195,6 @@ function _besselj(nu, x)
     else
         nu_shift = ceil(Int, debye_diff)
         v = nu + nu_shift
-        arr = range(v, stop = nu, length = nu_shift + 1)
         jnu = besseljy_debye(v, x)[1]
         jnup1 = besseljy_debye(v+1, x)[1]
         return besselj_down_recurrence(x, jnu, jnup1, v, nu)[1]
