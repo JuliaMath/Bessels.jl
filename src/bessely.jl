@@ -210,10 +210,11 @@ function bessely(nu::Real, x::T) where T
         end
     end
 end
+
 function bessely(nu::Integer, x::T) where T
     abs_nu = abs(nu)
     abs_x = abs(x)
-    sg = iseven(Int(abs_nu)) ? 1 : -1
+    sg = iseven(abs_nu) ? 1 : -1
 
     Ynu = bessely_positive_args(abs_nu, abs_x)
     if nu >= zero(T)

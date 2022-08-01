@@ -170,7 +170,7 @@ end
 function besselj(nu::Integer, x::T) where T
     abs_nu = abs(nu)
     abs_x = abs(x)
-    sg = iseven(Int(abs_nu)) ? 1 : -1
+    sg = iseven(abs_nu) ? 1 : -1
 
     Jnu = besselj_positive_args(abs_nu, abs_x)
     if nu >= zero(T)
