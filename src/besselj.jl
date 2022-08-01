@@ -158,11 +158,11 @@ function besselj(nu::Real, x::T) where T
 
     Jnu = besselj_positive_args(abs_nu, abs_x)
     if nu >= zero(T)
-        return x >= zero(T) ? Jnu : cispi(abs_nu)*Jnu
+        return x >= zero(T) ? Jnu : Jnu * cispi(abs_nu)
     else
         Ynu = bessely_positive_args(abs_nu, abs_x)
         spi, cpi = sincospi(abs_nu)
-        out = cpi*Jnu - spi*Ynu
+        out = Jnu * cpi - Ynu * spi
         return x >= zero(T) ? out : out * cispi(nu)
     end
 end
@@ -170,7 +170,7 @@ end
 function besselj(nu::Int, x::T) where T
     abs_nu = abs(nu)
     abs_x = abs(x)
-    sg = (iseven(Int(abs_nu)) ? 1 : -1)
+    sg = iseven(Int(abs_nu)) ? 1 : -1
 
     Jnu = besselj_positive_args(abs_nu, abs_x)
     if nu >= zero(T)

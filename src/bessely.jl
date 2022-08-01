@@ -194,24 +194,32 @@ function bessely(nu::Real, x::T) where T
     abs_x = abs(x)
 
     Ynu = bessely_positive_args(abs_nu, abs_x)
-    Jnu = besselj_positive_args(abs_nu, abs_x)
     spi, cpi = sincospi(abs_nu)
     if nu >= zero(T)
-        return x >= zero(T) ? Ynu : cispi(-nu)*Ynu + 2im*cpi*Jnu
+        if x >= zero(T)
+            return Ynu
+        else
+            return Ynu * cispi(-nu) + 2im * besselj_positive_args(abs_nu, abs_x) * cpi
+        end
     else
-        return x >= zero(T) ? cpi*Ynu + spi*Jnu : cpi * (cispi(nu)*Ynu + 2im * cpi * Jnu) + spi * cispi(abs_nu) * Jnu
+        Jnu = besselj_positive_args(abs_nu, abs_x)
+        if x >= zero(T)
+            return Ynu * cpi + Jnu * spi
+        else
+            return cpi * (Ynu * cispi(nu) + 2im * Jnu * cpi) + Jnu * spi * cispi(abs_nu)
+        end
     end
 end
 function bessely(nu::Int, x::T) where T
     abs_nu = abs(nu)
     abs_x = abs(x)
-    sg = (iseven(Int(abs_nu)) ? 1 : -1)
+    sg = iseven(Int(abs_nu)) ? 1 : -1
 
     Ynu = bessely_positive_args(abs_nu, abs_x)
     if nu >= zero(T)
         return x >= zero(T) ? Ynu : Ynu * sg + 2im * sg * besselj_positive_args(abs_nu, abs_x)
     elseif nu < zero(T)
-        return x > zero(T) ? Ynu * sg : Ynu + 2im * besselj_positive_args(abs_nu, abs_x)
+        return x >= zero(T) ? Ynu * sg : Ynu + 2im * besselj_positive_args(abs_nu, abs_x)
     end
 end
 
