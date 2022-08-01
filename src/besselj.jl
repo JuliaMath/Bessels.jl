@@ -167,7 +167,7 @@ function besselj(nu::Real, x::T) where T
     end
 end
 
-function besselj(nu::Int, x::T) where T
+function besselj(nu::Integer, x::T) where T
     abs_nu = abs(nu)
     abs_x = abs(x)
     sg = iseven(Int(abs_nu)) ? 1 : -1
