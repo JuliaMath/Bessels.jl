@@ -120,7 +120,7 @@ end
 nu = -9.102; x = -12.48
 @test isapprox(besselj(nu, x), 0.09842356047575545808128 -0.03266486217437818486161im, rtol=8e-15)
 nu = -5.0; x = -5.1
-@test isapprox(besselj(nu, x), 0.2740038554704588327387, rtol=8e-15)
+@test isapprox(besselj(nu, x), 0.2740038554704588327387, rtol=1e-14)
 nu = -7.3; x = 19.1
 @test isapprox(besselj(nu, x), 0.1848055978553359009813, rtol=8e-15)
 nu = -14.0; x = 21.3
