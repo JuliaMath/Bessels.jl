@@ -36,6 +36,8 @@ end
     return jnup1, jnu
 end
 
+#=
+# currently not used
 # backward recurrence relation for besselk and besseli
 # outputs both (bessel(x, nu_end), bessel(x, nu_end-1)
 # x = 0.1; k0 = besseli(10,x); k1 = besseli(11,x);
@@ -48,3 +50,4 @@ end
     end
     return jnup1, jnu
 end
+=#
