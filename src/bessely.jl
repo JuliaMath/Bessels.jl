@@ -204,7 +204,7 @@ function bessely(nu::Real, x::T) where T
         end
     elseif nu < zero(T)
         if x > zero(T)
-            isinteger(nu) && return (-1)^Int(abs_nu) * Ynu
+            isinteger(nu) && return Ynu * (iseven(abs_nu) ? 1 : -1)
             Jnu = besselj_positive_args(abs_nu, abs_x)
             spi, cpi = sincospi(abs_nu)
             return cpi*Ynu + spi*Jnu
