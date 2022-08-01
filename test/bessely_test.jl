@@ -1,4 +1,5 @@
 # general array for testing input to SpecialFunctions.jl
+
 x = 0.01:0.01:150.0
 
 ### Tests for bessely0
@@ -68,12 +69,12 @@ y1_32 = bessely1.(Float32.(x))
 ## Tests for bessely
 
 ## test all numbers and orders for 0<nu<100
-x = [0.05, 0.1, 0.2, 0.4, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.91, 0.92, 0.93, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995, 0.999, 1.0, 1.001, 1.01, 1.05, 1.1, 1.2, 1.4, 1.6, 1.8, 1.9, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0, 10.0]
-nu = [2, 4, 6, 10, 15, 20, 25, 30, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 110, 125, 150, 175, 200]
+x = [0.05, 0.1, 0.2, 0.4, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.91, 0.92, 0.93, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995, 0.999, 1.0, 1.001, 1.01, 1.05, 1.1, 1.2, 1.4, 1.6, 1.8, 1.9, 2.5, 3.0, 3.5, 5.0, 10.0]
+nu = [0, 1, 2, 4, 6, 10, 15, 20, 25, 30, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 110, 125, 150, 175, 200]
 for v in nu, xx in x
     xx *= v
     sf = SpecialFunctions.bessely(BigFloat(v), BigFloat(xx))
-    @test isapprox(Bessels._bessely(v, xx), Float64(sf), rtol=7e-14)
+    @test isapprox(Bessels._bessely(v, xx), Float64(sf), rtol=2e-13)
 end
 
 # test decimal orders

@@ -188,8 +188,9 @@ Bessel function of the first kind of order nu, ``J_{nu}(x)``.
 Nu must be real.
 """
 function _bessely(nu, x::T) where T
-    nu == 0 && return bessely0(x)
-    nu == 1 && return bessely1(x)
+    
+    # use forward recurrence if nu is an integer up until it becomes inefficient
+    (isinteger(nu) && nu < 250) && return besselj_up_recurrence(x, bessely1(x), bessely0(x), 1, nu)[1]
 
     # x < ~nu branch see src/U_polynomials.jl
     besseljy_debye_cutoff(nu, x) && return besseljy_debye(nu, x)[2]
@@ -199,9 +200,6 @@ function _bessely(nu, x::T) where T
 
     # large argument branch see src/asymptotics.jl
     besseljy_large_argument_cutoff(nu, x) && return besseljy_large_argument(nu, x)[2]
-
-    # use forward recurrence if nu is an integer up until it becomes inefficient
-    (isinteger(nu) && nu < 250) && return besselj_up_recurrence(x, bessely1(x), bessely0(x), 1, nu)[1]
 
     # use power series for small x and for when nu > x
     bessely_series_cutoff(nu, x) && return bessely_power_series(nu, x)
