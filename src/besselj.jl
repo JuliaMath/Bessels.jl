@@ -162,14 +162,14 @@ function besselj(nu::Real, x::T) where T
             return Jnu
         else
             if isinteger(abs_nu)
-                return Jnu * (iseven(abs_nu) ? 1 : -1)
+                return Jnu * (iseven(Int(abs_nu)) ? 1 : -1)
             else
                 return cispi(abs_nu)*Jnu
             end
         end
     else
         if x >= zero(T)
-            isinteger(nu) && return Jnu * (iseven(abs_nu) ? 1 : -1)
+            isinteger(nu) && return Jnu * (iseven(Int(abs_nu)) ? 1 : -1)
             Ynu = bessely_positive_args(abs_nu, abs_x)
             spi, cpi = sincospi(abs_nu)
             return cpi*Jnu - spi*Ynu
@@ -177,7 +177,7 @@ function besselj(nu::Real, x::T) where T
             Ynu = bessely_positive_args(abs_nu, abs_x)
             spi, cpi = sincospi(abs_nu)
             out = cpi*Jnu - spi*Ynu
-            isinteger(nu) && return out * (iseven(abs_nu) ? 1 : -1)
+            isinteger(nu) && return out * (iseven(Int(abs_nu)) ? 1 : -1)
             return cispi(nu)*out
         end
     end
