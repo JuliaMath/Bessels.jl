@@ -188,39 +188,35 @@ Bessel function of the first kind of order nu, ``J_{nu}(x)``.
 Nu must be real.
 """
 
-
 function bessely(nu::Real, x::T) where T
+    isinteger(nu) && return bessely(Int(nu), x)
     abs_nu = abs(nu)
     abs_x = abs(x)
 
     Ynu = bessely_positive_args(abs_nu, abs_x)
-
-    if nu > zero(T)
-        if x > zero(T)
-            return Ynu
-        else
-            Jnu = besselj_positive_args(abs_nu, abs_x)
-            return cispi(-nu)*Ynu + 2im*cospi(nu)*Jnu
-        end
-    elseif nu < zero(T)
-        if x > zero(T)
-            isinteger(nu) && return Ynu * (iseven(Int(abs_nu)) ? 1 : -1)
-            Jnu = besselj_positive_args(abs_nu, abs_x)
-            spi, cpi = sincospi(abs_nu)
-            return cpi*Ynu + spi*Jnu
-        else
-            Jnu = besselj_positive_args(abs_nu, abs_x)
-            isinteger(nu) && return Ynu + 2im * Jnu
-            spi, cpi = sincospi(abs_nu)
-            out = cpi * (cispi(nu)*Ynu + 2im * cpi * Jnu)
-            return out + spi * cispi(abs_nu) * Jnu
-        end
+    Jnu = besselj_positive_args(abs_nu, abs_x)
+    spi, cpi = sincospi(abs_nu)
+    if nu >= zero(T)
+        return x >= zero(T) ? Ynu : cispi(-nu)*Ynu + 2im*cpi*Jnu
     else
-        return -T(Inf)
+        return x >= zero(T) ? cpi*Ynu + spi*Jnu : cpi * (cispi(nu)*Ynu + 2im * cpi * Jnu) + spi * cispi(abs_nu) * Jnu
+    end
+end
+function bessely(nu::Int, x::T) where T
+    abs_nu = abs(nu)
+    abs_x = abs(x)
+    sg = (iseven(Int(abs_nu)) ? 1 : -1)
+
+    Ynu = bessely_positive_args(abs_nu, abs_x)
+    if nu >= zero(T)
+        return x >= zero(T) ? Ynu : Ynu * sg + 2im * sg * besselj_positive_args(abs_nu, abs_x)
+    elseif nu < zero(T)
+        return x > zero(T) ? Ynu * sg : Ynu + 2im * besselj_positive_args(abs_nu, abs_x)
     end
 end
 
 function bessely_positive_args(nu, x::T) where T
+    iszero(x) && return -T(Inf)
     
     # use forward recurrence if nu is an integer up until it becomes inefficient
     (isinteger(nu) && nu < 250) && return besselj_up_recurrence(x, bessely1(x), bessely0(x), 1, nu)[1]
