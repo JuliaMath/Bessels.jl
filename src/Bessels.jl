@@ -7,6 +7,7 @@ export besselj1
 
 export bessely0
 export bessely1
+export bessely
 
 export besseli
 export besselix

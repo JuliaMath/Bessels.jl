@@ -187,7 +187,7 @@ end
 Bessel function of the first kind of order nu, ``J_{nu}(x)``.
 Nu must be real.
 """
-function _bessely(nu, x::T) where T
+function bessely(nu, x::T) where T
     
     # use forward recurrence if nu is an integer up until it becomes inefficient
     (isinteger(nu) && nu < 250) && return besselj_up_recurrence(x, bessely1(x), bessely0(x), 1, nu)[1]
