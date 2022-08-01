@@ -187,7 +187,40 @@ end
 Bessel function of the first kind of order nu, ``J_{nu}(x)``.
 Nu must be real.
 """
-function bessely(nu, x::T) where T
+
+
+function bessely(nu::Real, x::T) where T
+    abs_nu = abs(nu)
+    abs_x = abs(x)
+
+    Ynu = bessely_positive_args(abs_nu, abs_x)
+
+    if nu > zero(T)
+        if x > zero(T)
+            return Ynu
+        else
+            Jnu = besselj_positive_args(abs_nu, abs_x)
+            return cispi(-nu)*Ynu + 2im*cospi(nu)*Jnu
+        end
+    elseif nu < zero(T)
+        if x > zero(T)
+            isinteger(nu) && return (-1)^Int(abs_nu) * Ynu
+            Jnu = besselj_positive_args(abs_nu, abs_x)
+            spi, cpi = sincospi(abs_nu)
+            return cpi*Ynu + spi*Jnu
+        else
+            Jnu = besselj_positive_args(abs_nu, abs_x)
+            isinteger(nu) && return Ynu + 2im * Jnu
+            spi, cpi = sincospi(abs_nu)
+            out = cpi * (cispi(nu)*Ynu + 2im * cpi * Jnu)
+            return out + spi * cispi(abs_nu) * Jnu
+        end
+    else
+        return -T(Inf)
+    end
+end
+
+function bessely_positive_args(nu, x::T) where T
     
     # use forward recurrence if nu is an integer up until it becomes inefficient
     (isinteger(nu) && nu < 250) && return besselj_up_recurrence(x, bessely1(x), bessely0(x), 1, nu)[1]

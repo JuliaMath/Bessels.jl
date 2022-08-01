@@ -150,13 +150,40 @@ function besselj1(x::Float32)
         return p * s
     end
 end
-"""
-    besselj(nu, x::T) where T <: Union{Float32, Float64}
 
-Bessel function of the first kind of order nu, ``J_{nu}(x)``.
-Nu must be real.
-"""
-function _besselj(nu, x)
+function besselj(nu::Real, x::T) where T
+    abs_nu = abs(nu)
+    abs_x = abs(x)
+
+    Jnu = besselj_positive_args(abs_nu, abs_x)
+
+    if nu >= zero(T)
+        if x >= zero(T)
+            return Jnu
+        else
+            if isinteger(abs_nu)
+                return (-1)^Int(abs_nu) * Jnu
+            else
+                return cispi(abs_nu)*Jnu
+            end
+        end
+    else
+        if x >= zero(T)
+            isinteger(nu) && return (-1)^Int(abs_nu) * Jnu
+            Ynu = bessely_positive_args(abs_nu, abs_x)
+            spi, cpi = sincospi(abs_nu)
+            return cpi*Jnu - spi*Ynu
+        else
+            Ynu = bessely_positive_args(abs_nu, abs_x)
+            spi, cpi = sincospi(abs_nu)
+            out = cpi*Jnu - spi*Ynu
+            isinteger(nu) && return (-1)^Int(abs_nu) * out
+            return cispi(nu)*out
+        end
+    end
+end
+
+function besselj_positive_args(nu::Real, x::T) where T
     nu == 0 && return besselj0(x)
     nu == 1 && return besselj1(x)
 
