@@ -92,14 +92,14 @@ end
 # values taken from https://keisan.casio.com/exec/system/1180573474 which match mathematica
 # need to also account for different branches when nu isa integer
 nu = -2.3; x = -2.4
-@test isapprox(bessely(nu, x), -0.0179769671833457636186 + 0.7394120337538928700168im, rtol=8e-15)
+@test isapprox(bessely(nu, x), -0.0179769671833457636186 + 0.7394120337538928700168im, rtol=1e-14)
 nu = -4.0; x = -12.6
-@test isapprox(bessely(nu, x), -0.02845106816742465563357 +0.4577922229605476882792im, rtol=8e-15)
+@test isapprox(bessely(nu, x), -0.02845106816742465563357 +0.4577922229605476882792im, rtol=1e-14)
 nu = -6.2; x = 18.6
-@test isapprox(bessely(nu, x), -0.05880321550673669650027, rtol=8e-15)
+@test isapprox(bessely(nu, x), -0.05880321550673669650027, rtol=1e-14)
 nu = -8.0; x = 23.2
-@test isapprox(bessely(nu, x),-0.166071277370329242677, rtol=8e-15)
+@test isapprox(bessely(nu, x),-0.166071277370329242677, rtol=1e-14)
 nu = 11.0; x = -8.2
-@test isapprox(bessely(nu, x),1.438494049708244558901 -0.06222860017222637350092im, rtol=8e-15)
+@test isapprox(bessely(nu, x),1.438494049708244558901 -0.06222860017222637350092im, rtol=1e-14)
 nu = 13.678; x = -12.98
-@test isapprox(bessely(nu, x),-0.2227392320508850571009 -0.2085585256158188848322im, rtol=8e-15)
+@test isapprox(bessely(nu, x),-0.2227392320508850571009 -0.2085585256158188848322im, rtol=1e-14)
