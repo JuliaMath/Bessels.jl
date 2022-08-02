@@ -84,7 +84,7 @@ nu = [2, 4, 6, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100]
 for v in nu, xx in x
     xx *= v
     sf = SpecialFunctions.besselj(BigFloat(v), BigFloat(xx))
-    @test isapprox(Bessels._besselj(v, xx), Float64(sf), rtol=5e-14)
+    @test isapprox(besselj(v, xx), Float64(sf), rtol=5e-14)
 end
 
 # test half orders (SpecialFunctions does not give big float precision)
@@ -94,7 +94,7 @@ x = [0.05, 0.1, 0.2, 0.4, 0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.92, 0.95, 0.97,
 nu = [0.1, 0.4567, 0.8123, 1.5, 2.5, 4.1234, 6.8, 12.3, 18.9, 28.2345, 38.1235, 51.23, 72.23435, 80.5, 98.5, 104.2]
 for v in nu, xx in x
     xx *= v
-    @test isapprox(Bessels._besselj(v, xx), SpecialFunctions.besselj(v, xx), rtol=1e-12)
+    @test isapprox(besselj(v, xx), SpecialFunctions.besselj(v, xx), rtol=1e-12)
 end
 
 ## test large orders
@@ -102,12 +102,30 @@ nu = [150, 165.2, 200.0, 300.0, 500.0, 1000.0, 5000.2, 10000.0, 50000.0]
 x = [0.2, 0.4, 0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.92,0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99,0.995, 0.999, 1.0, 1.01, 1.05, 1.08, 1.1, 1.2]
 for v in nu, xx in x
     xx *= v
-    @test isapprox(Bessels._besselj(v, xx), SpecialFunctions.besselj(v, xx), rtol=5e-11)
+    @test isapprox(besselj(v, xx), SpecialFunctions.besselj(v, xx), rtol=5e-11)
 end
 
 ## test large arguments
-@test isapprox(Bessels._besselj(10.0, 150.0), SpecialFunctions.besselj(10.0, 150.0), rtol=1e-12)
+@test isapprox(besselj(10.0, 150.0), SpecialFunctions.besselj(10.0, 150.0), rtol=1e-12)
 
 # test BigFloat for single point
-@test isapprox(Bessels._besselj(big"2000", big"1500.0"), SpecialFunctions.besselj(big"2000", big"1500"), rtol=5e-20)
-@test isapprox(Bessels._besselj(big"20", big"1500.0"), SpecialFunctions.besselj(big"20", big"1500"), rtol=5e-20)
+@test isapprox(besselj(big"2000", big"1500.0"), SpecialFunctions.besselj(big"2000", big"1500"), rtol=5e-20)
+@test isapprox(besselj(big"20", big"1500.0"), SpecialFunctions.besselj(big"20", big"1500"), rtol=5e-20)
+
+
+# need to test accuracy of negative orders and negative arguments and all combinations within
+# SpecialFunctions.jl doesn't provide these so will hand check against hard values
+# values taken from https://keisan.casio.com/exec/system/1180573474 which match mathematica
+# need to also account for different branches when nu isa integer
+nu = -9.102; x = -12.48
+@test isapprox(besselj(nu, x), 0.09842356047575545808128 -0.03266486217437818486161im, rtol=1e-14)
+nu = -5.0; x = -5.1
+@test isapprox(besselj(nu, x), 0.2740038554704588327387, rtol=1e-14)
+nu = -7.3; x = 19.1
+@test isapprox(besselj(nu, x), 0.1848055978553359009813, rtol=1e-14)
+nu = -14.0; x = 21.3
+@test isapprox(besselj(nu, x), -0.1962844898264965120021, rtol=1e-14)
+nu = 13.0; x = -8.5
+@test isapprox(besselj(nu, x), -0.006128034621313167000171, rtol=1e-14)
+nu = 17.45; x = -16.23
+@test isapprox(besselj(nu, x), -0.01607335977752705869797 -0.1014831996412783806255im, rtol=1e-14)

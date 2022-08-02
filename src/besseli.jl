@@ -198,7 +198,7 @@ end
 function _besseli_continued_fractions(nu, x::T) where T
     S = promote_type(T, Float64)
     xx = S(x)
-    knu, knum1 = up_recurrence(xx, besselk0(xx), besselk1(xx), nu)
+    knum1, knu = besselk_up_recurrence(xx, besselk1(xx), besselk0(xx), 1, nu-1)
     # if knu or knum1 is zero then besseli will likely overflow
     (iszero(knu) || iszero(knum1)) && return throw(DomainError(x, "Overflow error"))
     return 1 / (x * (knum1 + knu / steed(nu, x)))
@@ -206,7 +206,7 @@ end
 function _besseli_continued_fractions_scaled(nu, x::T) where T
     S = promote_type(T, Float64)
     xx = S(x)
-    knu, knum1 = up_recurrence(xx, besselk0x(xx), besselk1x(xx), nu)
+    knum1, knu = besselk_up_recurrence(xx, besselk1x(xx), besselk0x(xx), 1, nu-1)
     # if knu or knum1 is zero then besseli will likely overflow
     (iszero(knu) || iszero(knum1)) && return throw(DomainError(x, "Overflow error"))
     return 1 / (x * (knum1 + knu / steed(nu, x)))

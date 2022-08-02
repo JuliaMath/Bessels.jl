@@ -1,5 +1,6 @@
 # general array for testing input to SpecialFunctions.jl
-x = 0.01:0.01:100.0
+
+x = 0.01:0.01:150.0
 
 ### Tests for bessely0
 y0_SpecialFunctions = SpecialFunctions.bessely0.(big.(x))  # array to be tested against computed in BigFloats
@@ -65,6 +66,40 @@ y1_32 = bessely1.(Float32.(x))
 @test bessely1(Inf32) == zero(Float32)
 @test bessely1(Inf64) == zero(Float64)
 
+## Tests for bessely
 
-# briefly test the large argument is working
-@test Bessels.besseljy_large_argument(10.0, 100.0)[2] ≈ SpecialFunctions.bessely(10.0, 100.0)
+## test all numbers and orders for 0<nu<100
+x = [0.05, 0.1, 0.2, 0.4, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.91, 0.92, 0.93, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995, 0.999, 1.0, 1.001, 1.01, 1.05, 1.1, 1.2, 1.4, 1.6, 1.8, 1.9, 2.5, 3.0, 3.5, 5.0, 10.0]
+nu = [0, 1, 2, 4, 6, 10, 15, 20, 25, 30, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 110, 125, 150, 175, 200]
+for v in nu, xx in x
+    xx *= v
+    sf = SpecialFunctions.bessely(BigFloat(v), BigFloat(xx))
+    @test isapprox(bessely(v, xx), Float64(sf), rtol=2e-13)
+end
+
+# test decimal orders
+# SpecialFunctions.jl can give errors over 1e-12 so need to soften tolerance to match
+# need to switch tests over to ArbNumerics.jl for better precision tests 
+x = [0.05, 0.1, 0.2, 0.25, 0.3, 0.4, 0.5,0.55,  0.6,0.65,  0.7, 0.75, 0.8, 0.85, 0.9, 0.92, 0.95, 0.97, 0.99, 1.0, 1.01, 1.05, 1.08, 1.1, 1.2, 1.4, 1.5, 1.6, 1.8, 2.0, 2.5, 3.0, 4.0, 4.5, 4.99, 5.1]
+nu = [0.1, 0.4567, 0.8123, 1.5, 2.5, 4.1234, 6.8, 12.3, 18.9, 28.2345, 38.1235, 51.23, 72.23435, 80.5, 98.5, 104.2]
+for v in nu, xx in x
+    xx *= v
+    @test isapprox(bessely(v, xx), SpecialFunctions.bessely(v, xx), rtol=5e-12)
+end
+
+# need to test accuracy of negative orders and negative arguments and all combinations within
+# SpecialFunctions.jl doesn't provide these so will hand check against hard values
+# values taken from https://keisan.casio.com/exec/system/1180573474 which match mathematica
+# need to also account for different branches when nu isa integer
+nu = -2.3; x = -2.4
+@test isapprox(bessely(nu, x), -0.0179769671833457636186 + 0.7394120337538928700168im, rtol=5e-14)
+nu = -4.0; x = -12.6
+@test isapprox(bessely(nu, x), -0.02845106816742465563357 + 0.4577922229605476882792im, rtol=5e-14)
+nu = -6.2; x = 18.6
+@test isapprox(bessely(nu, x), -0.05880321550673669650027, rtol=5e-14)
+nu = -8.0; x = 23.2
+@test isapprox(bessely(nu, x),-0.166071277370329242677, rtol=5e-14)
+nu = 11.0; x = -8.2
+@test isapprox(bessely(nu, x),1.438494049708244558901 -0.06222860017222637350092im, rtol=5e-14)
+nu = 13.678; x = -12.98
+@test isapprox(bessely(nu, x),-0.2227392320508850571009 -0.2085585256158188848322im, rtol=5e-14)

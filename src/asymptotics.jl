@@ -1,3 +1,12 @@
+#besseljy_large_argument_min(::Type{Float32}) = 15.0f0
+besseljy_large_argument_min(::Type{Float64}) = 20.0
+besseljy_large_argument_min(::Type{T}) where T <: AbstractFloat = 40.0
+
+#besseljy_large_argument_cutoff(v, x::Float32) = (x > 1.2f0*v && x > besseljy_large_argument_min(Float32))
+besseljy_large_argument_cutoff(v, x::Float64) = (x > 1.65*v && x > besseljy_large_argument_min(Float64))
+besseljy_large_argument_cutoff(v, x::T) where T = (x > 4*v && x > besseljy_large_argument_min(T))
+
+
 function besseljy_large_argument(v, x::T) where T
     # gives both (besselj, bessely) for x > 1.6*v
     α, αp = _α_αp_asymptotic(v, x)
@@ -30,6 +39,7 @@ function _α_αp_asymptotic(v, x::Float64)
         return _α_αp_poly_30(v, x)
     end
 end
+#=
 function _α_αp_asymptotic(v, x::Float32)
     if x > 4*v
         return _α_αp_poly_5(v, x)
@@ -39,7 +49,7 @@ function _α_αp_asymptotic(v, x::Float32)
         return _α_αp_poly_30(v, x)
     end
 end
-
+=#
 # Float64
 # can only use for x > 20.0
 # 30 terms gives ~5e-16 relative error when x > 1.6*nu
@@ -74,6 +84,7 @@ end
 # a = 27.7479; b = 22.3588; c = 3.74567
 # this method requires significantly more terms when x gets closer to nu
 # so it becomes more efficient to use recurrence (or another algorithm) in this region
+#=
 function _α_αp_poly_5(v, x::T) where T
     xinv = inv(x)^2
     μ = 4 * T(v)^2
@@ -89,6 +100,7 @@ function _α_αp_poly_5(v, x::T) where T
     return α, αp
     return α, αp
 end
+=#
 function _α_αp_poly_10(v, x::T) where T
     xinv = inv(x)^2
     μ = 4 * v^2
@@ -109,6 +121,7 @@ function _α_αp_poly_10(v, x::T) where T
     return α, αp
     return α, αp
 end
+#=
 function _α_αp_poly_15(v, x::T) where T
     xinv = inv(x)^2
     μ = 4 * v^2
@@ -133,6 +146,7 @@ function _α_αp_poly_15(v, x::T) where T
     α = x * (evalpoly(xinv, (s0, -s1, -s2/3, -s3/5, -s4/7, -s5/9, -s6/11, -s7/13, -s8/15, -s9/17, -s10/19, -s11/21, -s12/23, -s13/25, -s14/27, -s15/29)))
     return α, αp
 end
+=#
 function _α_αp_poly_20(v, x::T) where T
     xinv = inv(x)^2
     μ = 4 * v^2

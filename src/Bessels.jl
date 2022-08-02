@@ -4,9 +4,11 @@ using SpecialFunctions: loggamma
 
 export besselj0
 export besselj1
+export besselj
 
 export bessely0
 export bessely1
+export bessely
 
 export besseli
 export besselix
@@ -40,6 +42,8 @@ include("recurrence.jl")
 include("misc.jl")
 include("Polynomials/besselj_polys.jl")
 include("asymptotics.jl")
+include("gamma.jl")
+
 #include("hankel.jl")
 
 end

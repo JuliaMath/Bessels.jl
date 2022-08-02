@@ -1,62 +1,53 @@
-# no longer used for besseli but could be used in future for Jn, Yn
-#=
-@inline function down_recurrence(x, in, inp1, nu, branch)
-    # this prevents us from looping through large values of nu when the loop will always return zero
-    (iszero(in) || iszero(inp1)) && return zero(x)
-    (isinf(inp1) || isinf(inp1)) && return in
-
-    inm1 = in
+# forward recurrence relation for besselk and besseli
+# outputs both (bessel(x, nu_end), bessel(x, nu_end+1)
+# x = 0.1; k0 = besselk(0,x); k1 = besselk(1,x);
+# besselk_up_recurrence(x, k1, k0, 1, 5) will give besselk(5, x)
+@inline function besselk_up_recurrence(x, jnu, jnum1, nu_start, nu_end)
     x2 = 2 / x
-    for n in branch:-1:nu+1
-        a = x2 * n
-        inm1 = muladd(a, in, inp1)
-        inp1 = in
-        in = inm1
+    while nu_start < nu_end + 0.5 # avoid inexact floating points when nu isa float
+        jnum1, jnu = jnu, muladd(nu_start*x2, jnu, jnum1)
+        nu_start += 1
     end
-    return inm1
+    return jnum1, jnu
+end
+
+# forward recurrence relation for besselj and bessely
+# outputs both (bessel(x, nu_end), bessel(x, nu_end+1)
+# x = 0.1; y0 = bessely0(x); y1 = bessely1(x);
+# besselj_up_recurrence(x, y1, y0, 1, 5) will give bessely(5, x)
+@inline function besselj_up_recurrence(x, jnu, jnum1, nu_start, nu_end)
+    x2 = 2 / x
+    while nu_start < nu_end + 0.5 # avoid inexact floating points when nu isa float
+        jnum1, jnu = jnu, muladd(nu_start*x2, jnu, -jnum1)
+        nu_start += 1
+    end
+    return jnum1, jnu
+end
+# backward recurrence relation for besselj and bessely
+# outputs both (bessel(x, nu_end), bessel(x, nu_end-1)
+# x = 0.1; j10 = besselj(10, x); j11 = besselj(11, x);
+# besselj_down_recurrence(x, j10, j11, 10, 1) will give besselj(1, x)
+@inline function besselj_down_recurrence(x, jnu, jnup1, nu_start, nu_end)
+    x2 = 2 / x
+    while nu_start > nu_end - 0.5
+        jnup1, jnu = jnu, muladd(nu_start*x2, jnu, -jnup1)
+        nu_start -= 1
+    end
+    return jnup1, jnu
+end
+
+#=
+# currently not used
+# backward recurrence relation for besselk and besseli
+# outputs both (bessel(x, nu_end), bessel(x, nu_end-1)
+# x = 0.1; k0 = besseli(10,x); k1 = besseli(11,x);
+# besselk_down_recurrence(x, k0, k1, 10, 1) will give besseli(1, x)
+@inline function besselk_down_recurrence(x, jnu, jnup1, nu_start, nu_end)
+    x2 = 2 / x
+    while nu_start > nu_end - 0.5 # avoid inexact floating points when nu isa float
+        jnup1, jnu = jnu, muladd(nu_start*x2, jnu, jnup1)
+        nu_start -= 1
+    end
+    return jnup1, jnu
 end
 =#
-@inline function up_recurrence(x, k0, k1, nu)
-    nu == 0 && return k0
-    nu == 1 && return k1
-
-    # this prevents us from looping through large values of nu when the loop will always return zero
-    (iszero(k0) || iszero(k1)) && return zero(x) 
-
-    k2 = k0
-    x2 = 2 / x
-    for n in 1:nu-1
-        a = x2 * n
-        k2 = muladd(a, k1, k0)
-        k0 = k1
-        k1 = k2
-    end
-    return k2, k0
-end
-
-@inline function besselj_up_recurrence(x, jnu, jnum1, nu_start, nu_end)
-    jnup1 = jnum1
-    x2 = 2 / x
-    for n in nu_start:nu_end
-        a = x2 * n
-        jnup1 = muladd(a, jnu, -jnum1)
-        jnum1 = jnu
-        jnu = jnup1
-    end
-    return jnup1, jnum1
-end
-@inline function besselj_down_recurrence(x, jnu, jnup1, arr)
-    # arr is the index of Bessel orders arr = nu_start:-1:nu_end
-    # but needs special care if nu is a decimal
-    # use  v = nu + nu_shift
-    # arr = range(v, stop = nu, length = nu_shift + 1)
-    jnum1 = jnup1
-    x2 = 2 / x
-    for n in arr
-        a = x2 * n
-        jnum1 = muladd(a, jnu, -jnup1)
-        jnup1 = jnu
-        jnu = jnum1
-    end
-    return jnum1, jnup1
-end
