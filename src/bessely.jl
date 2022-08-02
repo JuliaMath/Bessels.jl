@@ -291,16 +291,16 @@ function bessely_positive_args(nu, x::T) where T
     # x < ~nu branch see src/U_polynomials.jl
     besseljy_debye_cutoff(nu, x) && return besseljy_debye(nu, x)[2]
 
-    # x > ~nu branch see src/U_polynomials.jl on computing Hankel function
-    hankel_debye_cutoff(nu, x) && return imag(hankel_debye(nu, x))
-
     # large argument branch see src/asymptotics.jl
     besseljy_large_argument_cutoff(nu, x) && return besseljy_large_argument(nu, x)[2]
+
+    # x > ~nu branch see src/U_polynomials.jl on computing Hankel function
+    hankel_debye_cutoff(nu, x) && return imag(hankel_debye(nu, x))
 
     # use power series for small x and for when nu > x
     bessely_series_cutoff(nu, x) && return bessely_power_series(nu, x)
 
-    # for x ∈ (6, 19) we use chebyshev approximation and forward recurrence
+    # for x ∈ (6, 19) we use Chebyshev approximation and forward recurrence
     besseljy_chebyshev_cutoff(nu, x) && return bessely_chebyshev(nu, x)
 
     # at this point x > 19.0 (for Float64) and fairly close to nu
