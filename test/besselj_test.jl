@@ -109,8 +109,8 @@ end
 @test isapprox(besselj(10.0, 150.0), SpecialFunctions.besselj(10.0, 150.0), rtol=1e-12)
 
 # test BigFloat for single point
-#@test isapprox(besselj(big"2000", big"1500.0"), SpecialFunctions.besselj(big"2000", big"1500"), rtol=5e-20)
-#@test isapprox(besselj(big"20", big"1500.0"), SpecialFunctions.besselj(big"20", big"1500"), rtol=5e-20)
+@test isapprox(Bessels.besseljy_debye(big"2000", big"1500.0")[1], SpecialFunctions.besselj(big"2000", big"1500"), rtol=5e-20)
+@test isapprox(Bessels.besseljy_large_argument(big"20", big"1500.0")[1], SpecialFunctions.besselj(big"20", big"1500"), rtol=5e-20)
 
 
 # need to test accuracy of negative orders and negative arguments and all combinations within

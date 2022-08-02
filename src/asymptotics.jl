@@ -134,7 +134,6 @@ function _α_αp_poly_10(v, x::T) where T
     αp = evalpoly(xinv, (s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10))
     α = x * evalpoly(xinv, (s0, -s1, -s2/3, -s3/5, -s4/7, -s5/9, -s6/11, -s7/13, -s8/15, -s9/17, -s10/19))
     return α, αp
-    return α, αp
 end
 #=
 function _α_αp_poly_15(v, x::T) where T
