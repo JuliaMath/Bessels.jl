@@ -1,5 +1,19 @@
-besseljy_debye_cutoff(nu, x) = nu > 2.0 + 1.00035*x + Base.Math._approx_cbrt(Float64(302.681)*x) && x > 15
-# valid when x < v (uniform asymptotic expansions)
+#                 Debye asymptotic expansions
+#                `besseljy_debye`, `hankel_debye`
+#
+#  This file contains the debye asymptotic asymptotic expansions for large orders.
+#  These routines can be used to calculate `besselj`, `bessely`, `besselk`, `besseli`
+#  and the Hankel functions. These are uniform expansions for `besselk` and `besseli` for large orders.
+#  The forms used for `besselj` and `bessely` as well as the Hankel functions follow the notation by Matviyenko [1]
+#  but also see similar forms provided by NIST 10.19. All of these routines use a core routine for calculating
+#  the U-polynomials (NIST 10.41.E9) where the coefficients are dependent on each function. The forms for the modified
+#  Bessel functions `besselk` and `besseli` follow NIST 10.41 [3].
+#
+# [1] Matviyenko, Gregory. "On the evaluation of Bessel functions." 
+#     Applied and Computational Harmonic Analysis 1.1 (1993): 116-135.
+# [2] http://dlmf.nist.gov/10.41.E9
+# [3] https://dlmf.nist.gov/10.41
+
 """
     besseljy_debye(nu, x::T)
 
@@ -26,9 +40,9 @@ function besseljy_debye(v, x)
 
     return coef_Jn * Uk_Jn, coef_Yn * Uk_Yn
 end
-hankel_debye_cutoff(nu, x) = nu < 0.2 + x + Base.Math._approx_cbrt(-411*x)
 
-# valid when v < x (uniform asymptotic expansions)
+besseljy_debye_cutoff(nu, x) = nu > 2.0 + 1.00035*x + Base.Math._approx_cbrt(Float64(302.681)*x) && x > 15
+
 """
     hankel_debye(nu, x::T)
 
@@ -53,6 +67,8 @@ function hankel_debye(v, x::T) where T
 
     return coef_Yn * Uk_Yn
 end
+
+hankel_debye_cutoff(nu, x) = nu < 0.2 + x + Base.Math._approx_cbrt(-411*x)
 
 function Uk_poly_Jn(p, v, p2, x::T) where T <: Float64
     if v > 5.0 + 1.00033*x + Base.Math._approx_cbrt(1427.61*x)
