@@ -277,7 +277,7 @@ end
 """
     bessely_positive_args(nu, x::T) where T <: Float64
 
-Bessel function of the first kind of order nu, ``Y_{nu}(x)``.
+Bessel function of the second kind of order nu, ``Y_{nu}(x)``.
 nu and x must be real and nu and x must be positive.
 
 No checks on arguments are performed and should only be called if certain nu, x >= 0.
