@@ -151,6 +151,47 @@ function besselj1(x::Float32)
     end
 end
 
+#                  Bessel functions of the first kind of order nu
+#                               besselj(nu, x)
+#
+#    A numerical routine to compute the Bessel function of the first kind J_{ν}(x) [1]
+#    for real orders and arguments of positive or negative value. The routine is based on several
+#    publications [2, 3, 4, 5] that calculate J_{ν}(x) for positive arguments and orders where
+#    reflection identities are used to compute negative arguments and orders.
+#
+#    In particular, the reflectance identities for negative integer orders J_{-n}(x) = (-1)^n * J_{n}(x) (Eq. 9.1.5; [6])
+#    and for negative noninteger orders J_{−ν}(x) = cos(πν) * J_{ν}(x) - sin(πν) * Y_{ν}(x) are used.
+#    For negative arguments of integer order, J_{n}(-x) = (-1)^n * J_{n}(x) is used and for
+#    noninteger orders, J_{ν}(−x) = exp(im*π*ν) * J_{ν}(x) is used. For negative orders and arguments the previous identities are combined.
+#
+#    The identities are computed by calling the `besselj_positive_args(nu, x)` function which computes J_{ν}(x)
+#    for positive arguments and orders. When x < ν and ν being reasonably large, the debye asymptotic expansion (Eq. 32; [3]) is used `besseljy_debye(nu, x)`.
+#    For large arguments x >> ν, the phase functions are used (Eq. 14 [4]) with `besseljy_large_argument(nu, x)`.
+#    When x > ν and x being reasonably large, the Hankel function is calculated from the debye expansion (Eq. 29; [3]) with `hankel_debye(nu, x)`
+#    and J_{n}(x) is calculated from the real part of the Hankel function. These expansions are not uniform so are not strictly used when the above inequalities are true, therefore, cutoffs
+#    were determined depending on the desired accuracy. For large arguments x >> ν, the phase functions are used (Eq. 15 [4]) with `besseljy_large_argument(nu, x)`.
+#    For small arguments, J_{ν}(x) is calculated from the power series (`bessely_power_series(nu, x`)
+#
+#    For values where the expansions for large arguments and orders are not valid, backward recurrence is employed after shifting the order up
+#    to where `besseljy_debye` is accurate then using downward recurrence. In general, the routine will be the slowest when ν ≈ x as all methods struggle at this point.
+#    
+# [1] http://dlmf.nist.gov/10.2.E2
+# [2] Bremer, James. "An algorithm for the rapid numerical evaluation of Bessel functions of real orders and arguments." 
+#     Advances in Computational Mathematics 45.1 (2019): 173-211.
+# [3] Matviyenko, Gregory. "On the evaluation of Bessel functions." 
+#     Applied and Computational Harmonic Analysis 1.1 (1993): 116-135.
+# [4] Heitman, Z., Bremer, J., Rokhlin, V., & Vioreanu, B. (2015). On the asymptotics of Bessel functions in the Fresnel regime. 
+#     Applied and Computational Harmonic Analysis, 39(2), 347-356.
+# [5] Ratis, Yu L., and P. Fernández de Córdoba. "A code to calculate (high order) Bessel functions based on the continued fractions method." 
+#     Computer physics communications 76.3 (1993): 381-388.
+# [6] Abramowitz, Milton, and Irene A. Stegun, eds. Handbook of mathematical functions with formulas, graphs, and mathematical tables. 
+#     Vol. 55. US Government printing office, 1964.
+#
+
+#####
+##### Generic routine for `besselj`
+#####
+
 function besselj(nu::Real, x::T) where T
     isinteger(nu) && return besselj(Int(nu), x)
     abs_nu = abs(nu)
