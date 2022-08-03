@@ -160,12 +160,49 @@ end
 #
 
 """
-    besseli(nu, x::T) where T <: Union{Float32, Float64}
+    besselk(x::T) where T <: Union{Float32, Float64}
 
-Modified Bessel function of the first kind of order nu, ``I_{nu}(x)``.
-Nu must be real.
+Modified Bessel function of the second kind of order nu, ``K_{nu}(x)``.
 """
-function besseli(nu, x::T) where T <: Union{Float32, Float64}
+function besseli(nu::Real, x::T) where T
+    isinteger(nu) && return besseli(Int(nu), x)
+    abs_nu = abs(nu)
+    abs_x = abs(x)
+
+    if nu >= 0
+        if x >= 0
+            return besseli_positive_args(abs_nu, abs_x)
+        else
+            return cispi(abs_nu) * besseli_positive_args(abs_nu, abs_x)
+        end
+    else
+        if x >= 0
+            return besseli_positive_args(abs_nu, abs_x) + 2 / π * sinpi(abs_nu) * besselk_positive_args(abs_nu, abs_x)
+        else
+            Iv = besseli_positive_args(abs_nu, abs_x)
+            Kv = besselk_positive_args(abs_nu, abs_x)
+            return cispi(abs_nu) * Iv + 2 / π * sinpi(abs_nu) * (cispi(-abs_nu) * Kv - im * π * Iv)
+        end
+    end
+end
+function besseli(nu::Integer, x::T) where T
+    abs_nu = abs(nu)
+    abs_x = abs(x)
+    sg = iseven(abs_nu) ? 1 : -1
+
+    if x >= 0
+        return besseli_positive_args(abs_nu, abs_x)
+    else
+        return sg * besseli_positive_args(abs_nu, abs_x)
+    end
+end
+
+"""
+    besseli_positive_args(nu, x::T) where T <: Union{Float32, Float64}
+
+Modified Bessel function of the first kind of order nu, ``I_{nu}(x)`` for positive arguments.
+"""
+function besseli_positive_args(nu, x::T) where T <: Union{Float32, Float64}
     iszero(nu) && return besseli0(x)
     isone(nu) && return besseli1(x)
 

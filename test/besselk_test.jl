@@ -115,3 +115,23 @@ for v in nu, xx in x
     sf = SpecialFunctions.besselk(v, xx)
     @test isapprox(besselk(v, xx), Float64(sf), rtol=2e-13)
 end
+
+### tests for negative arguments
+
+(v, x) = 12.0, 3.2
+@test besselk(v,x) ≈ 56331.504348755621996013084096
+
+(v, x) = -8.0, 4.2
+@test besselk(v,x) ≈ 3.65165949039881135495282699061
+
+(v, x) = 12.3, 8.2
+@test besselk(v,x) ≈ 0.299085139926840649406079315812
+
+(v, x) = -12.3, 8.2
+@test besselk(v,x) ≈ 0.299085139926840649406079315812
+
+(v, x) = -14.0, -9.9
+@test besselk(v,x) ≈ 0.100786833375605803570325345603 - 0.90863997401752715470886289641*im
+
+(v, x) = -14.6, -10.6
+@test besselk(v,x) ≈ -0.0180385087581148387140033906859 - 1.54653251445680014758965158559*im

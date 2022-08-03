@@ -185,8 +185,38 @@ end
 
 Modified Bessel function of the second kind of order nu, ``K_{nu}(x)``.
 """
-function besselk(nu, x::T) where T <: Union{Float32, Float64}
-    # check to make sure nu isn't zero 
+function besselk(nu::Real, x::T) where T
+    isinteger(nu) && return besselk(Int(nu), x)
+    abs_nu = abs(nu)
+    abs_x = abs(x)
+
+    if x >= 0
+        return besselk_positive_args(abs_nu, abs_x)
+    else
+        return cispi(-abs_nu)*besselk_positive_args(abs_nu, abs_x) - besseli_positive_args(abs_nu, abs_x) * im * π
+    end
+end
+function besselk(nu::Integer, x::T) where T
+    abs_nu = abs(nu)
+    abs_x = abs(x)
+    sg = iseven(abs_nu) ? 1 : -1
+
+    if x >= 0
+        return besselk_positive_args(abs_nu, abs_x)
+    else
+        return sg * besselk_positive_args(abs_nu, abs_x) - im * π * besseli_positive_args(abs_nu, abs_x)
+    end
+end
+
+"""
+    besselk_positive_args(x::T) where T <: Union{Float32, Float64}
+
+Modified Bessel function of the second kind of order nu, ``K_{nu}(x)`` valid for postive arguments and orders.
+"""
+function besselk_positive_args(nu, x::T) where T <: Union{Float32, Float64}
+    iszero(x) && return T(Inf)
+    
+    # dispatch to avoid uniform expansion when nu = 0 
     iszero(nu) && return besselk0(x)
 
     # use uniform debye expansion if x or nu is large
@@ -207,7 +237,7 @@ end
 Scaled modified Bessel function of the second kind of order nu, ``K_{nu}(x)*e^{x}``.
 """
 function besselkx(nu, x::T) where T <: Union{Float32, Float64}
-    # check to make sure nu isn't zero 
+    # dispatch to avoid uniform expansion when nu = 0 
     iszero(nu) && return besselk0x(x)
 
     # use uniform debye expansion if x or nu is large
@@ -333,11 +363,11 @@ end
 #####  Power series for K_{nu}(x)
 #####
 
-# Use power series form of K_v(x) which is accurate for small x (x<2) or when nu > X
+# Use power series form of K_v(x) which is accurate for small x (x<2) or when nu > x
 # We use the form as described by Equation 3.2 from reference [7].
 # This method was originally contributed by @cgeoga https://github.com/cgeoga/BesselK.jl/blob/main/src/besk_ser.jl
 # A modified form appears below. See more discussion at https://github.com/heltonmc/Bessels.jl/pull/29
-# This is only accurate for noninteger orders (nu) and no checks are performed. 
+# This is only valid for noninteger orders (nu) and no checks are performed. 
 #
 """
     besselk_power_series(nu, x::T) where T <: Float64
