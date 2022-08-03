@@ -279,7 +279,6 @@ end
 # arXiv preprint arXiv:2201.00090 (2022).
 function besselk_power_series(v, x::T) where T
     MaxIter = 1000
-    # precompute a handful of things:
     xd2  = x / 2
     xd22 = xd2 * xd2
     half = one(T) / 2
@@ -291,10 +290,10 @@ function besselk_power_series(v, x::T) where T
     # use the gamma function a couple times to start:
     gam_v = gamma(v)
     xp1 = abs(v) + one(T)
-    gam_nv = π / sinpi(xp1) / _gamma(xp1)
+    gam_nv = π / (sinpi(xp1) * _gamma(xp1))
     gam_1mv = -gam_nv*v # == gamma(one(T)-v)
     gam_1mnv = gam_v*v   # == gamma(one(T)+v)
-    
+
     # One final re-compression of a few things:
     _t1 = gam_v*xd2_nv*gam_1mv
     _t2 = gam_nv*xd2_v*gam_1mnv
