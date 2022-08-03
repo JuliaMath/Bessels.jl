@@ -215,7 +215,7 @@ Modified Bessel function of the second kind of order nu, ``K_{nu}(x)`` valid for
 """
 function besselk_positive_args(nu, x::T) where T <: Union{Float32, Float64}
     iszero(x) && return T(Inf)
-    
+
     # dispatch to avoid uniform expansion when nu = 0 
     iszero(nu) && return besselk0(x)
 

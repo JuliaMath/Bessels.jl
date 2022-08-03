@@ -104,6 +104,10 @@ t = [besselk(m, x) for m in m, x in x]
 
 @test besselkx(15, 82.123) ≈ SpecialFunctions.besselk(15, 82.123)*exp(82.123)
 @test besselkx(105, 182.123) ≈ SpecialFunctions.besselk(105, 182.123)*exp(182.123)
+@test besselkx(4, 3.0) ≈ SpecialFunctions.besselk(4, 3.0)*exp(3.0)
+@test besselkx(3.2, 1.1) ≈ SpecialFunctions.besselk(3.2, 1.1)*exp(1.1)
+@test besselkx(8.2, 9.1) ≈ SpecialFunctions.besselk(8.2, 9.1)*exp(9.1)
+
 
 ## Tests for besselk
 

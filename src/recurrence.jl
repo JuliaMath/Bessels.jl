@@ -36,7 +36,7 @@ end
     return jnup1, jnu
 end
 
-
+#=
 # currently not used
 # backward recurrence relation for besselk and besseli
 # outputs both (bessel(x, nu_end), bessel(x, nu_end-1)
@@ -50,4 +50,4 @@ end
     end
     return jnup1, jnu
 end
-
+=#
