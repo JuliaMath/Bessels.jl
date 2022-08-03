@@ -137,17 +137,19 @@ Modified Bessel function of the first kind of order nu, ``I_{nu}(x)``.
 Nu must be real.
 """
 function besseli(nu, x::T) where T <: Union{Float32, Float64}
-    nu == 0 && return besseli0(x)
-    nu == 1 && return besseli1(x)
+    iszero(nu) && return besseli0(x)
+    isone(nu) && return besseli1(x)
 
-    if x > maximum((T(30), nu^2 / 6))
-        return T(besseli_large_argument(nu, x))
-    elseif nu > 25.0 || x > 35.0
-        return T(besseli_large_orders(nu, x))
-    else
-        return T(besseli_power_series(nu, x))
-    end
+    # use large argument expansion if x >> nu
+    besseli_large_argument_cutoff(nu, x) && return besseli_large_argument(nu, x)
+
+    # use uniform debye expansion if x or nu is large
+    besselik_debye_cutoff(nu, x) && return T(besseli_large_orders(nu, x))
+
+    # for rest of values use the power series
+    return besseli_power_series(nu, x)
 end
+
 """
     besselix(nu, x::T) where T <: Union{Float32, Float64}
 
@@ -155,19 +157,31 @@ Scaled modified Bessel function of the first kind of order nu, ``I_{nu}(x)*e^{-x
 Nu must be real.
 """
 function besselix(nu, x::T) where T <: Union{Float32, Float64}
-    nu == 0 && return besseli0x(x)
-    nu == 1 && return besseli1x(x)
+    iszero(nu) && return besseli0x(x)
+    isone(nu) && return besseli1x(x)
 
-    if x > maximum((T(30), nu^2 / 4))
-        return T(besseli_large_argument_scaled(nu, x))
-    elseif x <= 2 * sqrt(nu + 1)
-        return T(besseli_power_series(nu, x)) * exp(-x)
-    elseif nu < 100
-        return T(_besseli_continued_fractions_scaled(nu, x))
-    else
-        return besseli_large_orders_scaled(nu, x)
-    end
+    # use large argument expansion if x >> nu
+    besseli_large_argument_cutoff(nu, x) && return besseli_large_argument_scaled(nu, x)
+
+    # use uniform debye expansion if x or nu is large
+    besselik_debye_cutoff(nu, x) && return T(besseli_large_orders_scaled(nu, x))
+
+    # for rest of values use the power series
+    return besseli_power_series(nu, x) * exp(-x)
 end
+
+#####
+#####  Debye's uniform asymptotic for I_{nu}(x)
+#####
+
+# Implements the uniform asymptotic expansion https://dlmf.nist.gov/10.41
+# In general this is valid when either x or nu is gets large
+# see the file src/U_polynomials.jl for more details
+"""
+    besseli_large_orders(nu, x::T)
+
+Debey's uniform asymptotic expansion for large order valid when v-> ∞ or x -> ∞
+"""
 function besseli_large_orders(v, x::T) where T <: Union{Float32, Float64}
     S = promote_type(T, Float64)
     x = S(x)
@@ -180,6 +194,7 @@ function besseli_large_orders(v, x::T) where T <: Union{Float32, Float64}
 
     return coef*Uk_poly_In(p, v, p2, T)
 end
+
 function besseli_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64}
     S = promote_type(T, Float64)
     x = S(x)
@@ -192,39 +207,18 @@ function besseli_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64}
 
     return T(coef*Uk_poly_In(p, v, p2, T))
 end
-function _besseli_continued_fractions(nu, x::T) where T
-    S = promote_type(T, Float64)
-    xx = S(x)
-    knum1, knu = besselk_up_recurrence(xx, besselk1(xx), besselk0(xx), 1, nu-1)
-    # if knu or knum1 is zero then besseli will likely overflow
-    (iszero(knu) || iszero(knum1)) && return throw(DomainError(x, "Overflow error"))
-    return 1 / (x * (knum1 + knu / steed(nu, x)))
-end
-function _besseli_continued_fractions_scaled(nu, x::T) where T
-    S = promote_type(T, Float64)
-    xx = S(x)
-    knum1, knu = besselk_up_recurrence(xx, besselk1x(xx), besselk0x(xx), 1, nu-1)
-    # if knu or knum1 is zero then besseli will likely overflow
-    (iszero(knu) || iszero(knum1)) && return throw(DomainError(x, "Overflow error"))
-    return 1 / (x * (knum1 + knu / steed(nu, x)))
-end
-function steed(n, x::T) where T
-    MaxIter = 1000
-    xinv = inv(x)
-    xinv2 = 2 * xinv
-    d = x / (n + n)
-    a = d
-    h = a
-    b = muladd(2, n, 2) * xinv
-    for _ in 1:MaxIter
-        d = inv(b + d)
-        a *= muladd(b, d, -1)
-        h = h + a
-        b = b + xinv2
-        abs(a / h) <= eps(T) && break
-    end
-    return h
-end
+
+#####
+#####  Large argument expansion (x>>nu) for I_{nu}(x)
+#####
+
+# Implements the uniform asymptotic expansion https://dlmf.nist.gov/10.40.E1
+# In general this is valid when x > nu^2
+"""
+    besseli_large_orders(nu, x::T)
+
+Debey's uniform asymptotic expansion for large order valid when v-> ∞ or x -> ∞
+"""
 function besseli_large_argument(v, z::T) where T
     MaxIter = 1000
     a = exp(z / 2)
@@ -260,7 +254,19 @@ function besseli_large_argument_scaled(v, z::T) where T
     end
     return res * coef
 end
+besseli_large_argument_cutoff(nu, x) = x > maximum((30.0, nu^2 / 6))
 
+#####
+#####  Power series for I_{nu}(x)
+#####
+
+# Use power series form of I_v(x) which is generally accurate across all values though slower for larger x
+# https://dlmf.nist.gov/10.25.E2
+"""
+    besseli_power_series(nu, x::T) where T <: Float64
+
+Computes ``I_{nu}(x)`` using the power series for any value of nu.
+"""
 function besseli_power_series(v, x::T) where T
     MaxIter = 3000
     out = zero(T)
@@ -274,3 +280,45 @@ function besseli_power_series(v, x::T) where T
     end
     return out
 end
+
+#=
+# the following is a deprecated version of the continued fraction approach
+# using K0 and K1 as starting values then forward recurrence up till nu
+# then using the wronskian to getting I_{nu}
+# in general this method is slow and depends on starting values of K0 and K1
+# which is not very flexible for arbitary orders
+
+function _besseli_continued_fractions(nu, x::T) where T
+    S = promote_type(T, Float64)
+    xx = S(x)
+    knum1, knu = besselk_up_recurrence(xx, besselk1(xx), besselk0(xx), 1, nu-1)
+    # if knu or knum1 is zero then besseli will likely overflow
+    (iszero(knu) || iszero(knum1)) && return throw(DomainError(x, "Overflow error"))
+    return 1 / (x * (knum1 + knu / steed(nu, x)))
+end
+function _besseli_continued_fractions_scaled(nu, x::T) where T
+    S = promote_type(T, Float64)
+    xx = S(x)
+    knum1, knu = besselk_up_recurrence(xx, besselk1x(xx), besselk0x(xx), 1, nu-1)
+    # if knu or knum1 is zero then besseli will likely overflow
+    (iszero(knu) || iszero(knum1)) && return throw(DomainError(x, "Overflow error"))
+    return 1 / (x * (knum1 + knu / steed(nu, x)))
+end
+function steed(n, x::T) where T
+    MaxIter = 1000
+    xinv = inv(x)
+    xinv2 = 2 * xinv
+    d = x / (n + n)
+    a = d
+    h = a
+    b = muladd(2, n, 2) * xinv
+    for _ in 1:MaxIter
+        d = inv(b + d)
+        a *= muladd(b, d, -1)
+        h = h + a
+        b = b + xinv2
+        abs(a / h) <= eps(T) && break
+    end
+    return h
+end
+=#

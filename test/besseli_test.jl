@@ -90,4 +90,16 @@ t = [besseli(m, x) for m in m, x in x]
 t = [besselix(m, x) for m in m, x in x]
 @test t[10] isa Float64
 @test t ≈ [SpecialFunctions.besselix(m, x) for m in m, x in x]
+
+## Tests for besselk
+
+## test all numbers and orders for 0<nu<100
+x = [0.01, 0.05, 0.1, 0.2, 0.4, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.91, 0.92, 0.93, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995, 0.999, 1.0, 1.001, 1.01, 1.05, 1.1, 1.2, 1.4, 1.6, 1.8, 1.9, 2.5, 3.0, 3.5, 4.0]
+nu = [0.01,0.1, 0.5, 0.8, 1, 1.23, 2,2.56, 4,5.23, 6,9.2, 10,12.89, 15, 19.1, 20, 25, 30, 33.123, 40, 45, 50, 51.5, 55, 60, 65, 70, 72.34, 75, 80, 82.1, 85, 88.76, 90, 92.334, 95, 99.87,100, 110, 125, 145.123, 150, 160.789]
+for v in nu, xx in x
+    xx *= v
+    sf = SpecialFunctions.besseli(v, xx)
+    @test isapprox(besseli(v, xx), Float64(sf), rtol=2e-13)
+end
+
  
