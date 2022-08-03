@@ -153,6 +153,7 @@ In other words, for large values of x and small to moderate values of nu,
 this routine will underflow to zero.
 For small to medium values of x and large values of nu this will overflow and return Inf.
 =#
+#=
 """
     besselk(x::T) where T <: Union{Float32, Float64}
 
@@ -166,7 +167,7 @@ function besselk(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
         return besselk_large_orders(nu, x)
     end
 end
-
+=#
 """
     besselk(x::T) where T <: Union{Float32, Float64}
 
@@ -203,4 +204,70 @@ function besselk_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64,
     p2  = v^2/fma(max(v,x), max(v,x), min(v,x)^2)
 
     return T(coef*Uk_poly_Kn(p, v, p2, T))
+end
+
+function besselk(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
+    (isinteger(nu) && nu < 250) && return besselk_up_recurrence(x, besselk1(x), besselk0(x), 1, nu)[1]
+
+    if nu > 25.0 || x > 35.0
+        return besselk_large_orders(nu, x)
+    else
+        return besselk_continued_fraction(nu, x)
+    end
+end
+
+# could also use the continued fraction for inu/inmu1
+# but it seems like adapting the besseli_power series
+# to give both nu and nu-1 is faster
+
+#inum1 = besseli_power_series(nu-1, x)
+#H_inu = steed(nu, x)
+#inu = besseli_power_series(nu, x)#inum1 * H_inu
+function besselk_continued_fraction(nu, x)
+    inu, inum1 = besseli_power_series_inu_inum1(nu, x)
+    H_knu = besselk_ratio_knu_knup1(nu-1, x)
+    return 1 / (x * (inum1 + inu / H_knu))
+end
+
+function besseli_power_series_inu_inum1(v, x::T) where T
+    MaxIter = 3000
+    out = zero(T)
+    out2 = zero(T)
+    x2 = x / 2
+    xs = (x2)^v
+    gmx = xs / gamma(v)
+    a = gmx / v
+    b = gmx / x2
+    t2 = x2*x2
+    for i in 0:MaxIter
+        out += a
+        out2 += b
+        abs(a) < eps(T) * abs(out) && break
+        a *= inv((v + i + one(T)) * (i + one(T))) * t2
+        b *= inv((v + i) * (i + one(T))) * t2
+    end
+    return out, out2
+end
+
+
+# slightly modified version of https://github.com/heltonmc/Bessels.jl/issues/17#issuecomment-1195726642 from @cgeoga
+function besselk_ratio_knu_knup1(v, x::T) where T
+    MaxIter = 1000
+    # do the modified Lentz method:
+    (hn, Dn, Cn) = (1e-50, zero(v), 1e-50)
+
+    jf   = one(T)
+    vv   = v*v
+    for _ in 1:MaxIter
+        an  = (vv - ((2*jf - 1)^2) * T(0.25))
+        bn  = 2 * (x + jf)
+        Cn  = an / Cn + bn      
+        Dn  = inv(muladd(an, Dn, bn))
+        del = Dn * Cn
+        hn *= del
+        abs(del - 1) < eps(T) && break
+        jf += one(T)
+    end
+    xinv = inv(x)
+    return xinv * (v + x + 1/2) + xinv * hn
 end

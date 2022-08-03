@@ -139,18 +139,15 @@ Nu must be real.
 function besseli(nu, x::T) where T <: Union{Float32, Float64}
     nu == 0 && return besseli0(x)
     nu == 1 && return besseli1(x)
-    
-    if x > maximum((T(30), nu^2 / 4))
+
+    if x > maximum((T(30), nu^2 / 6))
         return T(besseli_large_argument(nu, x))
-    elseif x <= 2 * sqrt(nu + 1)
-        return T(besseli_small_arguments(nu, x))
-    elseif nu < 100
-        return T(_besseli_continued_fractions(nu, x))
-    else
+    elseif nu > 25.0 || x > 35.0
         return T(besseli_large_orders(nu, x))
+    else
+        return T(besseli_power_series(nu, x))
     end
 end
-
 """
     besselix(nu, x::T) where T <: Union{Float32, Float64}
 
@@ -264,25 +261,16 @@ function besseli_large_argument_scaled(v, z::T) where T
     return res * coef
 end
 
-function besseli_small_arguments(v, z::T) where T
-    S = promote_type(T, Float64)
-    x = S(z)
-    if v < 20
-        coef = (x / 2)^v / factorial(v)
-    else
-        vinv = inv(v)
-        coef = sqrt(vinv / (2 * π)) * MathConstants.e^(v * (log(x / (2 * v)) + 1)) 
-        coef *= evalpoly(vinv, (1, -1/12, 1/288,  139/51840, -571/2488320, -163879/209018880, 5246819/75246796800, 534703531/902961561600))
-    end
-
-    MaxIter = 1000
-    out = one(S)
-    zz = x^2 / 4
-    a = one(S)
-    for k in 1:MaxIter
-        a *= zz / (k * (k + v))
+function besseli_power_series(v, x::T) where T
+    MaxIter = 3000
+    out = zero(T)
+    xs = (x/2)^v
+    a = xs / gamma(v + one(T))
+    t2 = (x/2)^2
+    for i in 0:MaxIter
         out += a
-        a <= eps(T) && break
+        abs(a) < eps(T) * abs(out) && break
+        a *= inv((v + i + one(T)) * (i + one(T))) * t2
     end
-    return coef * out
+    return out
 end

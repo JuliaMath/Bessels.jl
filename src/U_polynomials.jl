@@ -70,10 +70,10 @@ function Uk_poly_Hankel(p, v, p2, x::T) where T <: Float64
 end
 Uk_poly_Hankel(p, v, p2, x) = Uk_poly_Jn(p, v, p2, x::BigFloat)
 
-Uk_poly_In(p, v, p2, ::Type{Float32}) = Uk_poly3(p, v, p2)[1]
-Uk_poly_In(p, v, p2, ::Type{Float64}) = Uk_poly5(p, v, p2)[1]
-Uk_poly_Kn(p, v, p2, ::Type{Float32}) = Uk_poly3(p, v, p2)[2]
-Uk_poly_Kn(p, v, p2, ::Type{Float64}) = Uk_poly5(p, v, p2)[2]
+Uk_poly_In(p, v, p2, ::Type{Float32}) = Uk_poly5(p, v, p2)[1]
+Uk_poly_In(p, v, p2, ::Type{Float64}) = Uk_poly10(p, v, p2)[1]
+Uk_poly_Kn(p, v, p2, ::Type{Float32}) = Uk_poly5(p, v, p2)[2]
+Uk_poly_Kn(p, v, p2, ::Type{Float64}) = Uk_poly10(p, v, p2)[2]
 
 @inline function split_evalpoly(x, P)
     # polynomial P must have an even number of terms
