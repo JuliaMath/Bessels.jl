@@ -211,6 +211,8 @@ function besselk(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
 
     if nu > 25.0 || x > 35.0
         return besselk_large_orders(nu, x)
+    elseif x < 2.0 || nu > 1.6x - 1.0
+        return besselk_power_series(nu, x)
     else
         return besselk_continued_fraction(nu, x)
     end
@@ -272,51 +274,44 @@ function besselk_ratio_knu_knup1(v, x::T) where T
     return xinv * (v + x + 1/2) + xinv * hn
 end
 
-# originally contribued by @cgeoga https://github.com/cgeoga/BesselK.jl/blob/main/src/besk_ser.jl
-function _besselk_ser(v, x, maxit, tol, modify)
-  T    = promote_type(typeof(x), typeof(v))
-  out  = zero(T)
-  oneT = one(T)
-  twoT = oneT+oneT
-  # precompute a handful of things:
-  xd2      = x/twoT
-  xd22     = xd2*xd2
-  half     = oneT/twoT
-  if modify
-    e2v      = exp2(v)
-    xd2_v    = (x^(2*v))/e2v
-    xd2_nv   = e2v
-  else
-    lxd2     = log(xd2)
-    xd2_v    = exp(v*lxd2)
-    xd2_nv   = exp(-v*lxd2)
+# originally contributed by @cgeoga https://github.com/cgeoga/BesselK.jl/blob/main/src/besk_ser.jl
+# Equation 3.2 from Geoga, Christopher J., et al. "Fitting Mat\'ern Smoothness Parameters Using Automatic Differentiation." 
+# arXiv preprint arXiv:2201.00090 (2022).
+function besselk_power_series(v, x::T) where T
+    MaxIter = 1000
+    # precompute a handful of things:
+    xd2  = x / 2
+    xd22 = xd2 * xd2
+    half = one(T) / 2
+    # (x/2)^(±v). Writing the literal power doesn't seem to change anything here,
+    # and I think this is faster:
+    lxd2 = log(xd2)
+    xd2_v = exp(v*lxd2)
+    xd2_nv = exp(-v*lxd2)
+    # use the gamma function a couple times to start:
+    gam_v = gamma(v)
+    xp1 = abs(v) + one(T)
+    gam_nv = π / sinpi(xp1) / _gamma(xp1)
+    gam_1mv = -gam_nv*v # == gamma(one(T)-v)
+    gam_1mnv = gam_v*v   # == gamma(one(T)+v)
+    (gpv, gmv) = (gam_1mnv, gam_1mv)
+    # One final re-compression of a few things:
+    _t1 = gam_v*xd2_nv*gam_1mv
+    _t2 = gam_nv*xd2_v*gam_1mnv
+    # A couple series-specific accumulators:
+    (xd2_pow, fact_k, floatk, out) = (one(T), one(T), zero(T), zero(T))
+    for _ in 0:MaxIter
+      t1 = half*xd2_pow
+      tmp = _t1/(gmv*fact_k)
+      tmp += _t2/(gpv*fact_k)
+      term = t1*tmp
+      out += term
+      abs(term/out) < eps(T) && return out
+      # Use the trick that gamma(1+k+1+v) == gamma(1+k+v)*(1+k+v) to skip gamma calls:
+      (gpv, gmv) = (gpv*(one(T)+v+floatk), gmv*(one(T)-v+floatk)) 
+      xd2_pow *= xd22
+      fact_k *= (floatk+1)
+      floatk += one(T)
+    end
+    return out
   end
-  gam_v    = gamma(v)
-  gam_nv   = gamma(-v)
-  gam_1mv  = -gam_nv*v # == gamma(one(T)-v)
-  gam_1mnv = gam_v*v   # == gamma(one(T)+v)
-  xd2_pow  = oneT
-  fact_k   = oneT
-  floatk   = convert(T, 0)
-  (gpv, gmv) = (gam_1mnv, gam_1mv)
-  # One final re-compression of a few things:
-  _t1 = gam_v*xd2_nv*gam_1mv
-  _t2 = gam_nv*xd2_v*gam_1mnv
-  # now the loop using Oana's series expansion, with term function manually
-  # inlined for max speed:
-  for _j in 0:maxit
-    t1   = half*xd2_pow
-    tmp  = _t1/(gmv*fact_k)
-    tmp += _t2/(gpv*fact_k)
-    term = t1*tmp
-    out += term
-    ((abs(term) < tol) && _j>5) && return out
-    # Use the trick that gamma(1+k+1+v) == gamma(1+k+v)*(1+k+v) to skip gamma calls:
-    (gpv, gmv) = (gpv*(oneT+v+floatk), gmv*(oneT-v+floatk)) 
-    xd2_pow *= xd22
-    fact_k  *= (floatk+1)
-    floatk  += 1.0
-  end
-  throw(error("$maxit iterations reached without achieving atol $tol."))
-end
-
