@@ -402,7 +402,7 @@ function besselk_power_series(v, x::T) where T
         tmp *= inv(gam_1mv * gam_1mnv * fact_k)
         term = t1 * tmp
         out += term
-        abs(term / out) < eps(T) && return out
+        abs(term / out) < eps(T) && break
         (gam_1mnv, gam_1mv) = (gam_1mnv*(one(T) + v + k), gam_1mv*(one(T) - v + k)) 
         xd2_pow *= zz
         fact_k *= k + one(T)

@@ -160,9 +160,9 @@ end
 #
 
 """
-    besselk(x::T) where T <: Union{Float32, Float64}
+    besseli(x::T) where T <: Union{Float32, Float64}
 
-Modified Bessel function of the second kind of order nu, ``K_{nu}(x)``.
+Modified Bessel function of the second kind of order nu, ``I_{nu}(x)``.
 """
 function besseli(nu::Real, x::T) where T
     isinteger(nu) && return besseli(Int(nu), x)
