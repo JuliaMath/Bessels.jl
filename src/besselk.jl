@@ -274,46 +274,56 @@ function besselk_ratio_knu_knup1(v, x::T) where T
     return xinv * (v + x + 1/2) + xinv * hn
 end
 
-# originally contributed by @cgeoga https://github.com/cgeoga/BesselK.jl/blob/main/src/besk_ser.jl
-# Equation 3.2 from Geoga, Christopher J., et al. "Fitting Mat\'ern Smoothness Parameters Using Automatic Differentiation." 
-# arXiv preprint arXiv:2201.00090 (2022).
+
+#####
+#####  Power series for K_{nu}(x)
+#####
+
+# Use power series form of K_v(x) which is accurate for small x (x<2) or when nu > X
+# We use the form as described by Equation 3.2 from reference [7].
+# This method was originally contributed by @cgeoga https://github.com/cgeoga/BesselK.jl/blob/main/src/besk_ser.jl
+# A modified form appears below. See more discussion at https://github.com/heltonmc/Bessels.jl/pull/29
+# This is only accurate for noninteger orders (nu) and no checks are performed. 
+#
+# [7] Geoga, Christopher J., et al. "Fitting Mat\'ern Smoothness Parameters Using Automatic Differentiation." 
+#     arXiv preprint arXiv:2201.00090 (2022).
+"""
+    besselk_power_series(nu, x::T) where T <: Float64
+
+Computes ``K_{nu}(x)`` using the power series when nu is not an integer.
+In general, this is most accurate for small arguments and when nu > x.
+No checks are performed on nu so this is not accurate when nu is an integer.
+"""
 function besselk_power_series(v, x::T) where T
     MaxIter = 1000
-    xd2  = x / 2
-    xd22 = xd2 * xd2
-    half = one(T) / 2
-    # (x/2)^(±v). Writing the literal power doesn't seem to change anything here,
-    # and I think this is faster:
-    lxd2 = log(xd2)
-    xd2_v = exp(v*lxd2)
-    xd2_nv = exp(-v*lxd2)
-
-    gam_v = gamma(v)
-    # use the reflection identify to calculate gamma(-v)
-    # use relation gamma(v)*v = gamma(v+1)
-    xp1 = abs(v) + one(T)
-    gam_nv = π / (sinpi(xp1) * gam_v*v)
+    z  = x / 2
+    zz = z * z
     
-    gam_1mv = -gam_nv*v
-    gam_1mnv = gam_v*v
+    logz = log(z)
+    xd2_v = exp(v*logz)
+    xd2_nv = inv(xd2_v)
 
-    # One final re-compression of a few things:
-    _t1 = gam_v*xd2_nv*gam_1mv
-    _t2 = gam_nv*xd2_v*gam_1mnv
-    # A couple series-specific accumulators:
-    (xd2_pow, fact_k, floatk, out) = (one(T), one(T), zero(T), zero(T))
-    for _ in 0:MaxIter
-      t1 = half*xd2_pow
-      tmp = _t1/(gam_1mv*fact_k)
-      tmp += _t2/(gam_1mnv*fact_k)
-      term = t1*tmp
+    # use the reflection identify to calculate gamma(-v)
+    # use relation gamma(v)*v = gamma(v+1) to avoid two gamma calls
+    gam_v = gamma(v)
+    xp1 = abs(v) + one(T)
+    gam_nv = π / (sinpi(xp1) * gam_v * v)
+    gam_1mv = -gam_nv * v
+    gam_1mnv = gam_v * v
+
+    _t1 = gam_v * xd2_nv * gam_1mv
+    _t2 = gam_nv * xd2_v * gam_1mnv
+    (xd2_pow, fact_k, out) = (one(T), one(T), zero(T))
+    for k in 0:MaxIter
+      t1 = xd2_pow * T(0.5)
+      tmp = muladd(_t1, gam_1mnv, _t2 * gam_1mv)
+      tmp *= inv(gam_1mv * gam_1mnv * fact_k)
+      term = t1 * tmp
       out += term
-      abs(term/out) < eps(T) && return out
-      # Use the trick that gamma(1+k+1+v) == gamma(1+k+v)*(1+k+v) to skip gamma calls:
-      (gam_1mnv, gam_1mv) = (gam_1mnv*(one(T)+v+floatk), gam_1mv*(one(T)-v+floatk)) 
-      xd2_pow *= xd22
-      fact_k *= (floatk+1)
-      floatk += one(T)
+      abs(term / out) < eps(T) && return out
+      (gam_1mnv, gam_1mv) = (gam_1mnv*(one(T) + v + k), gam_1mv*(one(T) - v + k)) 
+      xd2_pow *= zz
+      fact_k *= k + one(T)
     end
     return out
-  end
+end
