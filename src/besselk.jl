@@ -146,6 +146,40 @@ function besselk1x(x::T) where T <: Union{Float32, Float64}
     end
 end
 
+#              Modified Bessel functions of the second kind of order nu
+#                           besselk(nu, x)
+#
+#    A numerical routine to compute the modified Bessel function of the second kind K_{ν}(x) [1]
+#    for real orders and arguments of positive or negative value. The routine is based on several
+#    publications [2-8] that calculate K_{ν}(x) for positive arguments and orders where
+#    reflection identities are used to compute negative arguments and orders.
+#
+#    In particular, the reflectance identities for negative orders I_{−ν}(x) = I_{ν}(x).
+#    For negative arguments of integer order, Kn(−x) = (−1)^n Kn(x) − im * π In(x) is used and for
+#    noninteger orders, Kν(−x) = exp(−iπν)*Kν(x) − im π Iν(x) is used. For negative orders and arguments the previous identities are combined.
+#
+#    The identities are computed by calling the `besseli_positive_args(nu, x)` function which computes K_{ν}(x)
+#    for positive arguments and orders. For large orders, Debye's uniform asymptotic expansions are used.
+#    For small value and when nu > ~x the power series is used. The rest of the values are computed using slightly different methods.
+#    The power series for besseli is modified to give both I_{v} and I_{v-1} where the ratio K_{v+1} / K_{v} is computed using continued fractions [8].
+#    The wronskian connection formula is then used to compute K_v.
+
+# [1] http://dlmf.nist.gov/10.27.E4
+# [2] Amos, Donald E. "Computation of modified Bessel functions and their ratios." Mathematics of computation 28.125 (1974): 239-251.
+# [3] Gatto, M. A., and J. B. Seery. "Numerical evaluation of the modified Bessel functions I and K." 
+#     Computers & Mathematics with Applications 7.3 (1981): 203-209.
+# [4] Temme, Nico M. "On the numerical evaluation of the modified Bessel function of the third kind." 
+#     Journal of Computational Physics 19.3 (1975): 324-337.
+# [5] Amos, DEv. "Algorithm 644: A portable package for Bessel functions of a complex argument and nonnegative order." 
+#     ACM Transactions on Mathematical Software (TOMS) 12.3 (1986): 265-273.
+# [6] Segura, Javier, P. Fernández de Córdoba, and Yu L. Ratis. "A code to evaluate modified bessel functions based on thecontinued fraction method." 
+#     Computer physics communications 105.2-3 (1997): 263-272.
+# [7] Geoga, Christopher J., et al. "Fitting Mat\'ern Smoothness Parameters Using Automatic Differentiation." 
+#     arXiv preprint arXiv:2201.00090 (2022).
+# [8] Cuyt, A. A., Petersen, V., Verdonk, B., Waadeland, H., & Jones, W. B. (2008). 
+#     Handbook of continued fractions for special functions. Springer Science & Business Media.
+#
+
 """
     besselk(x::T) where T <: Union{Float32, Float64}
 
@@ -305,8 +339,6 @@ end
 # A modified form appears below. See more discussion at https://github.com/heltonmc/Bessels.jl/pull/29
 # This is only accurate for noninteger orders (nu) and no checks are performed. 
 #
-# [7] Geoga, Christopher J., et al. "Fitting Mat\'ern Smoothness Parameters Using Automatic Differentiation." 
-#     arXiv preprint arXiv:2201.00090 (2022).
 """
     besselk_power_series(nu, x::T) where T <: Float64
 

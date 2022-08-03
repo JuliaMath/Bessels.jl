@@ -130,6 +130,35 @@ function besseli1x(x::T) where T <: Union{Float32, Float64}
     return z
 end
 
+#              Modified Bessel functions of the first kind of order nu
+#                           besseli(nu, x)
+#
+#    A numerical routine to compute the modified Bessel function of the first kind I_{ν}(x) [1]
+#    for real orders and arguments of positive or negative value. The routine is based on several
+#    publications [2-6] that calculate I_{ν}(x) for positive arguments and orders where
+#    reflection identities are used to compute negative arguments and orders.
+#
+#    In particular, the reflectance identities for negative noninteger orders I_{−ν}(x) = I_{ν}(x) + 2 / πsin(πν)*Kν(x)
+#    and for negative integer orders I_{−n}(x) = I_n(x) are used.
+#    For negative arguments of integer order, In(−x) = (−1)^n In(x) is used and for
+#    noninteger orders, Iν(−x) = exp(iπν) Iν(x) is used. For negative orders and arguments the previous identities are combined.
+#
+#    The identities are computed by calling the `besseli_positive_args(nu, x)` function which computes I_{ν}(x)
+#    for positive arguments and orders. For large orders, Debye's uniform asymptotic expansions are used where large arguments (x>>nu)
+#    a large argument expansion is used. The rest of the values are computed using the power series.
+
+# [1] https://dlmf.nist.gov/10.40.E1
+# [2] Amos, Donald E. "Computation of modified Bessel functions and their ratios." Mathematics of computation 28.125 (1974): 239-251.
+# [3] Gatto, M. A., and J. B. Seery. "Numerical evaluation of the modified Bessel functions I and K." 
+#     Computers & Mathematics with Applications 7.3 (1981): 203-209.
+# [4] Temme, Nico M. "On the numerical evaluation of the modified Bessel function of the third kind." 
+#     Journal of Computational Physics 19.3 (1975): 324-337.
+# [5] Amos, DEv. "Algorithm 644: A portable package for Bessel functions of a complex argument and nonnegative order." 
+#     ACM Transactions on Mathematical Software (TOMS) 12.3 (1986): 265-273.
+# [6] Segura, Javier, P. Fernández de Córdoba, and Yu L. Ratis. "A code to evaluate modified bessel functions based on thecontinued fraction method." 
+#     Computer physics communications 105.2-3 (1997): 263-272.
+#
+
 """
     besseli(nu, x::T) where T <: Union{Float32, Float64}
 
