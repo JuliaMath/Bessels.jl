@@ -211,7 +211,7 @@ function besselk(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
 
     if nu > 25.0 || x > 35.0
         return besselk_large_orders(nu, x)
-    elseif x < 2.0 || nu > 1.6x - 1.0
+    elseif x < 2.0
         return besselk_power_series(nu, x)
     else
         return besselk_continued_fraction(nu, x)
@@ -287,12 +287,15 @@ function besselk_power_series(v, x::T) where T
     lxd2 = log(xd2)
     xd2_v = exp(v*lxd2)
     xd2_nv = exp(-v*lxd2)
-    # use the gamma function a couple times to start:
+
     gam_v = gamma(v)
+    # use the reflection identify to calculate gamma(-v)
+    # use relation gamma(v)*v = gamma(v+1)
     xp1 = abs(v) + one(T)
-    gam_nv = π / (sinpi(xp1) * _gamma(xp1))
-    gam_1mv = -gam_nv*v # == gamma(one(T)-v)
-    gam_1mnv = gam_v*v   # == gamma(one(T)+v)
+    gam_nv = π / (sinpi(xp1) * gam_v*v)
+    
+    gam_1mv = -gam_nv*v
+    gam_1mnv = gam_v*v
 
     # One final re-compression of a few things:
     _t1 = gam_v*xd2_nv*gam_1mv
