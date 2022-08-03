@@ -294,7 +294,7 @@ function besselk_power_series(v, x::T) where T
     gam_nv = π / sinpi(xp1) / _gamma(xp1)
     gam_1mv = -gam_nv*v # == gamma(one(T)-v)
     gam_1mnv = gam_v*v   # == gamma(one(T)+v)
-    (gpv, gmv) = (gam_1mnv, gam_1mv)
+    
     # One final re-compression of a few things:
     _t1 = gam_v*xd2_nv*gam_1mv
     _t2 = gam_nv*xd2_v*gam_1mnv
@@ -302,13 +302,13 @@ function besselk_power_series(v, x::T) where T
     (xd2_pow, fact_k, floatk, out) = (one(T), one(T), zero(T), zero(T))
     for _ in 0:MaxIter
       t1 = half*xd2_pow
-      tmp = _t1/(gmv*fact_k)
-      tmp += _t2/(gpv*fact_k)
+      tmp = _t1/(gam_1mv*fact_k)
+      tmp += _t2/(gam_1mnv*fact_k)
       term = t1*tmp
       out += term
       abs(term/out) < eps(T) && return out
       # Use the trick that gamma(1+k+1+v) == gamma(1+k+v)*(1+k+v) to skip gamma calls:
-      (gpv, gmv) = (gpv*(one(T)+v+floatk), gmv*(one(T)-v+floatk)) 
+      (gam_1mnv, gam_1mv) = (gam_1mnv*(one(T)+v+floatk), gam_1mv*(one(T)-v+floatk)) 
       xd2_pow *= xd22
       fact_k *= (floatk+1)
       floatk += one(T)
