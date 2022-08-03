@@ -68,8 +68,10 @@ k1x_32 = besselk1x.(Float32.(x))
 @test besselk(100, 234.0) ≈ SpecialFunctions.besselk(100, 234.0)
 
 # test small arguments and order
-m = 0:40; x = [1e-6; 1e-4; 1e-3; 1e-2; 0.1; 1.0:2.0:700.0]
-@test [besselk(m, x) for m in m, x in x] ≈ [SpecialFunctions.besselk(m, x) for m in m, x in x]
+m = 0:40; x = [1e-6; 1e-4; 1e-3; 1e-2; 0.1; 1.0:2.0:500.0]
+for m in m, x in x
+    @test besselk(m, x) ≈ SpecialFunctions.besselk(m, x)
+end
 
 # test medium arguments and order
 m = 30:200; x = 5.0:5.0:100.0
@@ -97,8 +99,19 @@ t = [besselk(m, x) for m in m, x in x]
 #@test isinf(besselk(250, 5.0))
 
 ### Tests for besselkx
-@test besselkx(0, 12.0) == besselk0x(12.0)
-@test besselkx(1, 89.0) == besselk1x(89.0)
+@test besselkx(0, 12.0) ≈ besselk0x(12.0)
+@test besselkx(1, 89.0) ≈ besselk1x(89.0)
 
 @test besselkx(15, 82.123) ≈ SpecialFunctions.besselk(15, 82.123)*exp(82.123)
 @test besselkx(105, 182.123) ≈ SpecialFunctions.besselk(105, 182.123)*exp(182.123)
+
+## Tests for besselk
+
+## test all numbers and orders for 0<nu<100
+x = [0.01, 0.05, 0.1, 0.2, 0.4, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.91, 0.92, 0.93, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995, 0.999, 1.0, 1.001, 1.01, 1.05, 1.1, 1.2, 1.4, 1.6, 1.8, 1.9, 2.5, 3.0, 3.5, 4.0]
+nu = [0.01,0.1, 0.5, 0.8, 1, 1.23, 2,2.56, 4,5.23, 6,9.2, 10,12.89, 15, 19.1, 20, 25, 30, 33.123, 40, 45, 50, 51.5, 55, 60, 65, 70, 72.34, 75, 80, 82.1, 85, 88.76, 90, 92.334, 95, 99.87,100, 110, 125, 145.123, 150, 160.789]
+for v in nu, xx in x
+    xx *= v
+    sf = SpecialFunctions.besselk(v, xx)
+    @test isapprox(besselk(v, xx), Float64(sf), rtol=2e-13)
+end

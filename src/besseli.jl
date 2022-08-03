@@ -161,7 +161,7 @@ function besselix(nu, x::T) where T <: Union{Float32, Float64}
     if x > maximum((T(30), nu^2 / 4))
         return T(besseli_large_argument_scaled(nu, x))
     elseif x <= 2 * sqrt(nu + 1)
-        return T(besseli_small_arguments(nu, x)) * exp(-x)
+        return T(besseli_power_series(nu, x)) * exp(-x)
     elseif nu < 100
         return T(_besseli_continued_fractions_scaled(nu, x))
     else
