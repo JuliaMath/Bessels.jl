@@ -145,42 +145,127 @@ function besselk1x(x::T) where T <: Union{Float32, Float64}
         return muladd(evalpoly(inv(x), P3_k1(T)), inv(evalpoly(inv(x), Q3_k1(T))), Y2_k1(T)) / sqrt(x)
     end
 end
-#=
-If besselk0(x) or besselk1(0) is equal to zero
-this will underflow and always return zero even if besselk(x, nu)
-is larger than the smallest representing floating point value.
-In other words, for large values of x and small to moderate values of nu,
-this routine will underflow to zero.
-For small to medium values of x and large values of nu this will overflow and return Inf.
-=#
+
+#              Modified Bessel functions of the second kind of order nu
+#                           besselk(nu, x)
+#
+#    A numerical routine to compute the modified Bessel function of the second kind K_{ν}(x) [1]
+#    for real orders and arguments of positive or negative value. The routine is based on several
+#    publications [2-8] that calculate K_{ν}(x) for positive arguments and orders where
+#    reflection identities are used to compute negative arguments and orders.
+#
+#    In particular, the reflectance identities for negative orders I_{−ν}(x) = I_{ν}(x).
+#    For negative arguments of integer order, Kn(−x) = (−1)^n Kn(x) − im * π In(x) is used and for
+#    noninteger orders, Kν(−x) = exp(−iπν)*Kν(x) − im π Iν(x) is used. For negative orders and arguments the previous identities are combined.
+#
+#    The identities are computed by calling the `besseli_positive_args(nu, x)` function which computes K_{ν}(x)
+#    for positive arguments and orders. For large orders, Debye's uniform asymptotic expansions are used.
+#    For small value and when nu > ~x the power series is used. The rest of the values are computed using slightly different methods.
+#    The power series for besseli is modified to give both I_{v} and I_{v-1} where the ratio K_{v+1} / K_{v} is computed using continued fractions [8].
+#    The wronskian connection formula is then used to compute K_v.
+
+# [1] http://dlmf.nist.gov/10.27.E4
+# [2] Amos, Donald E. "Computation of modified Bessel functions and their ratios." Mathematics of computation 28.125 (1974): 239-251.
+# [3] Gatto, M. A., and J. B. Seery. "Numerical evaluation of the modified Bessel functions I and K." 
+#     Computers & Mathematics with Applications 7.3 (1981): 203-209.
+# [4] Temme, Nico M. "On the numerical evaluation of the modified Bessel function of the third kind." 
+#     Journal of Computational Physics 19.3 (1975): 324-337.
+# [5] Amos, DEv. "Algorithm 644: A portable package for Bessel functions of a complex argument and nonnegative order." 
+#     ACM Transactions on Mathematical Software (TOMS) 12.3 (1986): 265-273.
+# [6] Segura, Javier, P. Fernández de Córdoba, and Yu L. Ratis. "A code to evaluate modified bessel functions based on thecontinued fraction method." 
+#     Computer physics communications 105.2-3 (1997): 263-272.
+# [7] Geoga, Christopher J., et al. "Fitting Mat\'ern Smoothness Parameters Using Automatic Differentiation." 
+#     arXiv preprint arXiv:2201.00090 (2022).
+# [8] Cuyt, A. A., Petersen, V., Verdonk, B., Waadeland, H., & Jones, W. B. (2008). 
+#     Handbook of continued fractions for special functions. Springer Science & Business Media.
+#
+
 """
     besselk(x::T) where T <: Union{Float32, Float64}
 
 Modified Bessel function of the second kind of order nu, ``K_{nu}(x)``.
 """
-function besselk(nu, x::T) where T <: Union{Float32, Float64, BigFloat}
-    T == Float32 ? branch = 20 : branch = 50
-    if nu < branch
-        return besselk_up_recurrence(x, besselk1(x), besselk0(x), 1, nu)[1]
+function besselk(nu::Real, x::T) where T
+    isinteger(nu) && return besselk(Int(nu), x)
+    abs_nu = abs(nu)
+    abs_x = abs(x)
+
+    if x >= 0
+        return besselk_positive_args(abs_nu, abs_x)
     else
-        return besselk_large_orders(nu, x)
+        return cispi(-abs_nu)*besselk_positive_args(abs_nu, abs_x) - besseli_positive_args(abs_nu, abs_x) * im * π
+    end
+end
+function besselk(nu::Integer, x::T) where T
+    abs_nu = abs(nu)
+    abs_x = abs(x)
+    sg = iseven(abs_nu) ? 1 : -1
+
+    if x >= 0
+        return besselk_positive_args(abs_nu, abs_x)
+    else
+        return sg * besselk_positive_args(abs_nu, abs_x) - im * π * besseli_positive_args(abs_nu, abs_x)
     end
 end
 
 """
-    besselk(x::T) where T <: Union{Float32, Float64}
+    besselk_positive_args(x::T) where T <: Union{Float32, Float64}
+
+Modified Bessel function of the second kind of order nu, ``K_{nu}(x)`` valid for postive arguments and orders.
+"""
+function besselk_positive_args(nu, x::T) where T <: Union{Float32, Float64}
+    iszero(x) && return T(Inf)
+
+    # dispatch to avoid uniform expansion when nu = 0 
+    iszero(nu) && return besselk0(x)
+
+    # use uniform debye expansion if x or nu is large
+    besselik_debye_cutoff(nu, x) && return besselk_large_orders(nu, x)
+
+    # for integer nu use forward recurrence starting with K_0 and K_1
+    isinteger(nu) && return besselk_up_recurrence(x, besselk1(x), besselk0(x), 1, nu)[1]
+
+    # for small x and nu > x use power series
+    besselk_power_series_cutoff(nu, x) && return besselk_power_series(nu, x)
+
+    # for rest of values use the continued fraction approach
+    return besselk_continued_fraction(nu, x)
+end
+"""
+    besselkx(x::T) where T <: Union{Float32, Float64}
 
 Scaled modified Bessel function of the second kind of order nu, ``K_{nu}(x)*e^{x}``.
 """
-function besselkx(nu::Int, x::T) where T <: Union{Float32, Float64}
-    T == Float32 ? branch = 20 : branch = 50
-    if nu < branch
-        return besselk_up_recurrence(x, besselk1x(x), besselk0x(x), 1, nu)[1]
-    else
-        return besselk_large_orders_scaled(nu, x)
-    end
+function besselkx(nu, x::T) where T <: Union{Float32, Float64}
+    # dispatch to avoid uniform expansion when nu = 0 
+    iszero(nu) && return besselk0x(x)
+
+    # use uniform debye expansion if x or nu is large
+    besselik_debye_cutoff(nu, x) && return besselk_large_orders_scaled(nu, x)
+
+    # for integer nu use forward recurrence starting with K_0 and K_1
+    isinteger(nu) && return besselk_up_recurrence(x, besselk1x(x), besselk0x(x), 1, nu)[1]
+
+    # for small x and nu > x use power series
+    besselk_power_series_cutoff(nu, x) && return besselk_power_series(nu, x) * exp(x)
+
+    # for rest of values use the continued fraction approach
+    return besselk_continued_fraction(nu, x) * exp(x)
 end
-function besselk_large_orders(v, x::T) where T <: Union{Float32, Float64, BigFloat}
+
+#####
+#####  Debye's uniform asymptotic for K_{nu}(x)
+#####
+
+# Implements the uniform asymptotic expansion https://dlmf.nist.gov/10.41
+# In general this is valid when either x or nu is gets large
+# see the file src/U_polynomials.jl for more details
+"""
+    besselk_large_orders(nu, x::T)
+
+Debey's uniform asymptotic expansion for large order valid when v-> ∞ or x -> ∞
+"""
+function besselk_large_orders(v, x::T) where T
     S = promote_type(T, Float64)
     x = S(x)
     z = x / v
@@ -192,7 +277,7 @@ function besselk_large_orders(v, x::T) where T <: Union{Float32, Float64, BigFlo
 
     return T(coef*Uk_poly_Kn(p, v, p2, T))
 end
-function besselk_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64, BigFloat}
+function besselk_large_orders_scaled(v, x::T) where T
     S = promote_type(T, Float64)
     x = S(x)
     z = x / v
@@ -204,3 +289,124 @@ function besselk_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64,
 
     return T(coef*Uk_poly_Kn(p, v, p2, T))
 end
+besselik_debye_cutoff(nu, x::Float64) = nu > 25.0 || x > 35.0
+besselik_debye_cutoff(nu, x::Float32) = nu > 15.0 || x > 20.0
+
+#####
+#####  Continued fraction with Wronskian for K_{nu}(x)
+#####
+
+# Use the ratio K_{nu+1}/K_{nu} and I_{nu-1}, I_{nu}
+# along with the Wronskian (NIST https://dlmf.nist.gov/10.28.E2) to calculate K_{nu}
+# Inu and Inum1 are generated from the power series form where K_{nu_1}/K_{nu}
+# is calculated with continued fractions. 
+# The continued fraction K_{nu_1}/K_{nu} method is a slightly modified form
+# https://github.com/heltonmc/Bessels.jl/issues/17#issuecomment-1195726642 by @cgeoga  
+# 
+# It is also possible to use continued fraction to calculate inu/inmu1 such as
+# inum1 = besseli_power_series(nu-1, x)
+# H_inu = steed(nu, x)
+# inu = besseli_power_series(nu, x)#inum1 * H_inu
+# but it appears to be faster to modify the series to calculate both Inu and Inum1
+
+function besselk_continued_fraction(nu, x)
+    inu, inum1 = besseli_power_series_inu_inum1(nu, x)
+    H_knu = besselk_ratio_knu_knup1(nu-1, x)
+    return 1 / (x * (inum1 + inu / H_knu))
+end
+
+# a modified version of the I_{nu} power series to compute both I_{nu} and I_{nu-1}
+# use this along with the continued fractions for besselk
+function besseli_power_series_inu_inum1(v, x::T) where T
+    MaxIter = 3000
+    out = zero(T)
+    out2 = zero(T)
+    x2 = x / 2
+    xs = x2^v
+    gmx = xs / gamma(v)
+    a = gmx / v
+    b = gmx / x2
+    t2 = x2 * x2
+    for i in 0:MaxIter
+        out += a
+        out2 += b
+        abs(a) < eps(T) * abs(out) && break
+        a *= inv((v + i + one(T)) * (i + one(T))) * t2
+        b *= inv((v + i) * (i + one(T))) * t2
+    end
+    return out, out2
+end
+
+# computes K_{nu+1}/K_{nu} using continued fractions and the modified Lentz method
+# generally slow to converge for small x
+function besselk_ratio_knu_knup1(v, x::T) where T
+    MaxIter = 1000
+    (hn, Dn, Cn) = (1e-50, zero(v), 1e-50)
+
+    jf = one(T)
+    vv = v * v
+    for _ in 1:MaxIter
+        an = (vv - ((2*jf - 1)^2) * T(0.25))
+        bn = 2 * (x + jf)
+        Cn = an / Cn + bn
+        Dn = inv(muladd(an, Dn, bn))
+        del = Dn * Cn
+        hn *= del
+        abs(del - 1) < eps(T) && break
+        jf += one(T)
+    end
+    xinv = inv(x)
+    return xinv * (v + x + 1/2) + xinv * hn
+end
+
+#####
+#####  Power series for K_{nu}(x)
+#####
+
+# Use power series form of K_v(x) which is accurate for small x (x<2) or when nu > x
+# We use the form as described by Equation 3.2 from reference [7].
+# This method was originally contributed by @cgeoga https://github.com/cgeoga/BesselK.jl/blob/main/src/besk_ser.jl
+# A modified form appears below. See more discussion at https://github.com/heltonmc/Bessels.jl/pull/29
+# This is only valid for noninteger orders (nu) and no checks are performed. 
+#
+"""
+    besselk_power_series(nu, x::T) where T <: Float64
+
+Computes ``K_{nu}(x)`` using the power series when nu is not an integer.
+In general, this is most accurate for small arguments and when nu > x.
+No checks are performed on nu so this is not accurate when nu is an integer.
+"""
+function besselk_power_series(v, x::T) where T
+    MaxIter = 1000
+    z  = x / 2
+    zz = z * z
+    
+    logz = log(z)
+    xd2_v = exp(v*logz)
+    xd2_nv = inv(xd2_v)
+
+    # use the reflection identify to calculate gamma(-v)
+    # use relation gamma(v)*v = gamma(v+1) to avoid two gamma calls
+    gam_v = gamma(v)
+    xp1 = abs(v) + one(T)
+    gam_nv = π / (sinpi(xp1) * gam_v * v)
+    gam_1mv = -gam_nv * v
+    gam_1mnv = gam_v * v
+
+    _t1 = gam_v * xd2_nv * gam_1mv
+    _t2 = gam_nv * xd2_v * gam_1mnv
+    (xd2_pow, fact_k, out) = (one(T), one(T), zero(T))
+    for k in 0:MaxIter
+        t1 = xd2_pow * T(0.5)
+        tmp = muladd(_t1, gam_1mnv, _t2 * gam_1mv)
+        tmp *= inv(gam_1mv * gam_1mnv * fact_k)
+        term = t1 * tmp
+        out += term
+        abs(term / out) < eps(T) && break
+        (gam_1mnv, gam_1mv) = (gam_1mnv*(one(T) + v + k), gam_1mv*(one(T) - v + k)) 
+        xd2_pow *= zz
+        fact_k *= k + one(T)
+    end
+    return out
+end
+besselk_power_series_cutoff(nu, x) = x < 2.0 || nu > 1.6x - 1.0

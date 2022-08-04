@@ -8,6 +8,8 @@ function gamma(x)
         return _gamma(x)
     end
 end
+# only have a Float64 implementations
+gamma(x::Float32) = Float32(gamma(Float64(x)))
 function _gamma(x)
     if x > 11.5
         return large_gamma(x)

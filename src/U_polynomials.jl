@@ -86,10 +86,10 @@ function Uk_poly_Hankel(p, v, p2, x::T) where T <: Float64
 end
 Uk_poly_Hankel(p, v, p2, x) = Uk_poly_Jn(p, v, p2, x::BigFloat)
 
-Uk_poly_In(p, v, p2, ::Type{Float32}) = Uk_poly3(p, v, p2)[1]
-Uk_poly_In(p, v, p2, ::Type{Float64}) = Uk_poly5(p, v, p2)[1]
-Uk_poly_Kn(p, v, p2, ::Type{Float32}) = Uk_poly3(p, v, p2)[2]
-Uk_poly_Kn(p, v, p2, ::Type{Float64}) = Uk_poly5(p, v, p2)[2]
+Uk_poly_In(p, v, p2, ::Type{Float32}) = Uk_poly5(p, v, p2)[1]
+Uk_poly_In(p, v, p2, ::Type{Float64}) = Uk_poly10(p, v, p2)[1]
+Uk_poly_Kn(p, v, p2, ::Type{Float32}) = Uk_poly5(p, v, p2)[2]
+Uk_poly_Kn(p, v, p2, ::Type{Float64}) = Uk_poly10(p, v, p2)[2]
 
 @inline function split_evalpoly(x, P)
     # polynomial P must have an even number of terms
@@ -113,16 +113,6 @@ Uk_poly_Kn(p, v, p2, ::Type{Float64}) = Uk_poly5(p, v, p2)[2]
     end
 end
 
-function Uk_poly3(p, v, p2)
-    u0 = 1.0
-    u1 = evalpoly(p2, (0.125, -0.20833333333333334))
-    u2 = evalpoly(p2, (0.0703125, -0.4010416666666667, 0.3342013888888889))
-    u3 = evalpoly(p2, (0.0732421875, -0.8912109375, 1.8464626736111112, -1.0258125964506173))
-
-    Poly = (u0, u1, u2, u3)
-
-   return split_evalpoly(-p/v, Poly)
-end
 function Uk_poly5(p, v, p2)
     u0 = 1.0
     u1 = evalpoly(p2, (0.125, -0.20833333333333334))

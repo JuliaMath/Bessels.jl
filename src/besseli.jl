@@ -130,25 +130,90 @@ function besseli1x(x::T) where T <: Union{Float32, Float64}
     return z
 end
 
-"""
-    besseli(nu, x::T) where T <: Union{Float32, Float64}
+#              Modified Bessel functions of the first kind of order nu
+#                           besseli(nu, x)
+#
+#    A numerical routine to compute the modified Bessel function of the first kind I_{ν}(x) [1]
+#    for real orders and arguments of positive or negative value. The routine is based on several
+#    publications [2-6] that calculate I_{ν}(x) for positive arguments and orders where
+#    reflection identities are used to compute negative arguments and orders.
+#
+#    In particular, the reflectance identities for negative noninteger orders I_{−ν}(x) = I_{ν}(x) + 2 / πsin(πν)*Kν(x)
+#    and for negative integer orders I_{−n}(x) = I_n(x) are used.
+#    For negative arguments of integer order, In(−x) = (−1)^n In(x) is used and for
+#    noninteger orders, Iν(−x) = exp(iπν) Iν(x) is used. For negative orders and arguments the previous identities are combined.
+#
+#    The identities are computed by calling the `besseli_positive_args(nu, x)` function which computes I_{ν}(x)
+#    for positive arguments and orders. For large orders, Debye's uniform asymptotic expansions are used where large arguments (x>>nu)
+#    a large argument expansion is used. The rest of the values are computed using the power series.
 
-Modified Bessel function of the first kind of order nu, ``I_{nu}(x)``.
-Nu must be real.
+# [1] https://dlmf.nist.gov/10.40.E1
+# [2] Amos, Donald E. "Computation of modified Bessel functions and their ratios." Mathematics of computation 28.125 (1974): 239-251.
+# [3] Gatto, M. A., and J. B. Seery. "Numerical evaluation of the modified Bessel functions I and K." 
+#     Computers & Mathematics with Applications 7.3 (1981): 203-209.
+# [4] Temme, Nico M. "On the numerical evaluation of the modified Bessel function of the third kind." 
+#     Journal of Computational Physics 19.3 (1975): 324-337.
+# [5] Amos, DEv. "Algorithm 644: A portable package for Bessel functions of a complex argument and nonnegative order." 
+#     ACM Transactions on Mathematical Software (TOMS) 12.3 (1986): 265-273.
+# [6] Segura, Javier, P. Fernández de Córdoba, and Yu L. Ratis. "A code to evaluate modified bessel functions based on thecontinued fraction method." 
+#     Computer physics communications 105.2-3 (1997): 263-272.
+#
+
 """
-function besseli(nu, x::T) where T <: Union{Float32, Float64}
-    nu == 0 && return besseli0(x)
-    nu == 1 && return besseli1(x)
-    
-    if x > maximum((T(30), nu^2 / 4))
-        return T(besseli_large_argument(nu, x))
-    elseif x <= 2 * sqrt(nu + 1)
-        return T(besseli_small_arguments(nu, x))
-    elseif nu < 100
-        return T(_besseli_continued_fractions(nu, x))
+    besseli(x::T) where T <: Union{Float32, Float64}
+
+Modified Bessel function of the second kind of order nu, ``I_{nu}(x)``.
+"""
+function besseli(nu::Real, x::T) where T
+    isinteger(nu) && return besseli(Int(nu), x)
+    abs_nu = abs(nu)
+    abs_x = abs(x)
+
+    if nu >= 0
+        if x >= 0
+            return besseli_positive_args(abs_nu, abs_x)
+        else
+            return cispi(abs_nu) * besseli_positive_args(abs_nu, abs_x)
+        end
     else
-        return T(besseli_large_orders(nu, x))
+        if x >= 0
+            return besseli_positive_args(abs_nu, abs_x) + 2 / π * sinpi(abs_nu) * besselk_positive_args(abs_nu, abs_x)
+        else
+            Iv = besseli_positive_args(abs_nu, abs_x)
+            Kv = besselk_positive_args(abs_nu, abs_x)
+            return cispi(abs_nu) * Iv + 2 / π * sinpi(abs_nu) * (cispi(-abs_nu) * Kv - im * π * Iv)
+        end
     end
+end
+function besseli(nu::Integer, x::T) where T
+    abs_nu = abs(nu)
+    abs_x = abs(x)
+    sg = iseven(abs_nu) ? 1 : -1
+
+    if x >= 0
+        return besseli_positive_args(abs_nu, abs_x)
+    else
+        return sg * besseli_positive_args(abs_nu, abs_x)
+    end
+end
+
+"""
+    besseli_positive_args(nu, x::T) where T <: Union{Float32, Float64}
+
+Modified Bessel function of the first kind of order nu, ``I_{nu}(x)`` for positive arguments.
+"""
+function besseli_positive_args(nu, x::T) where T <: Union{Float32, Float64}
+    iszero(nu) && return besseli0(x)
+    isone(nu) && return besseli1(x)
+
+    # use large argument expansion if x >> nu
+    besseli_large_argument_cutoff(nu, x) && return besseli_large_argument(nu, x)
+
+    # use uniform debye expansion if x or nu is large
+    besselik_debye_cutoff(nu, x) && return T(besseli_large_orders(nu, x))
+
+    # for rest of values use the power series
+    return besseli_power_series(nu, x)
 end
 
 """
@@ -158,19 +223,31 @@ Scaled modified Bessel function of the first kind of order nu, ``I_{nu}(x)*e^{-x
 Nu must be real.
 """
 function besselix(nu, x::T) where T <: Union{Float32, Float64}
-    nu == 0 && return besseli0x(x)
-    nu == 1 && return besseli1x(x)
+    iszero(nu) && return besseli0x(x)
+    isone(nu) && return besseli1x(x)
 
-    if x > maximum((T(30), nu^2 / 4))
-        return T(besseli_large_argument_scaled(nu, x))
-    elseif x <= 2 * sqrt(nu + 1)
-        return T(besseli_small_arguments(nu, x)) * exp(-x)
-    elseif nu < 100
-        return T(_besseli_continued_fractions_scaled(nu, x))
-    else
-        return besseli_large_orders_scaled(nu, x)
-    end
+    # use large argument expansion if x >> nu
+    besseli_large_argument_cutoff(nu, x) && return besseli_large_argument_scaled(nu, x)
+
+    # use uniform debye expansion if x or nu is large
+    besselik_debye_cutoff(nu, x) && return T(besseli_large_orders_scaled(nu, x))
+
+    # for rest of values use the power series
+    return besseli_power_series(nu, x) * exp(-x)
 end
+
+#####
+#####  Debye's uniform asymptotic for I_{nu}(x)
+#####
+
+# Implements the uniform asymptotic expansion https://dlmf.nist.gov/10.41
+# In general this is valid when either x or nu is gets large
+# see the file src/U_polynomials.jl for more details
+"""
+    besseli_large_orders(nu, x::T)
+
+Debey's uniform asymptotic expansion for large order valid when v-> ∞ or x -> ∞
+"""
 function besseli_large_orders(v, x::T) where T <: Union{Float32, Float64}
     S = promote_type(T, Float64)
     x = S(x)
@@ -183,6 +260,7 @@ function besseli_large_orders(v, x::T) where T <: Union{Float32, Float64}
 
     return coef*Uk_poly_In(p, v, p2, T)
 end
+
 function besseli_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64}
     S = promote_type(T, Float64)
     x = S(x)
@@ -195,39 +273,18 @@ function besseli_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64}
 
     return T(coef*Uk_poly_In(p, v, p2, T))
 end
-function _besseli_continued_fractions(nu, x::T) where T
-    S = promote_type(T, Float64)
-    xx = S(x)
-    knum1, knu = besselk_up_recurrence(xx, besselk1(xx), besselk0(xx), 1, nu-1)
-    # if knu or knum1 is zero then besseli will likely overflow
-    (iszero(knu) || iszero(knum1)) && return throw(DomainError(x, "Overflow error"))
-    return 1 / (x * (knum1 + knu / steed(nu, x)))
-end
-function _besseli_continued_fractions_scaled(nu, x::T) where T
-    S = promote_type(T, Float64)
-    xx = S(x)
-    knum1, knu = besselk_up_recurrence(xx, besselk1x(xx), besselk0x(xx), 1, nu-1)
-    # if knu or knum1 is zero then besseli will likely overflow
-    (iszero(knu) || iszero(knum1)) && return throw(DomainError(x, "Overflow error"))
-    return 1 / (x * (knum1 + knu / steed(nu, x)))
-end
-function steed(n, x::T) where T
-    MaxIter = 1000
-    xinv = inv(x)
-    xinv2 = 2 * xinv
-    d = x / (n + n)
-    a = d
-    h = a
-    b = muladd(2, n, 2) * xinv
-    for _ in 1:MaxIter
-        d = inv(b + d)
-        a *= muladd(b, d, -1)
-        h = h + a
-        b = b + xinv2
-        abs(a / h) <= eps(T) && break
-    end
-    return h
-end
+
+#####
+#####  Large argument expansion (x>>nu) for I_{nu}(x)
+#####
+
+# Implements the uniform asymptotic expansion https://dlmf.nist.gov/10.40.E1
+# In general this is valid when x > nu^2
+"""
+    besseli_large_orders(nu, x::T)
+
+Debey's uniform asymptotic expansion for large order valid when v-> ∞ or x -> ∞
+"""
 function besseli_large_argument(v, z::T) where T
     MaxIter = 1000
     a = exp(z / 2)
@@ -263,26 +320,71 @@ function besseli_large_argument_scaled(v, z::T) where T
     end
     return res * coef
 end
+besseli_large_argument_cutoff(nu, x) = x > maximum((30.0, nu^2 / 6))
 
-function besseli_small_arguments(v, z::T) where T
-    S = promote_type(T, Float64)
-    x = S(z)
-    if v < 20
-        coef = (x / 2)^v / factorial(v)
-    else
-        vinv = inv(v)
-        coef = sqrt(vinv / (2 * π)) * MathConstants.e^(v * (log(x / (2 * v)) + 1)) 
-        coef *= evalpoly(vinv, (1, -1/12, 1/288,  139/51840, -571/2488320, -163879/209018880, 5246819/75246796800, 534703531/902961561600))
-    end
+#####
+#####  Power series for I_{nu}(x)
+#####
 
-    MaxIter = 1000
-    out = one(S)
-    zz = x^2 / 4
-    a = one(S)
-    for k in 1:MaxIter
-        a *= zz / (k * (k + v))
+# Use power series form of I_v(x) which is generally accurate across all values though slower for larger x
+# https://dlmf.nist.gov/10.25.E2
+"""
+    besseli_power_series(nu, x::T) where T <: Float64
+
+Computes ``I_{nu}(x)`` using the power series for any value of nu.
+"""
+function besseli_power_series(v, x::T) where T
+    MaxIter = 3000
+    out = zero(T)
+    xs = (x/2)^v
+    a = xs / gamma(v + one(T))
+    t2 = (x/2)^2
+    for i in 0:MaxIter
         out += a
-        a <= eps(T) && break
+        abs(a) < eps(T) * abs(out) && break
+        a *= inv((v + i + one(T)) * (i + one(T))) * t2
     end
-    return coef * out
+    return out
 end
+
+#=
+# the following is a deprecated version of the continued fraction approach
+# using K0 and K1 as starting values then forward recurrence up till nu
+# then using the wronskian to getting I_{nu}
+# in general this method is slow and depends on starting values of K0 and K1
+# which is not very flexible for arbitary orders
+
+function _besseli_continued_fractions(nu, x::T) where T
+    S = promote_type(T, Float64)
+    xx = S(x)
+    knum1, knu = besselk_up_recurrence(xx, besselk1(xx), besselk0(xx), 1, nu-1)
+    # if knu or knum1 is zero then besseli will likely overflow
+    (iszero(knu) || iszero(knum1)) && return throw(DomainError(x, "Overflow error"))
+    return 1 / (x * (knum1 + knu / steed(nu, x)))
+end
+function _besseli_continued_fractions_scaled(nu, x::T) where T
+    S = promote_type(T, Float64)
+    xx = S(x)
+    knum1, knu = besselk_up_recurrence(xx, besselk1x(xx), besselk0x(xx), 1, nu-1)
+    # if knu or knum1 is zero then besseli will likely overflow
+    (iszero(knu) || iszero(knum1)) && return throw(DomainError(x, "Overflow error"))
+    return 1 / (x * (knum1 + knu / steed(nu, x)))
+end
+function steed(n, x::T) where T
+    MaxIter = 1000
+    xinv = inv(x)
+    xinv2 = 2 * xinv
+    d = x / (n + n)
+    a = d
+    h = a
+    b = muladd(2, n, 2) * xinv
+    for _ in 1:MaxIter
+        d = inv(b + d)
+        a *= muladd(b, d, -1)
+        h = h + a
+        b = b + xinv2
+        abs(a / h) <= eps(T) && break
+    end
+    return h
+end
+=#
