@@ -172,6 +172,36 @@ julia> besselk(-2.8, -12.1)
 #### Gamma
 We also provide an unexported gamma function for real arguments that can be called with `Bessels.gamma(x)`.
 
+# Accuracy
+
+We report the relative errors (`abs(1 - Bessels.f(x)/ArbNumerics.f(ArbFloat(x)))`) compared to `ArbNumerics.jl` when computed in a higher precision. The working precision was set to `setworkingprecision(ArbFloat, 500); setextrabits(128)` for the calculations in arbitrary precision. We generate a thousand random points for $x \in (0, 100)$ and compute the mean and maximum absolute relative errors.
+
+
+| function | `mean` | `maximum`
+| -------------  | ------------- | ------------- |
+| besselj0(x)  | 3e-16   | 6e-14  |
+| besselj1(x)  | 2e-15   | 7e-13  |
+| besselj(5.0, x)  | 3e-14   | 2e-11  |
+| besselj(12.8, x)  | 2e-14   | 2e-12  |
+| besselj(111.6, x)  | 8e-15   | 4e-14  |
+| bessely0(x)  | 2e-15   | 5e-13  |
+| bessely1(x)  | 1e-15   | 2e-13  |
+| bessely(4.0, x)  | 3e-15   | 2e-12   |
+| bessely(6.92, x)  | 3e-14   | 5e-12   |
+| bessely(113.92, x)  | 8e-15   | 8e-14   |
+| besselk0(x)  | 1.2e-16   | 4e-16  |
+| besselk1(x)  | 1.2e-16   | 5e-16  |
+| besselk(14.0, x)  | 4e-15   | 3e-14  |
+| besselk(27.32, x)  | 6e-15   | 3e-14  |
+| besseli0(x)  | 1.5e-16   | 6e-16  |
+| besseli1(x)  | 1.5e-16   | 5e-16  |
+| besseli(9.0, x)  | 2e-16   | 2e-15  |
+| besseli(92.12, x)  | 9e-15   | 7e-14  |
+| Bessels.gamma(x)   | 1.3e-15  | 5e-16
+
+
+In general the largest relative errors are observed near the zeros of Bessel functions for `besselj` and `bessely`. Accuracy might also be slightly worse for very large arguments when using `Float64` precision.
+
 # Benchmarks
 
 We give brief performance comparisons to the implementations provided by [SpecialFunctions.jl](https://github.com/JuliaMath/SpecialFunctions.jl). In general, special functions are computed with separate algorithms in different domains leading to computational time being dependent on argument. For these comparisons we show the relative speed increase for computing random values between `0` and `100` for `x` and order `nu`. In some ranges, performance may be significantly better while others more similar.
