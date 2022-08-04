@@ -46,19 +46,6 @@ julia> besselj1(x)
 -0.1942588480405914
 ```
 
-Support is also provided for negative argument and orders.
-
-```julia
-julia> besselj(-1.4, 12.1)
-0.1208208567052962
-
-julia> besselj(5.8, -12.1)
--0.17685468273930427 + 0.12849244828700035im
-
-julia> besselj(-2.8, -12.1)
-0.1785554860917274 + 0.1297281542543098im
-```
-
 ### Bessel Functions of the second kind
 
 $$ Y_{\nu} = \frac{J_{\nu} \cos(\nu \pi) - J_{-\nu}}{\sin(\nu \pi)}    $$
@@ -81,19 +68,6 @@ julia> bessely1(x)
 -0.11894840329926633
 ```
 
-Support is also provided for negative argument and orders.
-
-```julia
-julia> bessely(-1.4, 12.1)
-0.19576089434668542
-
-julia> bessely(5.8, -12.1)
--0.08847808383435121 - 0.41799245618068837im
-
-julia> bessely(-2.8, -12.1)
-0.05892453605716959 + 0.31429979079493564im
-```
-
 ### Modified Bessel functions of the first kind
 
 $$ I_{\nu} = \sum_{m=0}^{\infty} \frac{1}{m!\Gamma(m+\nu+1)}(\frac{x}{2})^{2m+\nu}    $$
@@ -106,6 +80,8 @@ julia> v, x = 1.4, 12.3
 # generic call for any order v
 julia> besseli(v, x)
 23781.28963619158
+
+# exponentially scaled version
 julia> besselix(v, x)
 0.10824635342651369
 
@@ -118,22 +94,8 @@ julia> besseli0x(x)
 # v = 1
 julia> besseli1(x)
 24207.933018435186
-
 julia> besseli1x(x)
 0.11018832507935208
-```
-
-Support is also provided for negative argument and orders.
-
-```julia
-julia> besseli(-1.4, 12.1)
-19162.123079744106
-
-julia> besseli(5.8, -12.1)
-4072.854035672388 - 2959.1016672742567im
-
-julia> besseli(-2.8, -12.1)
--12045.563277269033 - 8751.613994715595im
 ```
 
 ### Modified Bessel Functions of the second kind
@@ -144,7 +106,6 @@ Modified Bessel functions of the second kind, denoted as $K_{\nu}(x)$, can be ca
 
 ```julia
 julia> v, x = 1.4, 12.3
-(1.4, 12.3)
 
 julia> besselk(v, x)
 1.739055243080153e-6
@@ -156,19 +117,29 @@ julia> besselk1(x)
 1.6750295538365835e-6
 ```
 
-Support is also provided for negative argument and orders.
+### Support for negative arguments
+
+Support is also provided for negative arguments and orders. However, if you use negative arguments, **real arguments could produce complex outputs**. See https://github.com/heltonmc/Bessels.jl/issues/30 for more details.
 
 ```julia
-julia> besselk(-1.4, 12.1)
-2.1438456178173037e-6
+julia> besselj(-1.4, 12.1)
+0.1208208567052962
 
-julia> besselk(5.8, -12.1)
-5.988301577988307e-6 - 15815.796705207398im
+julia> besselj(5.8, -12.1)
+-0.17685468273930427 + 0.12849244828700035im
+
+julia> besselj(-2.8, -12.1)
+0.1785554860917274 + 0.1297281542543098im
+
+julia> bessely(5.8, -12.1)
+-0.08847808383435121 - 0.41799245618068837im
+
+julia> bessely(-2.8, -12.1)
+0.05892453605716959 + 0.31429979079493564im
 
 julia> besselk(-2.8, -12.1)
 -2.188744151278995e-6 - 46775.597252033134im
 ```
-
 #### Gamma
 We also provide an unexported gamma function for real arguments that can be called with `Bessels.gamma(x)`.
 
@@ -197,7 +168,7 @@ We report the relative errors (`abs(1 - Bessels.f(x)/ArbNumerics.f(ArbFloat(x)))
 | besseli1(x)  | 1.5e-16   | 5e-16  |
 | besseli(9.0, x)  | 2e-16   | 2e-15  |
 | besseli(92.12, x)  | 9e-15   | 7e-14  |
-| Bessels.gamma(x)   | 1.3e-15  | 5e-16
+| Bessels.gamma(x)   | 1.3e-16  | 5e-16
 
 
 In general the largest relative errors are observed near the zeros of Bessel functions for `besselj` and `bessely`. Accuracy might also be slightly worse for very large arguments when using `Float64` precision.
