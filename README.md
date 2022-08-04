@@ -2,9 +2,9 @@
 [![Build Status](https://github.com/heltonmc/Bessels.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/heltonmc/Bessels.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 [![Coverage](https://codecov.io/gh/heltonmc/Bessels.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/heltonmc/Bessels.jl)
 
-Numerical routines for computing Bessel functions and modified Bessel functions of the first and second kind. These routines are written entirely in the Julia programming language and are self contained without relying on any external dependencies.
+Numerical routines for computing Bessel functions and modified Bessel functions of the first and second kind. These routines are written in the Julia programming language and are self contained without any external dependencies.
 
-The goal of the library is to provide high quality numerical implementations of Bessel functions with high accuracy without comprimising on computational time. In general, we try to match (and often exceed) the accuracy of other open source routines such as those provided by [SpecialFunctions.jl](https://github.com/JuliaMath/SpecialFunctions.jl). There are instances where we don't quite match that desired accuracy (within a digit or two) but in general will provide implementations that are 5-10x faster.
+The goal of the library is to provide high quality numerical implementations of Bessel functions with high accuracy without comprimising on computational time. In general, we try to match (and often exceed) the accuracy of other open source routines such as those provided by [SpecialFunctions.jl](https://github.com/JuliaMath/SpecialFunctions.jl). There are instances where we don't quite match that desired accuracy (within a digit or two) but in general will provide implementations that are 5-10x faster (see [benchmarks](https://github.com/heltonmc/Bessels.jl/edit/update_readme/README.md#benchmarks)).
 
 The library currently only supports Bessel functions and modified Bessel functions of the first and second kind for negative or positive real arguments and integer and noninteger orders. We plan to support complex arguments in the future. An unexported gamma function is also provided.
 
@@ -28,7 +28,7 @@ julia> besselj(nu, x)
 
 $$ J_{\nu} = \sum_{m=0}^{\infty} \frac{(-1)^m}{m!\Gamma(m+\nu+1)}(\frac{x}{2})^{2m+\nu}    $$
 
-Bessel functions of the first kind, denoted as $J_{\nu}(x)$, can be called with `besselj(nu, x)` where `nu` is the order of the Bessel function with argument `x`. Routines are also available for orders `0` and `1` which can be called with `besselj0(x)` and `besselj1`.
+Bessel functions of the first kind, denoted as $J_{\nu}(x)$, can be called with `besselj(nu, x)` where `nu` is the order of the Bessel function with argument `x`. Routines are also available for orders `0` and `1` which can be called with `besselj0(x)` and `besselj1(x)`.
 
 ```julia
 julia> v, x = 1.4, 12.3
@@ -50,7 +50,7 @@ julia> besselj1(x)
 
 $$ Y_{\nu} = \frac{J_{\nu} \cos(\nu \pi) - J_{-\nu}}{\sin(\nu \pi)}    $$
 
-Bessel functions of the second kind, denoted as $Y_{\nu}(x)$, can be called with `bessely(nu, x)`. Routines are also available for orders `0` and `1` which can be called with `bessely0(x)` and `bessely1`.
+Bessel functions of the second kind, denoted as $Y_{\nu}(x)$, can be called with `bessely(nu, x)`. Routines are also available for orders `0` and `1` which can be called with `bessely0(x)` and `bessely1(x)`.
 
 ```julia
 julia> v, x = 1.4, 12.3
@@ -102,7 +102,7 @@ julia> besseli1x(x)
 
 $$ K_{\nu} = \frac{\pi}{2} \frac{I_{-\nu} - I_{\nu}}{\sin(\nu \pi)}    $$
 
-Modified Bessel functions of the second kind, denoted as $K_{\nu}(x)$, can be called with `besselk(nu, x)`. Routines are available for orders `0` and `1` which can be called with `besselk0(x)` and `besselk1`. Exponentially scaled versions of these functions $I_{\nu}(x) * e^{-x}$ are also provided which can be called with `besselk0x(nu, x)`, `besselk1x(nu, x)`, and `besselkx(nu, x)`.
+Modified Bessel functions of the second kind, denoted as $K_{\nu}(x)$, can be called with `besselk(nu, x)`. Routines are available for orders `0` and `1` which can be called with `besselk0(x)` and `besselk1`. Exponentially scaled versions of these functions $K_{\nu}(x) * e^{x}$ are also provided which can be called with `besselk0x(nu, x)`, `besselk1x(nu, x)`, and `besselkx(nu, x)`.
 
 ```julia
 julia> v, x = 1.4, 12.3
@@ -211,6 +211,7 @@ Benchmarks were run using Julia Version 1.7.2 on an Apple M1 using Rosetta.
 # Current Development Plans
 
 - Support for higher precision `Double64`, `Float128`
+- Hankel functions
 - Support for complex arguments (`x` and `nu`)
 - Airy functions
 - Support for derivatives with respect to argument and order
