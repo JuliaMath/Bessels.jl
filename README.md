@@ -2,9 +2,11 @@
 [![Build Status](https://github.com/heltonmc/Bessels.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/heltonmc/Bessels.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 [![Coverage](https://codecov.io/gh/heltonmc/Bessels.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/heltonmc/Bessels.jl)
 
-A Julia implementation of Bessel's functions and modified Bessel's functions of the first and second kind. 
+Numerical routines for computing Bessel functions and modified Bessel functions of the first and second kind. These routines are written entirely in the Julia programming language and are self contained without relying on any external dependencies.
 
-The library currently supports Bessel's function of the first and second kind for orders 0 and 1 and for any integer order for modified Bessel's functions for real arguments.
+The goal of the library is to provide high quality numerical implementations of Bessel functions with high accuracy without comprimising on computational time. In general, we try to match (and often exceed) the accuracy of other open source routines such as those provided by [SpecialFunctions.jl](https://github.com/JuliaMath/SpecialFunctions.jl). There are instances where we don't quite match that desired accuracy (within a digit or two) but in general will provide implementations that are 5-10x faster.
+
+The library currently only supports Bessel functions and modified Bessel functions of the first and second kind for negative or positive real arguments and integer and noninteger orders. We plan to support complex arguments in the future. An unexported gamma function is also provided.
 
 # Quick start
 
@@ -14,12 +16,10 @@ pkg> add https://github.com/heltonmc/Bessels.jl.git
 
 julia> using Bessels
 
-# Bessel function of the first kind of order 0
-julia> besselj0(1.0)
-0.7651976865579665
+julia> x = 12.3; nu = 1.3
 
-julia> besselj0(1.0f0)
-0.7651977f0
+julia> besselj(nu, x)
+-0.2267581644816903
 ```
 
 # Supported functions
@@ -169,6 +169,28 @@ julia> besselk(-2.8, -12.1)
 -2.188744151278995e-6 - 46775.597252033134im
 ```
 
+#### Gamma
+We also provide an unexported gamma function for real arguments that can be called with `Bessels.gamma(x)`.
+
+# Benchmarks
+
+We give brief performance comparisons to the implementations provided by [SpecialFunctions.jl](https://github.com/JuliaMath/SpecialFunctions.jl). In general, special functions are computed with separate algorithms in different domains leading to computational time being dependent on argument. For these comparisons we show the relative speed increase for computing random values between `0` and `100` for `x` and order `nu`. In some ranges, performance may be significantly better while others more similar.
+
+| function | `Float64`
+| -------------  | ------------- |
+| besselj0(x)  | 2.5x
+| besselj(nu, x)  | 6x
+| bessely0(x)  | 2.3x
+| bessely(nu, x)  | 5x
+| besseli0  | 10x
+| besseli(nu, x)   | 7x  |
+| besselk0  | 10x
+| besselk(nu, x)   | 4x  |
+| Bessels.gamma(x)   | 5x  |
+
+
+Benchmarks were run using Julia Version 1.7.2 on an Apple M1 using Rosetta. 
+
 # API
 
 - `besselj0(x)`
@@ -183,39 +205,16 @@ julia> besselk(-2.8, -12.1)
 - `besselk0(x)`
 - `besselk1(x)`
 - `besselk(nu, x)`
-
-Exponentially scaled versions of Modified Bessel's function can also be called with `besselix(nu, x)` and `besselkx(nu, x)`.
-
-# Benchmarks
-
-These results compare the median value from BenchmarkTools obtained on one machine for arguments between 0 and 100.
-
-We compare the relative [speed](https://github.com/heltonmc/Bessels.jl/blob/master/benchmark/benchmark.jl) to implementations provided by [SpecialFunctions.jl](https://github.com/JuliaMath/SpecialFunctions.jl).
-
-| function | `Float32` | `Float64`
-| ------------- | ------------- | ------------- |
-| besselj0  | 1.7x  | 3.1x
-| besselj1  | 1.7x | 3.0x 
-| bessely0  | 1.9x  | 2.7x
-| bessely1  | 1.7x  | 2.7x
-| besseli0  | 26x  | 13.2x
-| besseli1  | 22x  | 13.9x
-| besseli(20, x)  |   5.4x   | 2.1x  |
-| besseli(120, x)  |   6x  | 4.5x  |
-| besselk0  | 16x  | 12.7x
-| besselk1  | 15x  | 14.3x
-| besselk(20, x)  |    5.4x  | 5.7x  |
-| besselk(120, x)  |   2.9x  | 3.4x  |
-
-* SpecialFunctions.jl doesn't always preserve the correct input type so some of the calculations may be done in Float64. This might skew the benchmarks for `Bessels.jl`.
+- `Bessels.gamma(x)`
 
 # Current Development Plans
 
-- More robust implementations of `besselj(nu, x)` and `bessely(nu, x)`
-- Support non-integer orders
-- Support complex arguments
+- Support for higher precision `Double64`, `Float128`
+- Support for complex arguments (`x` and `nu`)
+- Airy functions
+- Support for derivatives with respect to argument and order
 
 # Contributing 
 
-Contributions are very welcome, as are feature requests and suggestions. Please open an [issue](https://github.com/heltonmc/Bessels.jl/issues/new) for discussion on newer implementations, share papers, new features, or if you encounter any problems.
+Contributions are very welcome, as are feature requests, suggestions or general discussions. Please open an [issue](https://github.com/heltonmc/Bessels.jl/issues/new) for discussion on newer implementations, share papers, new features, or if you encounter any problems. Our goal is to provide high quality implementations of Bessel functions that match or exceed the accuracy of the implementatations provided by SpecialFunctions.jl. Please let us know if you encounter any accuracy or performance differences.
  
