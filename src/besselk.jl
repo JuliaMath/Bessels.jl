@@ -193,7 +193,8 @@ function besselk(nu::Real, x::T) where T
     if x >= 0
         return besselk_positive_args(abs_nu, abs_x)
     else
-        return cispi(-abs_nu)*besselk_positive_args(abs_nu, abs_x) - besseli_positive_args(abs_nu, abs_x) * im * π
+        return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
+        #return cispi(-abs_nu)*besselk_positive_args(abs_nu, abs_x) - besseli_positive_args(abs_nu, abs_x) * im * π
     end
 end
 function besselk(nu::Integer, x::T) where T
@@ -204,7 +205,8 @@ function besselk(nu::Integer, x::T) where T
     if x >= 0
         return besselk_positive_args(abs_nu, abs_x)
     else
-        return sg * besselk_positive_args(abs_nu, abs_x) - im * π * besseli_positive_args(abs_nu, abs_x)
+        return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
+        #return sg * besselk_positive_args(abs_nu, abs_x) - im * π * besseli_positive_args(abs_nu, abs_x)
     end
 end
 

@@ -199,12 +199,22 @@ function besselj(nu::Real, x::T) where T
 
     Jnu = besselj_positive_args(abs_nu, abs_x)
     if nu >= zero(T)
-        return x >= zero(T) ? Jnu : Jnu * cispi(abs_nu)
+        if x >= zero(T)
+            return Jnu
+        else
+            return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
+            #return Jnu * cispi(abs_nu)
+        end
     else
         Ynu = bessely_positive_args(abs_nu, abs_x)
         spi, cpi = sincospi(abs_nu)
         out = Jnu * cpi - Ynu * spi
-        return x >= zero(T) ? out : out * cispi(nu)
+        if x >= zero(T)
+            return out
+        else
+            return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
+            #return out * cispi(nu)
+        end
     end
 end
 

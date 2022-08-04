@@ -173,15 +173,17 @@ function besseli(nu::Real, x::T) where T
         if x >= 0
             return besseli_positive_args(abs_nu, abs_x)
         else
-            return cispi(abs_nu) * besseli_positive_args(abs_nu, abs_x)
+            return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
+            #return cispi(abs_nu) * besseli_positive_args(abs_nu, abs_x)
         end
     else
         if x >= 0
             return besseli_positive_args(abs_nu, abs_x) + 2 / π * sinpi(abs_nu) * besselk_positive_args(abs_nu, abs_x)
         else
-            Iv = besseli_positive_args(abs_nu, abs_x)
-            Kv = besselk_positive_args(abs_nu, abs_x)
-            return cispi(abs_nu) * Iv + 2 / π * sinpi(abs_nu) * (cispi(-abs_nu) * Kv - im * π * Iv)
+            #Iv = besseli_positive_args(abs_nu, abs_x)
+            #Kv = besselk_positive_args(abs_nu, abs_x)
+            #return cispi(abs_nu) * Iv + 2 / π * sinpi(abs_nu) * (cispi(-abs_nu) * Kv - im * π * Iv)
+            return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
         end
     end
 end
