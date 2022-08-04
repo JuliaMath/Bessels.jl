@@ -271,12 +271,14 @@ function bessely(nu::Integer, x::T) where T
         else
             return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
             #return Ynu * sg + 2im * sg * besselj_positive_args(abs_nu, abs_x)
+        end
     else
         if x >= zero(T)
             return Ynu * sg
         else
             return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
             #return Ynu + 2im * besselj_positive_args(abs_nu, abs_x)
+        end
     end
 end
 
