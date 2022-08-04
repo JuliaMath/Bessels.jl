@@ -151,6 +151,47 @@ function besselj1(x::Float32)
     end
 end
 
+#                  Bessel functions of the first kind of order nu
+#                               besselj(nu, x)
+#
+#    A numerical routine to compute the Bessel function of the first kind J_{ν}(x) [1]
+#    for real orders and arguments of positive or negative value. The routine is based on several
+#    publications [2, 3, 4, 5] that calculate J_{ν}(x) for positive arguments and orders where
+#    reflection identities are used to compute negative arguments and orders.
+#
+#    In particular, the reflectance identities for negative integer orders J_{-n}(x) = (-1)^n * J_{n}(x) (Eq. 9.1.5; [6])
+#    and for negative noninteger orders J_{−ν}(x) = cos(πν) * J_{ν}(x) - sin(πν) * Y_{ν}(x) are used.
+#    For negative arguments of integer order, J_{n}(-x) = (-1)^n * J_{n}(x) is used and for
+#    noninteger orders, J_{ν}(−x) = exp(im*π*ν) * J_{ν}(x) is used. For negative orders and arguments the previous identities are combined.
+#
+#    The identities are computed by calling the `besselj_positive_args(nu, x)` function which computes J_{ν}(x)
+#    for positive arguments and orders. When x < ν and ν being reasonably large, the debye asymptotic expansion (Eq. 32; [3]) is used `besseljy_debye(nu, x)`.
+#    For large arguments x >> ν, the phase functions are used (Eq. 14 [4]) with `besseljy_large_argument(nu, x)`.
+#    When x > ν and x being reasonably large, the Hankel function is calculated from the debye expansion (Eq. 29; [3]) with `hankel_debye(nu, x)`
+#    and J_{n}(x) is calculated from the real part of the Hankel function. These expansions are not uniform so are not strictly used when the above inequalities are true, therefore, cutoffs
+#    were determined depending on the desired accuracy. For large arguments x >> ν, the phase functions are used (Eq. 15 [4]) with `besseljy_large_argument(nu, x)`.
+#    For small arguments, J_{ν}(x) is calculated from the power series (`bessely_power_series(nu, x`)
+#
+#    For values where the expansions for large arguments and orders are not valid, backward recurrence is employed after shifting the order up
+#    to where `besseljy_debye` is accurate then using downward recurrence. In general, the routine will be the slowest when ν ≈ x as all methods struggle at this point.
+#    
+# [1] http://dlmf.nist.gov/10.2.E2
+# [2] Bremer, James. "An algorithm for the rapid numerical evaluation of Bessel functions of real orders and arguments." 
+#     Advances in Computational Mathematics 45.1 (2019): 173-211.
+# [3] Matviyenko, Gregory. "On the evaluation of Bessel functions." 
+#     Applied and Computational Harmonic Analysis 1.1 (1993): 116-135.
+# [4] Heitman, Z., Bremer, J., Rokhlin, V., & Vioreanu, B. (2015). On the asymptotics of Bessel functions in the Fresnel regime. 
+#     Applied and Computational Harmonic Analysis, 39(2), 347-356.
+# [5] Ratis, Yu L., and P. Fernández de Córdoba. "A code to calculate (high order) Bessel functions based on the continued fractions method." 
+#     Computer physics communications 76.3 (1993): 381-388.
+# [6] Abramowitz, Milton, and Irene A. Stegun, eds. Handbook of mathematical functions with formulas, graphs, and mathematical tables. 
+#     Vol. 55. US Government printing office, 1964.
+#
+
+#####
+##### Generic routine for `besselj`
+#####
+
 function besselj(nu::Real, x::T) where T
     isinteger(nu) && return besselj(Int(nu), x)
     abs_nu = abs(nu)
@@ -186,59 +227,65 @@ function besselj(nu::Integer, x::T) where T
     end
 end
 
+"""
+    besselj_positive_args(nu, x::T) where T <: Float64
+
+Bessel function of the first kind of order nu, ``J_{nu}(x)``.
+nu and x must be real and nu and x must be positive.
+
+No checks on arguments are performed and should only be called if certain nu, x >= 0.
+"""
 function besselj_positive_args(nu::Real, x::T) where T
     nu == 0 && return besselj0(x)
     nu == 1 && return besselj1(x)
 
-    x < 4.0 && return besselj_small_arguments_orders(nu, x)
+    # x < ~nu branch see src/U_polynomials.jl
+    besseljy_debye_cutoff(nu, x) && return besseljy_debye(nu, x)[1]
 
-    large_arg_cutoff = 1.65*nu
-    (x > large_arg_cutoff && x > 20.0) && return besseljy_large_argument(nu, x)[1]
+    # large argument branch see src/asymptotics.jl
+    besseljy_large_argument_cutoff(nu, x) && return besseljy_large_argument(nu, x)[1]
 
+    # x > ~nu branch see src/U_polynomials.jl on computing Hankel function
+    hankel_debye_cutoff(nu, x) && return real(hankel_debye(nu, x))
+
+    # use power series for small x and for when nu > x
+    besselj_series_cutoff(nu, x) && return besselj_power_series(nu, x)
+
+    # At this point we must fill the region when x ≈ v with recurrence
+    # Backward recurrence is always stable and forward recurrence is stable when x > nu
+    # However, we only use backward recurrence by shifting the order up and using `besseljy_debye` to generate start values
+    # Both `besseljy_debye` and `hankel_debye` get more accurate for large orders,
+    # however `besseljy_debye` is slightly more efficient (no complex variables) and we need no branches if only consider one direction.
+    # On the other hand, shifting the order down avoids any concern about underflow for large orders
+    # Shifting the order too high while keeping x fixed could result in numerical underflow
+    # Therefore we need to shift up only until the `besseljy_debye` is accurate and need to test that no underflow occurs
+    # Shifting the order up decreases the value substantially for high orders and results in a stable forward recurrence
+    # as the values rapidly increase
 
     debye_cutoff = 2.0 + 1.00035*x + Base.Math._approx_cbrt(302.681*Float64(x))
-    nu > debye_cutoff && return besseljy_debye(nu, x)[1]
-
-    if nu >= x
-        nu_shift = ceil(Int, debye_cutoff - nu)
-        v = nu + nu_shift
-        jnu = besseljy_debye(v, x)[1]
-        jnup1 = besseljy_debye(v+1, x)[1]
-        return besselj_down_recurrence(x, jnu, jnup1, v, nu)[1]
-    end
-
-    # at this point x > nu and  x < nu * 1.65
-    # in this region forward recurrence is stable
-    # we must decide if we should do backward recurrence if we are closer to debye accuracy
-    # or if we should do forward recurrence if we are closer to large argument expansion
-    debye_cutoff = 5.0 + 1.00033*x + Base.Math._approx_cbrt(1427.61*Float64(x))
-
-    debye_diff = debye_cutoff - nu
-    large_arg_diff = nu - x / 2.0
-
-    if (debye_diff > large_arg_diff && x > 20.0)
-        nu_shift = ceil(Int, large_arg_diff)
-        v2 = nu - nu_shift
-        jnu = besseljy_large_argument(v2, x)[1]
-        jnum1 = besseljy_large_argument(v2 - 1, x)[1]
-        return besselj_up_recurrence(x, jnu, jnum1, v2, nu)[1]
-    else
-        nu_shift = ceil(Int, debye_diff)
-        v = nu + nu_shift
-        jnu = besseljy_debye(v, x)[1]
-        jnup1 = besseljy_debye(v+1, x)[1]
-        return besselj_down_recurrence(x, jnu, jnup1, v, nu)[1]
-    end
+    nu_shift = ceil(Int, debye_cutoff - nu)
+    v = nu + nu_shift
+    jnu = besseljy_debye(v, x)[1]
+    jnup1 = besseljy_debye(v+1, x)[1]
+    return besselj_down_recurrence(x, jnu, jnup1, v, nu)[1]
 end
 
-# generally can only use for x < 4.0
-# this needs a better way to sum these as it produces large errors
-# only valid in non-oscillatory regime (v>1/2, 0<t<sqrt(v^2 - 0.25))
-# power series has premature underflow for large orders
-function besselj_small_arguments_orders(v, x::T) where T
-    v > 60 && return log_besselj_small_arguments_orders(v, x)
+#####
+##### Power series for J_{nu}(x)
+#####
 
-    MaxIter = 2000
+# accurate for x < 7.0 or nu > 2+ 0.109x + 0.062x^2 for Float64
+# accurate for x < 20.0 or nu > 14.4 - 0.455x + 0.027x^2 for Float32 (when using F64 precision)
+# only valid in non-oscillatory regime (v>1/2, 0<t<sqrt(v^2 - 0.25))
+# power series has premature underflow for large orders though use besseljy_debye for large orders
+"""
+    besselj_power_series(nu, x::T) where T <: Float64
+
+Computes ``J_{nu}(x)`` using the power series.
+In general, this is most accurate for small arguments and when nu > x.
+"""
+function besselj_power_series(v, x::T) where T
+    MaxIter = 3000
     out = zero(T)
     a = (x/2)^v / gamma(v + one(T))
     t2 = (x/2)^2
@@ -250,11 +297,16 @@ function besselj_small_arguments_orders(v, x::T) where T
     return out
 end
 
+besselj_series_cutoff(v, x::Float64) = (x < 7.0) || v > (2 + x*(0.109 + 0.062x))
+besselj_series_cutoff(v, x::Float32) = (x < 20.0) || v > (14.4 + x*(-0.455 + 0.027x))
+
+#=
 # this needs a better way to sum these as it produces large errors
 # use when v is large and x is small
-# need for bessely 
+# though when v is large we should use the debye expansion instead
+# also do not have a julia implementation of loggamma so will not use for now
 function log_besselj_small_arguments_orders(v, x::T) where T
-    MaxIter = 2000
+    MaxIter = 3000
     out = zero(T)
     a = one(T)
     x2 = (x/2)^2
@@ -266,3 +318,4 @@ function log_besselj_small_arguments_orders(v, x::T) where T
     logout = -loggamma(v + 1) + fma(v, log(x/2), log(out))
     return exp(logout)
 end
+=#

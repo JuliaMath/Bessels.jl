@@ -1,3 +1,13 @@
+#             Asymptotics expansions for x > nu
+#                `besseljy_large_argument`
+#
+#  This file contains the asymptotic asymptotic expansions for large arguments 
+#  which is accurate in the fresnel regime |x| > nu following the derivations given by Heitman [1].
+#  These routines can be used to calculate `besselj` and `bessely` using phase functions.
+#
+# [1] Heitman, Z., Bremer, J., Rokhlin, V., & Vioreanu, B. (2015). On the asymptotics of Bessel functions in the Fresnel regime. 
+#     Applied and Computational Harmonic Analysis, 39(2), 347-356.
+
 #besseljy_large_argument_min(::Type{Float32}) = 15.0f0
 besseljy_large_argument_min(::Type{Float64}) = 20.0
 besseljy_large_argument_min(::Type{T}) where T <: AbstractFloat = 40.0
@@ -6,7 +16,12 @@ besseljy_large_argument_min(::Type{T}) where T <: AbstractFloat = 40.0
 besseljy_large_argument_cutoff(v, x::Float64) = (x > 1.65*v && x > besseljy_large_argument_min(Float64))
 besseljy_large_argument_cutoff(v, x::T) where T = (x > 4*v && x > besseljy_large_argument_min(T))
 
+"""
+    besseljy_large_argument(nu, x::T)
 
+Asymptotic expansions for large arguments valid when x > 1.6*nu and x > 20.0.
+Returns both (besselj(nu, x), bessely(nu, x)).
+"""
 function besseljy_large_argument(v, x::T) where T
     # gives both (besselj, bessely) for x > 1.6*v
     α, αp = _α_αp_asymptotic(v, x)
@@ -118,7 +133,6 @@ function _α_αp_poly_10(v, x::T) where T
     
     αp = evalpoly(xinv, (s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10))
     α = x * evalpoly(xinv, (s0, -s1, -s2/3, -s3/5, -s4/7, -s5/9, -s6/11, -s7/13, -s8/15, -s9/17, -s10/19))
-    return α, αp
     return α, αp
 end
 #=

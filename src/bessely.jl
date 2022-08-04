@@ -190,7 +190,7 @@ end
 #    reflection identities are used to compute negative arguments and orders.
 #
 #    In particular, the reflectance identities for negative integer orders Y_{-n}(x) = (-1)^n * Y_{n}(x) (Eq. 9.1.5; [6])
-#    and for negative noninteger orders Y_{−ν}(x) = cos(πν) * Y_{ν}(x) + sin(πν) * J_{ν}(x) (Eq. 9.1.2; [6]) are used.
+#    and for negative noninteger orders Y_{−ν}(x) = cos(πν) * Y_{ν}(x) + sin(πν) * J_{ν}(x) are used.
 #    For negative arguments of integer order, Y_{n}(-x) = (-1)^n * Y_{n}(x) + (-1)^n * 2im * J_{n}(x) is used and for
 #    noninteger orders, Y_{ν}(−x) = exp(−im*π*ν) * Y_{ν}(x) + 2im * cos(πν) * J_{ν}(x) is used.
 #    For negative orders and arguments the previous identities are combined.
@@ -277,7 +277,7 @@ end
 """
     bessely_positive_args(nu, x::T) where T <: Float64
 
-Bessel function of the first kind of order nu, ``Y_{nu}(x)``.
+Bessel function of the second kind of order nu, ``Y_{nu}(x)``.
 nu and x must be real and nu and x must be positive.
 
 No checks on arguments are performed and should only be called if certain nu, x >= 0.
