@@ -6,7 +6,7 @@ Numerical routines for computing Bessel functions and modified Bessel functions 
 
 The goal of the library is to provide high quality numerical implementations of Bessel functions with high accuracy without comprimising on computational time. In general, we try to match (and often exceed) the accuracy of other open source routines such as those provided by [SpecialFunctions.jl](https://github.com/JuliaMath/SpecialFunctions.jl). There are instances where we don't quite match that desired accuracy (within a digit or two) but in general will provide implementations that are 5-10x faster (see [benchmarks](https://github.com/heltonmc/Bessels.jl/edit/update_readme/README.md#benchmarks)).
 
-The library currently only supports Bessel functions and modified Bessel functions of the first and second kind for negative or positive real arguments and integer and noninteger orders. We plan to support complex arguments in the future. An unexported gamma function is also provided.
+The library currently only supports Bessel functions and modified Bessel functions of the first and second kind for positive real arguments and integer and noninteger orders. Negative arguments are also supported only if the return value is real. We plan to support complex arguments in the future. An unexported gamma function is also provided.
 
 # Quick start
 
@@ -119,26 +119,26 @@ julia> besselk1(x)
 
 ### Support for negative arguments
 
-Support is also provided for negative arguments and orders. However, if you use negative arguments, **real arguments could produce complex outputs**. See https://github.com/heltonmc/Bessels.jl/issues/30 for more details.
+Support is provided for negative arguments and orders only if the return value is real. A domain error will be thrown if the return value is complex. See https://github.com/heltonmc/Bessels.jl/issues/30 for more details.
 
 ```julia
-julia> besselj(-1.4, 12.1)
-0.1208208567052962
+julia> (v,x) = 13.0, -1.0
+julia> besseli(v,x)
+-1.9956316782072008e-14
 
-julia> besselj(5.8, -12.1)
--0.17685468273930427 + 0.12849244828700035im
+julia> (v, x) = -14.0, -9.9
+julia> besseli(v,x)
+0.2892290867115618
 
-julia> besselj(-2.8, -12.1)
-0.1785554860917274 + 0.1297281542543098im
-
-julia> bessely(5.8, -12.1)
--0.08847808383435121 - 0.41799245618068837im
-
-julia> bessely(-2.8, -12.1)
-0.05892453605716959 + 0.31429979079493564im
-
-julia> besselk(-2.8, -12.1)
--2.188744151278995e-6 - 46775.597252033134im
+julia> (v,x) = 12.6, -3.0
+julia> besseli(v,x)
+ERROR: DomainError with -3.0:
+Complex result returned for real arguments. Complex arguments are currently not supported
+Stacktrace:
+ [1] besseli(nu::Float64, x::Float64)
+   @ Bessels ~/Documents/code/repos/Bessels.jl/src/besseli.jl:176
+ [2] top-level scope
+   @ REPL[9]:1
 ```
 #### Gamma
 We also provide an unexported gamma function for real arguments that can be called with `Bessels.gamma(x)`.
