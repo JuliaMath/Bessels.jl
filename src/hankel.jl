@@ -97,7 +97,7 @@ function besseljy_positive_args(nu::Real, x::T) where T
 
     Hnu = hankel_debye(v2, x)
     Hnum1 = hankel_debye(v2 - 1, x)
-    
+
     # forward recurrence is stable for Hankel when x >= nu
     if x >= nu
         H = besselj_up_recurrence(x, Hnu, Hnum1, v2, nu)[1]
@@ -133,7 +133,7 @@ function besselj_ratio_jnu_jnum1(n, x::T) where T
     return h
 end
 
-function besselh(nu::Float64, k::Integer, x::AbstractFloat)
+function besselh(nu::Real, k::Integer, x)
     Jn, Yn = besseljy(nu, x)
     if k == 1
         return complex(Jn, Yn)
@@ -144,5 +144,5 @@ function besselh(nu::Float64, k::Integer, x::AbstractFloat)
     end
 end
 
-hankelh1(nu, z) = besselh(nu, 1, z)
-hankelh2(nu, z) = besselh(nu, 2, z)
+hankelh1(nu, x) = besselh(nu, 1, x)
+hankelh2(nu, x) = besselh(nu, 2, x)
