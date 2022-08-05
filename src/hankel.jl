@@ -3,9 +3,8 @@ function besseljy(nu::Real, x::T) where T
     abs_nu = abs(nu)
     abs_x = abs(x)
 
-    Ynu = bessely_positive_args(abs_nu, abs_x)
-    Jnu = bessely_positive_args(abs_nu, abs_x)
-
+    Jnu, Ynu =  besseljy_positive_args(abs_nu, abs_x)
+   
     if nu >= zero(T)
         if x >= zero(T)
             return Jnu, Ynu
@@ -66,7 +65,6 @@ function besseljy_positive_args(nu::Real, x::T) where T
         H = hankel_debye(nu, x)
         return real(H), imag(H)
     end
-
     # use forward recurrence if nu is an integer up until the continued fraction becomes inefficient
     if isinteger(nu) && nu < 150
         Y0 = bessely0(x)
@@ -99,15 +97,21 @@ function besseljy_positive_args(nu::Real, x::T) where T
 
     Hnu = hankel_debye(v2, x)
     Hnum1 = hankel_debye(v2 - 1, x)
+    
     # forward recurrence is stable for Hankel when x >= nu
     if x >= nu
         H = besselj_up_recurrence(x, Hnu, Hnum1, v2, nu)[1]
         return real(H), imag(H)
     else
-        Yn, Ynp1 = besselj_up_recurrence(x, imag(Hnu), imag(Hnum1), v2, nu)
-        ratio_Jvp1_Jv = besselj_ratio_jnu_jnum1(nu+1, x)
-        Jnp1 = 2 / (π*x * (Yn - Ynp1 / ratio_Jvp1_Jv))
-        return Jnp1 / ratio_Jvp1_Jv, Yn
+        # At this point besselj can not be calculated with forward recurrence
+        # We could calculate it from bessely using the continued fraction approach like the following
+        #        Yn, Ynp1 = besselj_up_recurrence(x, imag(Hnu), imag(Hnum1), v2, nu)
+        #        ratio_Jvp1_Jv = besselj_ratio_jnu_jnum1(nu+1, x)
+        #        Jnp1 = 2 / (π*x * (Yn - Ynp1 / ratio_Jvp1_Jv))
+        #        return Jnp1 / ratio_Jvp1_Jv, Yn
+        # However, the continued fraction approach is slowly converging for large arguments
+        # We will fall back to computing besselj separately instead
+        return besselj_positive_args(nu, x), besselj_up_recurrence(x, imag(Hnu), imag(Hnum1), v2, nu)[1]
     end
 end
 
@@ -130,10 +134,11 @@ function besselj_ratio_jnu_jnum1(n, x::T) where T
 end
 
 function besselh(nu::Float64, k::Integer, x::AbstractFloat)
+    Jn, Yn = besseljy(nu, x)
     if k == 1
-        return complex(besselj(nu, x), bessely(nu, x))
+        return complex(Jn, Yn)
     elseif k == 2
-        return complex(besselj(nu, x), -bessely(nu, x))
+        return complex(Jn, -Yn)
     else
         throw(ArgumentError("k must be 1 or 2"))
     end
