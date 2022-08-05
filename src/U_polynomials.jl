@@ -41,7 +41,7 @@ function besseljy_debye(v, x)
     return coef_Jn * Uk_Jn, coef_Yn * Uk_Yn
 end
 
-besseljy_debye_cutoff(nu, x) = nu > 2.0 + 1.00035*x + Base.Math._approx_cbrt(Float64(302.681)*x) && x > 15
+besseljy_debye_cutoff(nu, x) = nu > 2.0 + 1.00035*x + Base.Math._approx_cbrt(Float64(302.681)*x) && nu > 15
 
 """
     hankel_debye(nu, x::T)

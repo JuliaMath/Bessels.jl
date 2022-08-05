@@ -42,6 +42,6 @@ include("Polynomials/besselj_polys.jl")
 include("asymptotics.jl")
 include("gamma.jl")
 
-#include("hankel.jl")
+include("hankel.jl")
 
 end
