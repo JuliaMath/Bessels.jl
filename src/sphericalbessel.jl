@@ -1,45 +1,12 @@
 function sphericalbesselj(nu::Real, x::T) where T
-    isinteger(nu) && return sphericalbesselj(Int(nu), x)
+    isnan(nu) || isnan(x) && return NaN
+    x < zero(T) && return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
     abs_nu = abs(nu)
-    abs_x = abs(x)
 
-    Jnu = sphericalbesselj_positive_args(abs_nu, abs_x)
-    if nu >= zero(T)
-        if x >= zero(T)
-            return Jnu
-        else
-            return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
-            #return Jnu * cispi(abs_nu)
-        end
+    if nu < zero(T)
+        return SQPIO2(T) * besselj(nu + 1/2, x) / sqrt(x)
     else
-        Ynu = sphericalbessely_positive_args(abs_nu, abs_x)
-        spi, cpi = sincospi(abs_nu)
-        out = Jnu * cpi - Ynu * spi
-        if x >= zero(T)
-            return out
-        else
-            return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
-            #return out * cispi(nu)
-        end
-    end
-end
-
-function sphericalbesselj(nu::Integer, x::T) where T
-    abs_nu = abs(nu)
-    abs_x = abs(x)
-    sg = iseven(abs_nu) ? 1 : -1
-
-    Jnu = sphericalbesselj_positive_args(abs_nu, abs_x)
-    if nu >= zero(T)
-        return x >= zero(T) ? Jnu : Jnu * sg
-    else
-        if x >= zero(T)
-            return Jnu * sg
-        else
-            Ynu = sphericalbessely_positive_args(abs_nu, abs_x)
-            spi, cpi = sincospi(abs_nu)
-            return (cpi*Jnu - spi*Ynu) * sg
-        end
+        return sphericalbesselj_positive_args(nu, x)
     end
 end
 
@@ -52,7 +19,7 @@ function sphericalbesselj_positive_args(nu::Real, x::T) where T
         return x^nu * a * coef
     elseif isinteger(nu)
         if (x >= nu && nu < 250) || (x < nu && nu < 60)
-            return sphericalbesselj_recurrence(nu, x)
+            return sphericalbesselj_recurrence(Int(nu), x)
         else
             return SQPIO2(T) * besselj(nu + 1/2, x) / sqrt(x)
         end
@@ -89,52 +56,15 @@ function sphericalbesselj_recurrence(nu::Integer, x::T) where T
     end
 end
 
-
-
 function sphericalbessely(nu::Real, x::T) where T
-    isinteger(nu) && return sphericalbessely(Int(nu), x)
+    isnan(nu) || isnan(x) && return NaN
+    x < zero(T) && return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
     abs_nu = abs(nu)
-    abs_x = abs(x)
 
-    Ynu = sphericalbessely_positive_args(abs_nu, abs_x)
-    if nu >= zero(T)
-        if x >= zero(T)
-            return Ynu
-        else
-            return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
-            #return Ynu * cispi(-nu) + 2im * besselj_positive_args(abs_nu, abs_x) * cospi(abs_nu)
-        end
+    if nu < zero(T)
+        return SQPIO2(T) * bessely(nu + 1/2, x) / sqrt(x)
     else
-        Jnu = sphericalbesselj_positive_args(abs_nu, abs_x)
-        spi, cpi = sincospi(abs_nu)
-        if x >= zero(T)
-            return Ynu * cpi + Jnu * spi
-        else
-            return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
-            #return cpi * (Ynu * cispi(nu) + 2im * Jnu * cpi) + Jnu * spi * cispi(abs_nu)
-        end
-    end
-end
-function sphericalbessely(nu::Integer, x::T) where T
-    abs_nu = abs(nu)
-    abs_x = abs(x)
-    sg = iseven(abs_nu) ? 1 : -1
-
-    Ynu = sphericalbessely_positive_args(abs_nu, abs_x)
-    if nu >= zero(T)
-        if x >= zero(T)
-            return Ynu
-        else
-            return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
-            #return Ynu * sg + 2im * sg * besselj_positive_args(abs_nu, abs_x)
-        end
-    else
-        if x >= zero(T)
-            return Ynu * sg
-        else
-            return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
-            #return Ynu + 2im * besselj_positive_args(abs_nu, abs_x)
-        end
+        return sphericalbessely_positive_args(nu, x)
     end
 end
 

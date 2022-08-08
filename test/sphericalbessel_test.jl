@@ -18,3 +18,11 @@ for x in 5.5:4.0:160.0, v in [20, 25.0, 32.4, 40.0, 45.12, 50.0, 55.2, 60.124, 7
     @test isapprox(Bessels.sphericalbesselj(v, x), SpecialFunctions.sphericalbesselj(v, x), rtol=3e-12)
     @test isapprox(Bessels.sphericalbessely(v, x), SpecialFunctions.sphericalbessely(v, x), rtol=3e-12)
 end
+
+v, x = -4.0, 5.6
+@test isapprox(Bessels.sphericalbesselj(v, x), 0.07774965105230025584537, rtol=3e-12)
+@test isapprox(Bessels.sphericalbessely(v, x), -0.1833997131521190346258, rtol=3e-12)
+
+v, x = -6.8, 15.6
+@test isapprox(Bessels.sphericalbesselj(v, x), 0.04386355397884301866595, rtol=3e-12)
+@test isapprox(Bessels.sphericalbessely(v, x), 0.05061013363904335437354, rtol=3e-12)
