@@ -5,10 +5,10 @@
 #
 #    A numerical routine to compute both Bessel functions of the first J_{ν}(x) and second kind Y_{ν}(x)
 #    for real orders and arguments of positive or negative value. Please see notes in src/besselj.jl and src/bessely.jl
-#    for notes on implementation details as most of the routine is similar. A key difference is when the methods to compute bessely
-#    don't also give besselj, we rely on a continued fraction approach to compute J_{ν}(x)/J_{ν-1}(x) to get J_{ν}(x) [1].
-#    The continued fraction approach is in general quickly converging when nu and x are small in magnitude.
-#    When x and nu are large and nu > x we fall back to computing J_{ν}(x) and Y_{ν}(x) separately as this was found to be more efficient.
+#    for details on implementation as most of the routine is similar. A key difference is when the methods to compute bessely
+#    don't also give besselj. We then rely on a continued fraction approach to compute J_{ν}(x)/J_{ν-1}(x) to get J_{ν}(x)
+#    from  Y_{ν}(x) and Y_{ν-1}(x)[1]. The continued fraction approach is more quickly converging when nu and x are small in magnitude.
+#    When x and nu are large and nu = x + ϵ, we fall back to computing J_{ν}(x) and Y_{ν}(x) separately as this was found to be more efficient.
 #    
 # [1] Ratis, Yu L., and P. Fernández de Córdoba. "A code to calculate (high order) Bessel functions based on the continued fractions method." 
 #     Computer physics communications 76.3 (1993): 381-388.
