@@ -1,3 +1,32 @@
+#                           Hankel functions
+#
+#                           besseljy(nu, x)
+#            besselh(nu, x), hankelh1(nu, x), hankelh2(nu, x)
+#
+#    A numerical routine to compute both Bessel functions of the first J_{ν}(x) and second kind Y_{ν}(x)
+#    for real orders and arguments of positive or negative value. Please see notes in src/besselj.jl and src/bessely.jl
+#    for notes on implementation details as most of the routine is similar. A key difference is when the methods to compute bessely
+#    don't also give besselj, we rely on a continued fraction approach to compute J_{ν}(x)/J_{ν-1}(x) to get J_{ν}(x) [1].
+#    The continued fraction approach is in general quickly converging when nu and x are small in magnitude.
+#    When x and nu are large and nu > x we fall back to computing J_{ν}(x) and Y_{ν}(x) separately as this was found to be more efficient.
+#    
+# [1] Ratis, Yu L., and P. Fernández de Córdoba. "A code to calculate (high order) Bessel functions based on the continued fractions method." 
+#     Computer physics communications 76.3 (1993): 381-388.
+#
+
+#####
+##### Generic routine for `besseljy`
+#####
+
+"""
+    besseljy(nu, x::T) where T <: Float64
+
+Return both Bessel functions of the first ``J_{nu}(x)`` and
+second ``Y_{nu}(x)`` kind. This method will be faster than calling (besselj(nu, x), bessely(nu, x)) separately,
+unless nu is slightly larger than x.
+
+Results may be slightly different than individual functions in some domains due to using different algorithms.
+"""
 function besseljy(nu::Real, x::T) where T
     isinteger(nu) && return besseljy(Int(nu), x)
     abs_nu = abs(nu)
@@ -29,8 +58,8 @@ function besseljy(nu::Integer, x::T) where T
     abs_x = abs(x)
     sg = iseven(abs_nu) ? 1 : -1
 
-    Jnu = besselj_positive_args(abs_nu, abs_x)
-    Ynu = bessely_positive_args(abs_nu, abs_x)
+    Jnu, Ynu =  besseljy_positive_args(abs_nu, abs_x)
+
     if nu >= zero(T)
         if x >= zero(T)
             return Jnu, Ynu
@@ -42,12 +71,16 @@ function besseljy(nu::Integer, x::T) where T
         if x >= zero(T)
             return Jnu * sg, Ynu * sg
         else
-            spi, cpi = sincospi(abs_nu)
             return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
+            #spi, cpi = sincospi(abs_nu)
             #return (cpi*Jnu - spi*Ynu) * sg, Ynu + 2im * besselj_positive_args(abs_nu, abs_x)
         end
     end
 end
+
+#####
+#####  `besseljy` for positive arguments and orders
+#####
 
 function besseljy_positive_args(nu::Real, x::T) where T
     nu == 0 && return (besselj0(x), bessely0(x))
@@ -69,7 +102,7 @@ function besseljy_positive_args(nu::Real, x::T) where T
     if isinteger(nu) && nu < 150
         Y0 = bessely0(x)
         Y1 = bessely1(x)
-        Ynm1, Yn = besselj_up_recurrence(x, bessely1(x), bessely0(x), 1, nu-1)
+        Ynm1, Yn = besselj_up_recurrence(x, Y1, Y0, 1, nu-1)
 
         ratio_Jv_Jvm1 = besselj_ratio_jnu_jnum1(nu, x)
         Jn = 2 / (π*x * (Ynm1 - Yn / ratio_Jv_Jvm1))
@@ -115,6 +148,13 @@ function besseljy_positive_args(nu::Real, x::T) where T
     end
 end
 
+#####
+#####  Continued fraction for J_{ν}(x)/J_{ν-1}(x)
+#####
+
+# implements continued fraction to compute ratio of J_{ν}(x)/J_{ν-1}(x)
+# using equation 22 and 24 of [1]
+# in general faster converging for small magnitudes of x and nu and nu >> x
 function besselj_ratio_jnu_jnum1(n, x::T) where T
     MaxIter = 5000
     xinv = inv(x)
@@ -133,6 +173,16 @@ function besselj_ratio_jnu_jnum1(n, x::T) where T
     return h
 end
 
+#####
+#####  Hankel functions
+#####
+
+"""
+    besselh(nu, [k=1,] x)
+
+Bessel function of the third kind of order `nu` (the Hankel function). `k` is either 1 or 2,
+selecting [`hankelh1`](@ref) or [`hankelh2`](@ref), respectively.
+"""
 function besselh(nu::Real, k::Integer, x)
     Jn, Yn = besseljy(nu, x)
     if k == 1
@@ -144,5 +194,14 @@ function besselh(nu::Real, k::Integer, x)
     end
 end
 
+"""
+    hankelh1(nu, x)
+Bessel function of the third kind of order `nu`, ``H^{(1)}_\\nu(x)``.
+"""
 hankelh1(nu, x) = besselh(nu, 1, x)
+
+"""
+    hankelh2(nu, x)
+Bessel function of the third kind of order `nu`, ``H^{(2)}_\\nu(x)``.
+"""
 hankelh2(nu, x) = besselh(nu, 2, x)

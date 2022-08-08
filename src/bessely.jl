@@ -228,13 +228,13 @@ end
 #####
 ##### Generic routine for `bessely`
 #####
+
 """
     bessely(nu, x::T) where T <: Float64
 
-Bessel function of the first kind of order nu, ``Y_{nu}(x)``.
+Bessel function of the second kind of order nu, ``Y_{nu}(x)``.
 nu and x must be real where nu and x can be positive or negative.
 """
-
 function bessely(nu::Real, x::T) where T
     isinteger(nu) && return bessely(Int(nu), x)
     abs_nu = abs(nu)
