@@ -1,7 +1,30 @@
+#                           Spherical Bessel functions
+#
+#                sphericalbesselj(nu, x), sphericalbessely(nu, x)
+#
+#    A numerical routine to compute the spherical bessel functions of the first and second kind.
+#    For small arguments, the power series series is used for sphericalbesselj. If nu is not a big integer
+#    then forward recurrence is used if x >= nu. If x < nu, forward recurrence for sphericalbessely is used
+#    and then a continued fraction and wronskian is used to compute sphericalbesselj [1]. For all other values,
+#    we directly call besselj and bessely routines.
+#    
+# [1] Ratis, Yu L., and P. Fernández de Córdoba. "A code to calculate (high order) Bessel functions based on the continued fractions method." 
+#     Computer physics communications 76.3 (1993): 381-388.
+#
+
+#####
+##### Generic routine for `sphericalbesselj`
+#####
+
+"""
+    sphericalbesselj(nu, x)
+
+Spherical bessel function of the first kind of order `nu`, ``j_ν(x)``. This is the non-singular
+solution to the radial part of the Helmholz equation in spherical coordinates.
+"""
 function sphericalbesselj(nu::Real, x::T) where T
     isnan(nu) || isnan(x) && return NaN
     x < zero(T) && return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
-    abs_nu = abs(nu)
 
     if nu < zero(T)
         return SQPIO2(T) * besselj(nu + 1/2, x) / sqrt(x)
@@ -9,6 +32,10 @@ function sphericalbesselj(nu::Real, x::T) where T
         return sphericalbesselj_positive_args(nu, x)
     end
 end
+
+#####
+##### Positive arguments for `sphericalbesselj`
+#####
 
 function sphericalbesselj_positive_args(nu::Real, x::T) where T
     if x^2 / (4*nu + 110) < eps(T)
@@ -27,6 +54,10 @@ function sphericalbesselj_positive_args(nu::Real, x::T) where T
         return SQPIO2(T) * besselj(nu + 1/2, x) / sqrt(x)
     end
 end
+
+#####
+##### Integer recurrence and/or wronskian with continued fraction
+#####
 
 # very accurate approach however need to consider some performance issues
 # if recurrence is stable (x>=nu) can generate very fast up to orders around 250
@@ -56,6 +87,17 @@ function sphericalbesselj_recurrence(nu::Integer, x::T) where T
     end
 end
 
+#####
+##### Generic routine for `sphericalbessely`
+#####
+
+"""
+    sphericalbessely(nu, x)
+
+Spherical bessel function of the second kind at order `nu`, ``y_ν(x)``. This is the singular
+solution to the radial part of the Helmholz equation in spherical coordinates. Sometimes
+known as a spherical Neumann function.
+"""
 function sphericalbessely(nu::Real, x::T) where T
     isnan(nu) || isnan(x) && return NaN
     x < zero(T) && return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
@@ -68,6 +110,10 @@ function sphericalbessely(nu::Real, x::T) where T
     end
 end
 
+#####
+##### Positive arguments for `sphericalbesselj`
+#####
+
 function sphericalbessely_positive_args(nu::Real, x::T) where T
     if besseljy_debye_cutoff(nu, x)
         # for very large orders use expansion nu >> x to avoid overflow in recurrence
@@ -78,6 +124,10 @@ function sphericalbessely_positive_args(nu::Real, x::T) where T
         return SQPIO2(T) * bessely(nu + 1/2, x) / sqrt(x)
     end
 end
+
+#####
+##### Integer recurrence
+#####
 
 function sphericalbessely_forward_recurrence(nu::Integer, x::T) where T
     xinv = inv(x)

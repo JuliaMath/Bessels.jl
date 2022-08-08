@@ -8,6 +8,9 @@ export bessely0
 export bessely1
 export bessely
 
+export sphericalbesselj
+export sphericalbessely
+
 export besseli
 export besselix
 export besseli0
