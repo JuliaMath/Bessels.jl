@@ -317,7 +317,7 @@ function bessely_positive_args(nu, x::T) where T
 
     # at this point x > 19.0 (for Float64) and fairly close to nu
     # shift nu down and use the debye expansion for Hankel function (valid x > nu) then use forward recurrence
-    nu_shift = floor(nu) - ceil(Int, -1.5 + x + Base.Math._approx_cbrt(-411*x))
+    nu_shift = ceil(nu) - floor(Int, -1.5 + x + Base.Math._approx_cbrt(-411*x)) + 4
     v2 = nu - maximum((nu_shift, modf(nu)[1] + 1))
     return besselj_up_recurrence(x, imag(hankel_debye(v2, x)), imag(hankel_debye(v2 - 1, x)), v2, nu)[1]
 end

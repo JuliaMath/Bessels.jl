@@ -67,7 +67,7 @@ end
 # if (x<nu) we can use forward recurrence from sphericalbesselj_recurrence and
 # then use a continued fraction approach. However, for largish orders (>60) the
 # continued fraction is slower converging and more efficient to use other methods
-function sphericalbesselj_recurrence(nu::Integer, x)
+function sphericalbesselj_recurrence(nu::Integer, x::T) where T
     if x >= nu
         # forward recurrence if stable
         xinv = inv(x)
