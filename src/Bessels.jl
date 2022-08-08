@@ -22,11 +22,15 @@ export besselk0x
 export besselk1
 export besselk1x
 
+export besselh
+export hankelh1
+export hankelh2
+
 include("besseli.jl")
 include("besselj.jl")
 include("besselk.jl")
 include("bessely.jl")
-include("constants.jl")
+include("hankel.jl")
 
 include("Float128/besseli.jl")
 include("Float128/besselj.jl")
@@ -34,6 +38,7 @@ include("Float128/besselk.jl")
 include("Float128/bessely.jl")
 include("Float128/constants.jl")
 
+include("constants.jl")
 include("math_constants.jl")
 include("U_polynomials.jl")
 include("recurrence.jl")
@@ -41,7 +46,5 @@ include("misc.jl")
 include("Polynomials/besselj_polys.jl")
 include("asymptotics.jl")
 include("gamma.jl")
-
-#include("hankel.jl")
 
 end

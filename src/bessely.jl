@@ -228,13 +228,13 @@ end
 #####
 ##### Generic routine for `bessely`
 #####
+
 """
     bessely(nu, x::T) where T <: Float64
 
-Bessel function of the first kind of order nu, ``Y_{nu}(x)``.
+Bessel function of the second kind of order nu, ``Y_{nu}(x)``.
 nu and x must be real where nu and x can be positive or negative.
 """
-
 function bessely(nu::Real, x::T) where T
     isinteger(nu) && return bessely(Int(nu), x)
     abs_nu = abs(nu)
@@ -310,10 +310,10 @@ function bessely_positive_args(nu, x::T) where T
     hankel_debye_cutoff(nu, x) && return imag(hankel_debye(nu, x))
 
     # use power series for small x and for when nu > x
-    bessely_series_cutoff(nu, x) && return bessely_power_series(nu, x)
+    bessely_series_cutoff(nu, x) && return bessely_power_series(nu, x)[1]
 
     # for x ∈ (6, 19) we use Chebyshev approximation and forward recurrence
-    besseljy_chebyshev_cutoff(nu, x) && return bessely_chebyshev(nu, x)
+    besseljy_chebyshev_cutoff(nu, x) && return bessely_chebyshev(nu, x)[1]
 
     # at this point x > 19.0 (for Float64) and fairly close to nu
     # shift nu down and use the debye expansion for Hankel function (valid x > nu) then use forward recurrence
@@ -340,6 +340,7 @@ end
 
 Computes ``Y_{nu}(x)`` using the power series when nu is not an integer.
 In general, this is most accurate for small arguments and when nu > x.
+Outpus both (Y_{nu}(x), J_{nu}(x)).
 """
 function bessely_power_series(v, x::T) where T
     MaxIter = 3000
@@ -358,7 +359,7 @@ function bessely_power_series(v, x::T) where T
         b *= -inv((-v + i + one(T)) * (i + one(T))) * t2
     end
     s, c = sincospi(v)
-    return (out*c - out2) / s
+    return (out*c - out2) / s, out
 end
 bessely_series_cutoff(v, x) = (x < 7.0) || v > 1.35*x - 4.5
 
@@ -375,7 +376,7 @@ Forward recurrence is used to fill orders starting at low orders ν ∈ (0, 2).
 function bessely_chebyshev(v, x)
     v_floor, _ = modf(v)
     Y0, Y1 = bessely_chebyshev_low_orders(v_floor, x)
-    return besselj_up_recurrence(x, Y1, Y0, v_floor + 1, v)[1]
+    return besselj_up_recurrence(x, Y1, Y0, v_floor + 1, v)
 end
 
 # only implemented for Float64 so far

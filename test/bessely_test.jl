@@ -75,6 +75,7 @@ for v in nu, xx in x
     xx *= v
     sf = SpecialFunctions.bessely(BigFloat(v), BigFloat(xx))
     @test isapprox(bessely(v, xx), Float64(sf), rtol=2e-13)
+    @test isapprox(Bessels.besseljy_positive_args(v, xx)[2], Float64(sf), rtol=5e-12)
 end
 
 # test decimal orders
@@ -85,6 +86,7 @@ nu = [0.1, 0.4567, 0.8123, 1.5, 2.5, 4.1234, 6.8, 12.3, 18.9, 28.2345, 38.1235, 
 for v in nu, xx in x
     xx *= v
     @test isapprox(bessely(v, xx), SpecialFunctions.bessely(v, xx), rtol=5e-12)
+    @test isapprox(Bessels.besseljy_positive_args(v, xx)[2], SpecialFunctions.bessely(v, xx), rtol=5e-12)
 end
 
 # need to test accuracy of negative orders and negative arguments and all combinations within
