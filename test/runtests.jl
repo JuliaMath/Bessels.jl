@@ -8,3 +8,4 @@ import SpecialFunctions
 @time @testset "bessely" begin include("bessely_test.jl") end
 @time @testset "hankel" begin include("hankel_test.jl") end
 @time @testset "gamma" begin include("gamma_test.jl") end
+@time @testset "sphericalbessel" begin include("sphericalbessel_test.jl") end

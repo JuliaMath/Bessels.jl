@@ -125,7 +125,7 @@ function besseljy_positive_args(nu::Real, x::T) where T
 
     # at this point x > 19.0 (for Float64) and fairly close to nu
     # shift nu down and use the debye expansion for Hankel function (valid x > nu) then use forward recurrence
-    nu_shift = floor(nu) - ceil(Int, -1.5 + x + Base.Math._approx_cbrt(-411*x))
+    nu_shift = ceil(nu) - floor(Int, -1.5 + x + Base.Math._approx_cbrt(-411*x)) + 2
     v2 = maximum((nu - nu_shift, modf(nu)[1] + 1))
 
     Hnu = hankel_debye(v2, x)
