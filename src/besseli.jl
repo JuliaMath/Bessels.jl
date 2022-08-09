@@ -207,6 +207,7 @@ Modified Bessel function of the first kind of order nu, ``I_{nu}(x)`` for positi
 function besseli_positive_args(nu, x::T) where T <: Union{Float32, Float64}
     iszero(nu) && return besseli0(x)
     isone(nu) && return besseli1(x)
+    isinf(x) && return T(Inf)
 
     # use large argument expansion if x >> nu
     besseli_large_argument_cutoff(nu, x) && return besseli_large_argument(nu, x)

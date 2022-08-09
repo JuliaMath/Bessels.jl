@@ -24,7 +24,7 @@ function _airyai(x::T) where T <: Union{Float32, Float64}
     z = 2 * x_abs^(T(3)/2) / 3
 
     if x > zero(T)
-        return sqrt(x / 3) * besselk(one(T)/3, z) / π
+        return isinf(z) ? zero(T) : sqrt(x / 3) * besselk(one(T)/3, z) / π
     elseif x < zero(T)
         Jv, Yv = besseljy_positive_args(one(T)/3, z)
         Jmv = (Jv - sqrt(T(3)) * Yv) / 2
@@ -48,7 +48,7 @@ function _airyaiprime(x::T) where T <: Union{Float32, Float64}
     z = 2 * x_abs^(T(3)/2) / 3
 
     if x > zero(T)
-        return -x * besselk(T(2)/3, z) / (sqrt(T(3)) * π)
+        return isinf(z) ? zero(T) : -x * besselk(T(2)/3, z) / (sqrt(T(3)) * π)
     elseif x < zero(T)
         Jv, Yv = besseljy_positive_args(T(2)/3, z)
         Jmv = -(Jv + sqrt(T(3))*Yv) / 2
@@ -72,7 +72,7 @@ function _airybi(x::T) where T <: Union{Float32, Float64}
     z = 2 * x_abs^(T(3)/2) / 3
 
     if x > zero(T)
-        return sqrt(x / 3) * (besseli(-one(T)/3, z) + besseli(one(T)/3, z))
+        return isinf(z) ? z : sqrt(x / 3) * (besseli(-one(T)/3, z) + besseli(one(T)/3, z))
     elseif x < zero(T)
         Jv, Yv = besseljy_positive_args(one(T)/3, z)
         Jmv = (Jv - sqrt(T(3)) * Yv) / 2
@@ -86,13 +86,17 @@ end
     airybiprime(x)
 Derivative of the Airy function of the second kind ``\\operatorname{Bi}'(x)``.
 """
-function airybiprime(x::T) where T
+airybiprime(x::Real) = _airybiprime(float(x))
+
+_airybiprime(x::Float16) = Float16(_airybiprime(Float32(x)))
+
+function _airybiprime(x::T) where T <: Union{Float32, Float64}
     isnan(x) && return x
     x_abs = abs(x)
     z = 2 * x_abs^(T(3)/2) / 3
 
     if x > zero(T)
-        return x * (besseli(T(2)/3, z) + besseli(-T(2)/3, z)) / sqrt(T(3))
+        return isinf(z) ? z : x * (besseli(T(2)/3, z) + besseli(-T(2)/3, z)) / sqrt(T(3))
     elseif x < zero(T)
         Jv, Yv = besseljy_positive_args(T(2)/3, z)
         Jmv = -(Jv + sqrt(T(3))*Yv) / 2

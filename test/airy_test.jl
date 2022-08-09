@@ -10,7 +10,7 @@ for x in [0.0; rand(10000)*100]
     @test isapprox(airyaiprime(-x), SpecialFunctions.airyaiprime(-x), rtol=1e-9)
 
     @test isapprox(airybi(x), SpecialFunctions.airybi(x), rtol=1e-12)
-    @test isapprox(airybi(-x), SpecialFunctions.airybi(-x), rtol=1e-9)
+    @test isapprox(airybi(-x), SpecialFunctions.airybi(-x), rtol=5e-8)
 
     @test isapprox(airybiprime(x), SpecialFunctions.airybiprime(x), rtol=1e-12)
     @test isapprox(airybiprime(-x), SpecialFunctions.airybiprime(-x), rtol=1e-9)
@@ -18,7 +18,7 @@ end
 
 # test Inf
 @test iszero(airyai(Inf))
-@test iszer(airyaiprime(Inf))
+@test iszero(airyaiprime(Inf))
 @test isinf(airybi(Inf))
 @test isinf(airybiprime(Inf))
 
