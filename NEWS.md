@@ -13,6 +13,7 @@ For bug fixes, performance enhancements, or fixes to unexported functions we wil
 ### Added
  - add an unexport method (`Bessels.besseljy(nu, x)`) for faster computation of `besselj` and `bessely` (#33)
  - add exported methods for Hankel functions `besselh(nu, k, x)`, `hankelh1(nu, x)`, `hankelh2(nu, x)` (#33)
+ - add exported methods for spherical bessel function `sphericalbesselj(nu, x)`, `sphericalbesselj(nu, x)`, (#38)
 
 ### Fixed
  - fix cutoff in `bessely` to not return error for integer orders and small arguments (#33)
