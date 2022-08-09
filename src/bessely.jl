@@ -336,6 +336,8 @@ end
 # this works well for small arguments x < 7.0 for rel. error ~1e-14
 # this also works well for nu > 1.35x - 4.5
 # for nu > 25 more cancellation occurs near integer values
+# There could be premature underflow when (x/2)^v == 0.
+# It might be better to use logarithms (when we get loggamma julia implementation)
 """
     bessely_power_series(nu, x::T) where T <: Float64
 
@@ -348,6 +350,9 @@ function bessely_power_series(v, x::T) where T
     out = zero(T)
     out2 = zero(T)
     a = (x/2)^v
+    # check for underflow and return limit for small arguments
+    iszero(a) && return -T(Inf)
+
     b = inv(a)
     a /= gamma(v + one(T))
     b /= gamma(-v + one(T))
