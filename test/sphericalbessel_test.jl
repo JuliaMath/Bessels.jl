@@ -9,7 +9,7 @@ x = 1e-15
 @test Bessels.sphericalbessely(5.5, x) ≈ SpecialFunctions.sphericalbessely(5.5, x)
 @test Bessels.sphericalbessely(10, x) ≈ SpecialFunctions.sphericalbessely(10, x)
 
-for x in 0.5:1.0:100.0, v in [0, 1, 5.5, 10]
+for x in 0.5:1.0:100.0, v in [0, 1, 5.5, 8.2, 10]
     @test isapprox(Bessels.sphericalbesselj(v, x), SpecialFunctions.sphericalbesselj(v, x), rtol=1e-12)
     @test isapprox(Bessels.sphericalbessely(v, x), SpecialFunctions.sphericalbessely(v, x), rtol=1e-12)
 end
