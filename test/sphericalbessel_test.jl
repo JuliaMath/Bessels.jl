@@ -9,6 +9,30 @@ x = 1e-15
 @test Bessels.sphericalbessely(5.5, x) ≈ SpecialFunctions.sphericalbessely(5.5, x)
 @test Bessels.sphericalbessely(10, x) ≈ SpecialFunctions.sphericalbessely(10, x)
 
+# test zero
+@test isone(Bessels.sphericalbesselj(0, 0.0))
+@test iszero(Bessels.sphericalbesselj(3, 0.0))
+@test iszero(Bessels.sphericalbesselj(10.4, 0.0))
+@test iszero(Bessels.sphericalbesselj(100.6, 0.0))
+
+@test Bessels.sphericalbessely(0, 0.0) == -Inf
+@test Bessels.sphericalbessely(1.8, 0.0) == -Inf
+@test Bessels.sphericalbessely(10, 0.0) == -Inf
+@test Bessels.sphericalbessely(290, 0.0) == -Inf
+
+# test Inf
+@test iszero(Bessels.sphericalbesselj(1, Inf))
+@test iszero(Bessels.sphericalbesselj(10.2, Inf))
+@test iszero(Bessels.sphericalbessely(3, Inf))
+@test iszero(Bessels.sphericalbessely(4.5, Inf))
+
+# test NaN
+@test isnan(Bessels.sphericalbesselj(1.4, NaN))
+@test isnan(Bessels.sphericalbesselj(4.0, NaN))
+@test isnan(Bessels.sphericalbessely(1.4, NaN))
+@test isnan(Bessels.sphericalbessely(4.0, NaN))
+
+
 for x in 0.5:1.0:100.0, v in [0, 1, 5.5, 8.2, 10]
     @test isapprox(Bessels.sphericalbesselj(v, x), SpecialFunctions.sphericalbesselj(v, x), rtol=1e-12)
     @test isapprox(Bessels.sphericalbessely(v, x), SpecialFunctions.sphericalbessely(v, x), rtol=1e-12)

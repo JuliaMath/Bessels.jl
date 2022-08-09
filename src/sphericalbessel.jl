@@ -27,9 +27,11 @@ sphericalbesselj(nu::Real, x::Real) = _sphericalbesselj(nu, float(x))
 _sphericalbesselj(nu, x::Float16) = Float16(_sphericalbesselj(nu, Float32(x)))
     
 function _sphericalbesselj(nu::Real, x::T) where T <: Union{Float32, Float64}
-    isnan(nu) || isnan(x) && return NaN
     x < zero(T) && return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
-
+    if ~isfinite(x)
+        isnan(x) && return x
+        isinf(x) && return zero(x)
+    end
     return nu < zero(T) ? sphericalbesselj_generic(nu, x) : sphericalbesselj_positive_args(nu, x)
 end
 
@@ -56,6 +58,7 @@ end
 sphericalbesselj_small_args_cutoff(nu, x::T) where T = x^2 / (4*nu + 110) < eps(T)
 
 function sphericalbesselj_small_args(nu, x::T) where T
+    iszero(x) && return iszero(nu) ? one(T) : zero(T)
     x2 = x^2 / 4
     coef = evalpoly(x2, (1, -inv(T(3)/2 + nu), -inv(5 + nu), -inv(T(21)/2 + nu), -inv(18 + nu)))
     a = sqrt(T(pi)/2) / (gamma(T(3)/2 + nu) * 2^(nu + T(1)/2))
@@ -110,8 +113,11 @@ sphericalbessely(nu::Real, x::Real) = _sphericalbessely(nu, float(x))
 _sphericalbessely(nu, x::Float16) = Float16(_sphericalbessely(nu, Float32(x)))
 
 function _sphericalbessely(nu::Real, x::T) where T <: Union{Float32, Float64}
-    isnan(nu) || isnan(x) && return NaN
     x < zero(T) && return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
+    if ~isfinite(x)
+        isnan(x) && return x
+        isinf(x) && return zero(x)
+    end
     return nu < zero(T) ? sphericalbessely_generic(nu, x) : sphericalbessely_positive_args(nu, x)
 end
 
@@ -149,5 +155,8 @@ function sphericalbessely_forward_recurrence(nu::Integer, x::T) where T
         sY0, sY1 = sY1, muladd((2*nu_start + 1)*xinv, sY1, -sY0)
         nu_start += 1
     end
-    return sY0, sY1
+    # need to check if NaN resulted during loop
+    # this could happen if x is very small and nu is large which eventually results in overflow (-> -Inf)
+    # NaN inputs were checked in top level function so if sY0 is NaN we should return -infinity
+    return isnan(sY0) ? (-Inf, -Inf) : (sY0, sY1)
 end
