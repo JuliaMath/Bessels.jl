@@ -15,3 +15,15 @@ for x in [0.0; rand(10000)*100]
     @test isapprox(airybiprime(x), SpecialFunctions.airybiprime(x), rtol=1e-12)
     @test isapprox(airybiprime(-x), SpecialFunctions.airybiprime(-x), rtol=1e-9)
 end
+
+# test Inf
+@test iszero(airyai(Inf))
+@test iszer(airyaiprime(Inf))
+@test isinf(airybi(Inf))
+@test isinf(airybiprime(Inf))
+
+# test Float16 types
+@test airyai(Float16(1.2)) isa Float16
+@test airyaiprime(Float16(1.9)) isa Float16
+@test airybi(Float16(1.2)) isa Float16
+@test airybiprime(Float16(1.9)) isa Float16
