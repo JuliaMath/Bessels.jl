@@ -6,7 +6,7 @@ Numerical routines for computing Bessel and Hankel functions for real arguments.
 
 The goal of the library is to provide high quality numerical implementations of Bessel functions with high accuracy without comprimising on computational time. In general, we try to match (and often exceed) the accuracy of other open source routines such as those provided by [SpecialFunctions.jl](https://github.com/JuliaMath/SpecialFunctions.jl). There are instances where we don't quite match that desired accuracy (within a digit or two) but in general will provide implementations that are 5-10x faster (see [benchmarks](https://github.com/heltonmc/Bessels.jl/edit/update_readme/README.md#benchmarks)).
 
-The library currently supports Bessel functions, modified Bessel functions and Hankel functions of the first and second kind for positive real arguments and integer and noninteger orders. Negative arguments are also supported only if the return value is real. We plan to support complex arguments in the future. An unexported gamma function is also provided.
+The library currently supports Bessel functions, modified Bessel functions, Hankel functions and spherical Bessel functions of the first and second kind for positive real arguments and integer and noninteger orders. Negative arguments are also supported only if the return value is real. We plan to support complex arguments in the future. An unexported gamma function is also provided.
 
 # Quick start
 
@@ -209,6 +209,8 @@ Benchmarks were run using Julia Version 1.7.2 on an Apple M1 using Rosetta.
 - `besselh(nu, k, x)`
 - `hankelh1(nu, x)`
 - `hankelh2(nu, x)`
+- `sphericalbesselj(nu, x)`
+- `sphericalbessely(nu, x)`
 - `Bessels.gamma(x)`
 
 # Current Development Plans

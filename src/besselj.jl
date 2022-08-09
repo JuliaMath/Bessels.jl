@@ -272,8 +272,8 @@ function besselj_positive_args(nu::Real, x::T) where T
     # Shifting the order up decreases the value substantially for high orders and results in a stable forward recurrence
     # as the values rapidly increase
 
-    debye_cutoff = 2.0 + 1.00035*x + Base.Math._approx_cbrt(302.681*Float64(x))
-    nu_shift = ceil(Int, debye_cutoff - nu)
+    debye_cutoff = ceil(2.0 + 1.00035*x + Base.Math._approx_cbrt(302.681*Float64(x)))
+    nu_shift = ceil(Int, debye_cutoff - floor(nu))
     v = nu + nu_shift
     jnu = besseljy_debye(v, x)[1]
     jnup1 = besseljy_debye(v+1, x)[1]
