@@ -61,7 +61,7 @@ function sphericalbesselj_small_args(nu, x::T) where T
     iszero(x) && return iszero(nu) ? one(T) : zero(T)
     x2 = x^2 / 4
     coef = evalpoly(x2, (1, -inv(T(3)/2 + nu), -inv(5 + nu), -inv(T(21)/2 + nu), -inv(18 + nu)))
-    a = sqrt(T(pi)/2) / (gamma(T(3)/2 + nu) * 2^(nu + T(1)/2))
+    a = SQPIO2(T) / (gamma(T(3)/2 + nu) * 2^(nu + T(1)/2))
     return x^nu * a * coef
 end
 
@@ -92,7 +92,7 @@ function sphericalbesselj_recurrence(nu::Integer, x::T) where T
     elseif x < nu
         # compute sphericalbessely with forward recurrence and use continued fraction
         sYnm1, sYn = sphericalbessely_forward_recurrence(nu, x)
-        H = besselj_ratio_jnu_jnum1(nu + 3/2, x)
+        H = besselj_ratio_jnu_jnum1(nu + T(3)/2, x)
         return inv(x^2 * (H*sYnm1 - sYn))
     end
 end
@@ -132,7 +132,7 @@ sphericalbessely_positive_args(nu::Real, x) = isinteger(nu) ? sphericalbessely_p
 function sphericalbessely_positive_args(nu::Integer, x::T) where T
     if besseljy_debye_cutoff(nu, x)
         # for very large orders use expansion nu >> x to avoid overflow in recurrence
-        return SQPIO2(T) * besseljy_debye(nu + 1/2, x)[2] / sqrt(x)
+        return SQPIO2(T) * besseljy_debye(nu + one(T)/2, x)[2] / sqrt(x)
     elseif nu < 250
         return sphericalbessely_forward_recurrence(nu, x)[1]
     else
@@ -158,5 +158,5 @@ function sphericalbessely_forward_recurrence(nu::Integer, x::T) where T
     # need to check if NaN resulted during loop
     # this could happen if x is very small and nu is large which eventually results in overflow (-> -Inf)
     # NaN inputs were checked in top level function so if sY0 is NaN we should return -infinity
-    return isnan(sY0) ? (-Inf, -Inf) : (sY0, sY1)
+    return isnan(sY0) ? (-T(Inf), -T(Inf)) : (sY0, sY1)
 end
