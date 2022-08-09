@@ -18,6 +18,7 @@ For bug fixes, performance enhancements, or fixes to unexported functions we wil
 
 ### Fixed
  - fix cutoff in `bessely` to not return error for integer orders and small arguments (#33)
+ - fix NaN return for small arguments (issue [#35]) in bessely (#40)
 
 # Version 0.1.0
 

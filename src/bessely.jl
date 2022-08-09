@@ -351,7 +351,7 @@ function bessely_power_series(v, x::T) where T
     out2 = zero(T)
     a = (x/2)^v
     # check for underflow and return limit for small arguments
-    iszero(a) && return -T(Inf)
+    iszero(a) && return (-T(Inf), a)
 
     b = inv(a)
     a /= gamma(v + one(T))
