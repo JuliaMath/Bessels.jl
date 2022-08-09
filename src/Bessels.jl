@@ -8,6 +8,9 @@ export bessely0
 export bessely1
 export bessely
 
+export sphericalbesselj
+export sphericalbessely
+
 export besseli
 export besselix
 export besseli0
@@ -37,6 +40,7 @@ include("besselk.jl")
 include("bessely.jl")
 include("hankel.jl")
 include("airy.jl")
+include("sphericalbessel.jl")
 
 include("Float128/besseli.jl")
 include("Float128/besselj.jl")
