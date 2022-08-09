@@ -102,6 +102,9 @@ for v in nu, xx in x
     @test isapprox(besseli(v, xx), Float64(sf), rtol=2e-13)
 end
 
+# test Inf
+@test isinf(besseli(2, Inf))
+
  ### tests for negative arguments
 
 (v, x) = 12.0, 3.2

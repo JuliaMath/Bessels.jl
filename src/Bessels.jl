@@ -29,11 +29,17 @@ export besselh
 export hankelh1
 export hankelh2
 
+export airyai
+export airyaiprime
+export airybi
+export airybiprime
+
 include("besseli.jl")
 include("besselj.jl")
 include("besselk.jl")
 include("bessely.jl")
 include("hankel.jl")
+include("airy.jl")
 include("sphericalbessel.jl")
 
 include("Float128/besseli.jl")

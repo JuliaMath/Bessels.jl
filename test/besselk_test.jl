@@ -120,6 +120,9 @@ for v in nu, xx in x
     @test isapprox(besselk(v, xx), Float64(sf), rtol=2e-13)
 end
 
+# test Inf
+@test iszero(besselk(2, Inf))
+
 ### tests for negative arguments
 
 (v, x) = 12.0, 3.2

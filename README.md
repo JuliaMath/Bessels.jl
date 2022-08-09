@@ -2,11 +2,11 @@
 [![Build Status](https://github.com/heltonmc/Bessels.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/heltonmc/Bessels.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 [![Coverage](https://codecov.io/gh/heltonmc/Bessels.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/heltonmc/Bessels.jl)
 
-Numerical routines for computing Bessel and Hankel functions for real arguments. These routines are written in the Julia programming language and are self contained without any external dependencies.
+Numerical routines for computing Bessel, Airy, and Hankel functions for real arguments. These routines are written in the Julia programming language and are self contained without any external dependencies.
 
 The goal of the library is to provide high quality numerical implementations of Bessel functions with high accuracy without comprimising on computational time. In general, we try to match (and often exceed) the accuracy of other open source routines such as those provided by [SpecialFunctions.jl](https://github.com/JuliaMath/SpecialFunctions.jl). There are instances where we don't quite match that desired accuracy (within a digit or two) but in general will provide implementations that are 5-10x faster (see [benchmarks](https://github.com/heltonmc/Bessels.jl/edit/update_readme/README.md#benchmarks)).
 
-The library currently supports Bessel functions, modified Bessel functions, Hankel functions and spherical Bessel functions of the first and second kind for positive real arguments and integer and noninteger orders. Negative arguments are also supported only if the return value is real. We plan to support complex arguments in the future. An unexported gamma function is also provided.
+The library currently supports Bessel functions, modified Bessel functions, Hankel functions, spherical Bessel functions, and Airy functions of the first and second kind for positive real arguments and integer and noninteger orders. Negative arguments are also supported only if the return value is real. We plan to support complex arguments in the future. An unexported gamma function is also provided.
 
 # Quick start
 
@@ -170,7 +170,6 @@ We report the relative errors (`abs(1 - Bessels.f(x)/ArbNumerics.f(ArbFloat(x)))
 | besseli(92.12, x)  | 9e-15   | 7e-14  |
 | Bessels.gamma(x)   | 1.3e-16  | 5e-16
 
-
 In general the largest relative errors are observed near the zeros of Bessel functions for `besselj` and `bessely`. Accuracy might also be slightly worse for very large arguments when using `Float64` precision.
 
 # Benchmarks
@@ -188,7 +187,6 @@ We give brief performance comparisons to the implementations provided by [Specia
 | besselk0  | 10x
 | besselk(nu, x)   | 4x  |
 | Bessels.gamma(x)   | 5x  |
-
 
 Benchmarks were run using Julia Version 1.7.2 on an Apple M1 using Rosetta. 
 
@@ -211,13 +209,16 @@ Benchmarks were run using Julia Version 1.7.2 on an Apple M1 using Rosetta.
 - `hankelh2(nu, x)`
 - `sphericalbesselj(nu, x)`
 - `sphericalbessely(nu, x)`
+- `airyai(x)`
+- `airyaiprime(x)`
+- `airybi(x)`
+- `airybiprime(x)`
 - `Bessels.gamma(x)`
 
 # Current Development Plans
 
 - Support for higher precision `Double64`, `Float128`
 - Support for complex arguments (`x` and `nu`)
-- Airy functions
 - Support for derivatives with respect to argument and order
 
 # Contributing 
