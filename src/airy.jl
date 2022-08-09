@@ -1,8 +1,6 @@
 """
     airyai(x)
 Airy function of the first kind ``\\operatorname{Ai}(x)``.
-External links: [DLMF](https://dlmf.nist.gov/9.2), [Wikipedia](https://en.wikipedia.org/wiki/Airy_function)
-See also: [`airyaix`](@ref), [`airyaiprime`](@ref), [`airybi`](@ref)
 """
 function airyai(x::T) where T
     if x > zero(T)
@@ -15,15 +13,13 @@ function airyai(x::T) where T
         Jmv = (Jv - sqrt(T(3)) * Yv) / 2
         return sqrt(x_abs) * (Jmv + Jv) / 3
     elseif iszero(x)
-        return inv(3^(T(2)/3) * GAMMA_TWO_THIRDS(T))
+        return T(0.3550280538878172)
     end
 end
 
 """
     airyaiprime(x)
 Derivative of the Airy function of the first kind ``\\operatorname{Ai}'(x)``.
-External links: [DLMF](https://dlmf.nist.gov/9.2), [Wikipedia](https://en.wikipedia.org/wiki/Airy_function)
-See also: [`airyaiprimex`](@ref), [`airyai`](@ref), [`airybi`](@ref)
 """
 function airyaiprime(x::T) where T
     if x > zero(T)
@@ -39,11 +35,10 @@ function airyaiprime(x::T) where T
         return T(-0.2588194037928068)
     end
 end
+
 """
     airybi(x)
 Airy function of the second kind ``\\operatorname{Bi}(x)``.
-External links: [DLMF](https://dlmf.nist.gov/9.2), [Wikipedia](https://en.wikipedia.org/wiki/Airy_function)
-See also: [`airybix`](@ref), [`airybiprime`](@ref),  [`airyai`](@ref)
 """
 function airybi(x::T) where T
     if x > zero(T)
@@ -56,15 +51,13 @@ function airybi(x::T) where T
         Jmv = (Jv - sqrt(T(3)) * Yv) / 2
         return sqrt(x_abs/3) * (Jmv - Jv)
     elseif iszero(x)
-        return inv(3^(T(1)/6) * GAMMA_TWO_THIRDS(T))
+        return T(0.6149266274460007)
     end
 end
 
 """
     airybiprime(x)
 Derivative of the Airy function of the second kind ``\\operatorname{Bi}'(x)``.
-External links: [DLMF](https://dlmf.nist.gov/9.2), [Wikipedia](https://en.wikipedia.org/wiki/Airy_function)
-See also: [`airybiprimex`](@ref), [`airybi`](@ref), [`airyai`](@ref)
 """
 function airybiprime(x::T) where T
     if x > zero(T)
@@ -80,9 +73,3 @@ function airybiprime(x::T) where T
         return T(0.4482883573538264)
     end
 end
-
-const GAMMA_TWO_THIRDS(::Type{Float64}) = 1.3541179394264005
-const GAMMA_TWO_THIRDS(::Type{Float32}) = 1.3541179394264005f0
-
-const GAMMA_ONE_THIRD(::Type{Float64}) = 2.6789385347077475
-const GAMMA_ONE_THIRD(::Type{Float64}) = 2.6789385347077475f0
