@@ -120,6 +120,10 @@ for v in nu, xx in x
     @test isapprox(besselk(v, xx), Float64(sf), rtol=2e-13)
 end
 
+# test Float16
+@test besselk(10, Float16(1.0)) isa Float16
+@test besselkx(10, Float16(1.0)) isa Float16
+
 # test Inf
 @test iszero(besselk(2, Inf))
 

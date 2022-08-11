@@ -164,8 +164,12 @@ end
 
 Modified Bessel function of the second kind of order nu, ``I_{nu}(x)``.
 """
-function besseli(nu::Real, x::T) where T
-    isinteger(nu) && return besseli(Int(nu), x)
+besseli(nu::Real, x::Real) = _besseli(nu, float(x))
+
+_besseli(nu, x::Float16) = Float16(_besseli(nu, Float32(x)))
+
+function _besseli(nu, x::T) where T <: Union{Float32, Float64}
+    isinteger(nu) && return _besseli(Int(nu), x)
     abs_nu = abs(nu)
     abs_x = abs(x)
 
@@ -187,7 +191,7 @@ function besseli(nu::Real, x::T) where T
         end
     end
 end
-function besseli(nu::Integer, x::T) where T
+function _besseli(nu::Integer, x::T) where T <: Union{Float32, Float64}
     abs_nu = abs(nu)
     abs_x = abs(x)
     sg = iseven(abs_nu) ? 1 : -1
@@ -225,7 +229,11 @@ end
 Scaled modified Bessel function of the first kind of order nu, ``I_{nu}(x)*e^{-x}``.
 Nu must be real.
 """
-function besselix(nu, x::T) where T <: Union{Float32, Float64}
+besselix(nu::Real, x::Real) = _besselix(nu, float(x))
+
+_besselix(nu, x::Float16) = Float16(_besselix(nu, Float32(x)))
+
+function _besselix(nu, x::T) where T <: Union{Float32, Float64}
     iszero(nu) && return besseli0x(x)
     isone(nu) && return besseli1x(x)
 

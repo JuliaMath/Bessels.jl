@@ -33,8 +33,8 @@ x = 1e-15
 @test isnan(Bessels.sphericalbessely(4.0, NaN))
 
 # test Float16 types
-@test Bessels.sphericalbesselj(1.4, Float16(1.2)) isa Float16
-@test Bessels.sphericalbessely(1.4, Float16(1.2)) isa Float16
+@test Bessels.sphericalbesselj(Float16(1.4), Float16(1.2)) isa Float16
+@test Bessels.sphericalbessely(Float16(1.4), Float16(1.2)) isa Float16
 
 for x in 0.5:1.0:100.0, v in [0, 1, 5.5, 8.2, 10]
     @test isapprox(Bessels.sphericalbesselj(v, x), SpecialFunctions.sphericalbesselj(v, x), rtol=1e-12)

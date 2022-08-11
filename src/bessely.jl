@@ -235,9 +235,13 @@ end
 Bessel function of the second kind of order nu, ``Y_{nu}(x)``.
 nu and x must be real where nu and x can be positive or negative.
 """
-function bessely(nu::Real, x::T) where T
+bessely(nu::Real, x::Real) = _bessely(nu, float(x))
+
+_bessely(nu, x::Float16) = Float16(_bessely(nu, Float32(x)))
+
+function _bessely(nu, x::T) where T <: Union{Float32, Float64}
     isnan(nu) || isnan(x) && return NaN
-    isinteger(nu) && return bessely(Int(nu), x)
+    isinteger(nu) && return _bessely(Int(nu), x)
     abs_nu = abs(nu)
     abs_x = abs(x)
 
@@ -260,7 +264,7 @@ function bessely(nu::Real, x::T) where T
         end
     end
 end
-function bessely(nu::Integer, x::T) where T
+function _bessely(nu::Integer, x::T) where T <: Union{Float32, Float64}
     abs_nu = abs(nu)
     abs_x = abs(x)
     sg = iseven(abs_nu) ? 1 : -1
@@ -336,6 +340,8 @@ end
 # this works well for small arguments x < 7.0 for rel. error ~1e-14
 # this also works well for nu > 1.35x - 4.5
 # for nu > 25 more cancellation occurs near integer values
+# There could be premature underflow when (x/2)^v == 0.
+# It might be better to use logarithms (when we get loggamma julia implementation)
 """
     bessely_power_series(nu, x::T) where T <: Float64
 
@@ -348,6 +354,9 @@ function bessely_power_series(v, x::T) where T
     out = zero(T)
     out2 = zero(T)
     a = (x/2)^v
+    # check for underflow and return limit for small arguments
+    iszero(a) && return (-T(Inf), a)
+
     b = inv(a)
     a /= gamma(v + one(T))
     b /= gamma(-v + one(T))

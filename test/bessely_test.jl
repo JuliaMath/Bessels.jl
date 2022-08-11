@@ -89,6 +89,16 @@ for v in nu, xx in x
     @test isapprox(Bessels.besseljy_positive_args(v, xx)[2], SpecialFunctions.bessely(v, xx), rtol=5e-12)
 end
 
+# test Float16
+@test bessely(10, Float16(1.0)) isa Float16
+
+# test limits for small arguments see https://github.com/JuliaMath/Bessels.jl/issues/35
+@test bessely(185.0, 1.01) == -Inf
+@test bessely(185.5, 1.01) == -Inf
+@test bessely(2.0, 1e-300) == -Inf
+@test bessely(4.0, 1e-80) == -Inf
+@test bessely(4.5, 1e-80) == -Inf
+
 # need to test accuracy of negative orders and negative arguments and all combinations within
 # SpecialFunctions.jl doesn't provide these so will hand check against hard values
 # values taken from https://keisan.casio.com/exec/system/1180573474 which match mathematica
