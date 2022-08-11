@@ -192,8 +192,18 @@ end
 ##### Generic routine for `besselj`
 #####
 
-function besselj(nu::Real, x::T) where T
-    isinteger(nu) && return besselj(Int(nu), x)
+"""
+    besselj(nu, x::T) where T <: Union{Float32, Float64}
+
+Bessel function of the first kind of order nu, ``J_{nu}(x)``.
+nu and x must be real where nu and x can be positive or negative.
+"""
+besselj(nu::Real, x::Real) = _besselj(nu, float(x))
+
+besselj(nu, x::Float16) = Float16(_besselj(nu, Float32(x)))
+
+function _besselj(nu::Real, x::T) where T <: Union{Float32, Float64}
+    isinteger(nu) && return _besselj(Int(nu), x)
     abs_nu = abs(nu)
     abs_x = abs(x)
 
@@ -218,7 +228,7 @@ function besselj(nu::Real, x::T) where T
     end
 end
 
-function besselj(nu::Integer, x::T) where T
+function _besselj(nu::Integer, x::T) where T
     abs_nu = abs(nu)
     abs_x = abs(x)
     sg = iseven(abs_nu) ? 1 : -1

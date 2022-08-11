@@ -235,9 +235,13 @@ end
 Bessel function of the second kind of order nu, ``Y_{nu}(x)``.
 nu and x must be real where nu and x can be positive or negative.
 """
-function bessely(nu::Real, x::T) where T
+bessely(nu::Real, x::Real) = _bessely(nu, float(x))
+
+bessely(nu, x::Float16) = Float16(_bessely(nu, Float32(x)))
+
+function _bessely(nu::Real, x::T) where T <: Union{Float32, Float64}
     isnan(nu) || isnan(x) && return NaN
-    isinteger(nu) && return bessely(Int(nu), x)
+    isinteger(nu) && return _bessely(Int(nu), x)
     abs_nu = abs(nu)
     abs_x = abs(x)
 
@@ -260,7 +264,7 @@ function bessely(nu::Real, x::T) where T
         end
     end
 end
-function bessely(nu::Integer, x::T) where T
+function _bessely(nu::Integer, x::T) where T
     abs_nu = abs(nu)
     abs_x = abs(x)
     sg = iseven(abs_nu) ? 1 : -1
