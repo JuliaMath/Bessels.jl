@@ -89,6 +89,9 @@ for v in nu, xx in x
     @test isapprox(Bessels.besseljy_positive_args(v, xx)[2], SpecialFunctions.bessely(v, xx), rtol=5e-12)
 end
 
+# test Float16
+@test bessely(10, Float16(1.0)) isa Float16
+
 # test limits for small arguments see https://github.com/JuliaMath/Bessels.jl/issues/35
 @test bessely(185.0, 1.01) == -Inf
 @test bessely(185.5, 1.01) == -Inf
