@@ -92,6 +92,7 @@ t = [besseli(m, x) for m in m, x in x]
 t = [besselix(m, x) for m in m, x in x]
 @test t[10] isa Float64
 @test t ≈ [SpecialFunctions.besselix(m, x) for m in m, x in x]
+@test besselix(10, Float16(1.0)) isa Float16
 
 ## Tests for besselk
 

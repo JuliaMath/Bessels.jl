@@ -243,7 +243,11 @@ end
 
 Scaled modified Bessel function of the second kind of order nu, ``K_{nu}(x)*e^{x}``.
 """
-function besselkx(nu, x::T) where T <: Union{Float32, Float64}
+besselkx(nu::Real, x::Real) = _besselkx(nu, float(x))
+
+_besselkx(nu, x::Float16) = Float16(_besselkx(nu, Float32(x)))
+
+function _besselkx(nu, x::T) where T <: Union{Float32, Float64}
     # dispatch to avoid uniform expansion when nu = 0 
     iszero(nu) && return besselk0x(x)
 
