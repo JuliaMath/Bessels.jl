@@ -10,6 +10,8 @@ For bug fixes, performance enhancements, or fixes to unexported functions we wil
 
 # Unreleased
 
+# Version 0.2.0
+
 ### Added
  - add an unexport method (`Bessels.besseljy(nu, x)`) for faster computation of `besselj` and `bessely` (#33)
  - add exported methods for Hankel functions `besselh(nu, k, x)`, `hankelh1(nu, x)`, `hankelh2(nu, x)` (#33)
