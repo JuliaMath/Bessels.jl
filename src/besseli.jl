@@ -166,9 +166,9 @@ Modified Bessel function of the second kind of order nu, ``I_{nu}(x)``.
 """
 besseli(nu::Real, x::Real) = _besseli(nu, float(x))
 
-besseli(nu, x::Float16) = Float16(_besseli(nu, Float32(x)))
+_besseli(nu, x::Float16) = Float16(_besseli(nu, Float32(x)))
 
-function _besseli(nu::Real, x::T) where T
+function _besseli(nu, x::T) where T <: Union{Float32, Float64}
     isinteger(nu) && return _besseli(Int(nu), x)
     abs_nu = abs(nu)
     abs_x = abs(x)
@@ -191,7 +191,7 @@ function _besseli(nu::Real, x::T) where T
         end
     end
 end
-function _besseli(nu::Integer, x::T) where T
+function _besseli(nu::Integer, x::T) where T <: Union{Float32, Float64}
     abs_nu = abs(nu)
     abs_x = abs(x)
     sg = iseven(abs_nu) ? 1 : -1
@@ -231,7 +231,7 @@ Nu must be real.
 """
 besselix(nu::Real, x::Real) = _besselix(nu, float(x))
 
-besselix(nu, x::Float16) = Float16(_besselix(nu, Float32(x)))
+_besselix(nu, x::Float16) = Float16(_besselix(nu, Float32(x)))
 
 function _besselix(nu, x::T) where T <: Union{Float32, Float64}
     iszero(nu) && return besseli0x(x)

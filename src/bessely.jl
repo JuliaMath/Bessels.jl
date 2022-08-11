@@ -237,9 +237,9 @@ nu and x must be real where nu and x can be positive or negative.
 """
 bessely(nu::Real, x::Real) = _bessely(nu, float(x))
 
-bessely(nu, x::Float16) = Float16(_bessely(nu, Float32(x)))
+_bessely(nu, x::Float16) = Float16(_bessely(nu, Float32(x)))
 
-function _bessely(nu::Real, x::T) where T <: Union{Float32, Float64}
+function _bessely(nu, x::T) where T <: Union{Float32, Float64}
     isnan(nu) || isnan(x) && return NaN
     isinteger(nu) && return _bessely(Int(nu), x)
     abs_nu = abs(nu)
@@ -264,7 +264,7 @@ function _bessely(nu::Real, x::T) where T <: Union{Float32, Float64}
         end
     end
 end
-function _bessely(nu::Integer, x::T) where T
+function _bessely(nu::Integer, x::T) where T <: Union{Float32, Float64}
     abs_nu = abs(nu)
     abs_x = abs(x)
     sg = iseven(abs_nu) ? 1 : -1

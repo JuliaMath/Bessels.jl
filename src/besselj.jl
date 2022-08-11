@@ -200,9 +200,9 @@ nu and x must be real where nu and x can be positive or negative.
 """
 besselj(nu::Real, x::Real) = _besselj(nu, float(x))
 
-besselj(nu, x::Float16) = Float16(_besselj(nu, Float32(x)))
+_besselj(nu, x::Float16) = Float16(_besselj(nu, Float32(x)))
 
-function _besselj(nu::Real, x::T) where T <: Union{Float32, Float64}
+function _besselj(nu, x::T) where T <: Union{Float32, Float64}
     isinteger(nu) && return _besselj(Int(nu), x)
     abs_nu = abs(nu)
     abs_x = abs(x)
@@ -228,7 +228,7 @@ function _besselj(nu::Real, x::T) where T <: Union{Float32, Float64}
     end
 end
 
-function _besselj(nu::Integer, x::T) where T
+function _besselj(nu::Integer, x::T) where T <: Union{Float32, Float64}
     abs_nu = abs(nu)
     abs_x = abs(x)
     sg = iseven(abs_nu) ? 1 : -1
