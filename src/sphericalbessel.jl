@@ -24,9 +24,11 @@ solution to the radial part of the Helmholz equation in spherical coordinates.
 """
 sphericalbesselj(nu::Real, x::Real) = _sphericalbesselj(nu, float(x))
 
+_sphericalbesselj(nu, x::Float32) = Float32(_sphericalbesselj(nu, Float64(x)))
+
 _sphericalbesselj(nu, x::Float16) = Float16(_sphericalbesselj(nu, Float32(x)))
     
-function _sphericalbesselj(nu::Real, x::T) where T <: Union{Float32, Float64}
+function _sphericalbesselj(nu::Real, x::T) where T <: Float64
     x < zero(T) && return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
     if ~isfinite(x)
         isnan(x) && return x
@@ -110,9 +112,11 @@ known as a spherical Neumann function.
 """
 sphericalbessely(nu::Real, x::Real) = _sphericalbessely(nu, float(x))
 
+_sphericalbessely(nu, x::Float32) = Float32(_sphericalbessely(nu, Float64(x)))
+
 _sphericalbessely(nu, x::Float16) = Float16(_sphericalbessely(nu, Float32(x)))
 
-function _sphericalbessely(nu::Real, x::T) where T <: Union{Float32, Float64}
+function _sphericalbessely(nu::Real, x::T) where T <: Float64
     x < zero(T) && return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
     if ~isfinite(x)
         isnan(x) && return x

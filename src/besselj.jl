@@ -200,9 +200,11 @@ nu and x must be real where nu and x can be positive or negative.
 """
 besselj(nu::Real, x::Real) = _besselj(nu, float(x))
 
+_besselj(nu, x::Float32) = Float32(_besselj(nu, Float64(x)))
+
 _besselj(nu, x::Float16) = Float16(_besselj(nu, Float32(x)))
 
-function _besselj(nu, x::T) where T <: Union{Float32, Float64}
+function _besselj(nu, x::T) where T <: Float64
     isinteger(nu) && return _besselj(Int(nu), x)
     abs_nu = abs(nu)
     abs_x = abs(x)
@@ -228,7 +230,7 @@ function _besselj(nu, x::T) where T <: Union{Float32, Float64}
     end
 end
 
-function _besselj(nu::Integer, x::T) where T <: Union{Float32, Float64}
+function _besselj(nu::Integer, x::T) where T <: Float64
     abs_nu = abs(nu)
     abs_x = abs(x)
     sg = iseven(abs_nu) ? 1 : -1
@@ -318,7 +320,7 @@ function besselj_power_series(v, x::T) where T
 end
 
 besselj_series_cutoff(v, x::Float64) = (x < 7.0) || v > (2 + x*(0.109 + 0.062x))
-besselj_series_cutoff(v, x::Float32) = (x < 20.0) || v > (14.4 + x*(-0.455 + 0.027x))
+#besselj_series_cutoff(v, x::Float32) = (x < 20.0) || v > (14.4 + x*(-0.455 + 0.027x))
 
 #=
 # this needs a better way to sum these as it produces large errors
