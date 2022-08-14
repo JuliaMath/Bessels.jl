@@ -17,13 +17,13 @@
 # Cutoffs were determined manually for each input type. 
 # AbstractFloat cutoff gives relative error roughly for quadruple precision accuracy (1e-35)
 
-#besseljy_large_argument_min(::Type{Float32}) = 15.0f0
-besseljy_large_argument_min(::Type{Float64}) = 20.0
-besseljy_large_argument_min(::Type{T}) where T <: AbstractFloat = 40.0
+besseljy_large_argument_min(x::Float32) = 15.0f0
+besseljy_large_argument_min(x::Float64) = 20.0
+besseljy_large_argument_min(x) = 40.0
 
-besseljy_large_argument_cutoff(v, x::Float32) = (x > 1.2f0*v && x > besseljy_large_argument_min(Float32))
-besseljy_large_argument_cutoff(v, x::Float64) = (x > 1.65*v && x > besseljy_large_argument_min(Float64))
-besseljy_large_argument_cutoff(v, x::T) where T = (x > 4*v && x > besseljy_large_argument_min(T))
+besseljy_large_argument_cutoff(v, x::Float32) = (x > 1.2f0*v && x > besseljy_large_argument_min(x))
+besseljy_large_argument_cutoff(v, x::Float64) = (x > 1.65*v && x > besseljy_large_argument_min(x))
+besseljy_large_argument_cutoff(v, x) = (x > 4*v && x > besseljy_large_argument_min(x))
 
 """
     besseljy_large_argument(nu, x::T)
@@ -32,27 +32,24 @@ Asymptotic expansions for large arguments valid when x > 1.6*nu and x > 20.0.
 Returns both (besselj(nu, x), bessely(nu, x)).
 """
 function besseljy_large_argument(v, x::T) where T
-    S = promote_type(T, Float64)
-    x = S(x)
-    v = S(v)
-    # gives both (besselj, bessely) for x > 1.6*v
     α, αp = _α_αp_asymptotic(v, x)
+    S = promote_type(T, Float64)
+    v, x = S(v), S(x)
     b = SQ2OPI(S) / sqrt(αp * x)
 
     # we need to calculate sin(x - v*pi/2 - pi/4) and cos(x - v*pi/2 - pi/4)
     # For improved accuracy this is expanded using the formula for sin(x+y+z)
-
     s, c = sincos(PIO2(S) * v)
-    Sα, Cα = sincos(α)
+    sα, cα = sincos(α)
 
     CMS = c - s
     CPS = c + s
 
-    s1 = CMS * Cα
-    s2 = CPS * Sα
+    s1 = CMS * cα
+    s2 = CPS * sα
 
-    s3 = CMS * Sα
-    s4 = CPS * Cα
+    s3 = CMS * sα
+    s4 = CPS * cα
 
     return SQ2O2(S) * (s1 + s2) * b, SQ2O2(S) * (s3 - s4) * b
 end
@@ -102,6 +99,7 @@ function _α_αp_asymptotic(v, x::Float64)
     end
 end
 function _α_αp_asymptotic(v, x::Float32)
+    v, x = Float64(v), Float64(x)
     if x > 4*v
         return _α_αp_poly_5(v, x)
     elseif x > 1.8*v

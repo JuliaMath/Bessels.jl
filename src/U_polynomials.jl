@@ -14,6 +14,10 @@
 # [2] http://dlmf.nist.gov/10.41.E9
 # [3] https://dlmf.nist.gov/10.41
 
+#####
+##### Large order expansion for J_{nu}(x) and Y_{nu}(x) and v > x
+#####
+
 """
     besseljy_debye(nu, x::T)
 
@@ -22,8 +26,7 @@ Returns both besselj and bessely
 """
 function besseljy_debye(v, x::T) where T
     S = promote_type(T, Float64)
-    x = S(x)
-    v = S(v)
+    v, x = S(v), S(x)
 
     vmx = (v + x) * (v - x)
     vs = sqrt(vmx)
@@ -37,13 +40,46 @@ function besseljy_debye(v, x::T) where T
     p2  = v^2 / vmx
 
     Uk_Jn, Uk_Yn = Uk_poly_Jn(p, v, p2, T(x))
-
     return coef_Jn * Uk_Jn, coef_Yn * Uk_Yn
 end
 
-besseljy_debye_cutoff(nu, x::Float64) = nu > 2.0 + 1.00035*x + Base.Math._approx_cbrt(Float64(302.681)*x) && nu > 15
-besseljy_debye_cutoff(nu, x::Float32) = nu > 10.0 + 1.006*x + Base.Math._approx_cbrt(135.0*x) && nu > 10
-besseljy_debye_cutoff(nu, x) = nu > 16.0 + 1.0012*x + Base.Math._approx_cbrt(Float64(27.91)*x) && nu > 40
+# Cutoffs for besseljy_debye expansions
+# regions where the debye expansions for large orders v > x are valid
+# determined by fitting a curve a + bx + (cx)^(1/3) to where debye expansions provide desired precision
+
+# Float32
+besseljy_debye_fit(x::Float32) =  2.5f0 + 1.00035f0*x + Base.Math._approx_cbrt(360.0f0*x)
+besseljy_debye_cutoff(nu, x::Float32) = nu > besseljy_debye_fit(x) && nu > 6
+
+# Float64
+besseljy_debye_fit(x::Float64) = 2.0 + 1.00035*x + Base.Math._approx_cbrt(302.681*x)
+besseljy_debye_cutoff(nu, x::Float64) = nu > besseljy_debye_fit(x) && nu > 15
+
+# Float128 - provide roughly ~1e-35 precision
+besseljy_debye_fit(x) = 16.0 + 1.0012*x + Base.Math._approx_cbrt(Float64(27.91*x))
+besseljy_debye_cutoff(nu, x) = nu > besseljy_debye_fit(x) && nu > 40
+
+#####
+##### Debye large order expansion coefficients
+#####
+
+function Uk_poly_Jn(p, v, p2, x::Float64)
+    if v > 5.0 + 1.00033*x + Base.Math._approx_cbrt(1427.61*x)
+        return Uk_poly10(p, v, p2)
+    else
+        return Uk_poly20(p, v, p2)
+    end
+end
+Uk_poly_Jn(p, v, p2, x::Float32) = Uk_poly5(p, v, p2)
+
+Uk_poly_In(p, v, p2, ::Type{Float32}) = Uk_poly5(p, v, p2)[1]
+Uk_poly_In(p, v, p2, ::Type{Float64}) = Uk_poly10(p, v, p2)[1]
+Uk_poly_Kn(p, v, p2, ::Type{Float32}) = Uk_poly5(p, v, p2)[2]
+Uk_poly_Kn(p, v, p2, ::Type{Float64}) = Uk_poly10(p, v, p2)[2]
+
+#####
+##### Large order expansion for Hankel functions and x > v
+#####
 
 """
     hankel_debye(nu, x::T)
@@ -53,8 +89,7 @@ Return the Hankel function H(nu, x) = J(nu, x) + Y(nu, x)*im
 """
 function hankel_debye(v, x::T) where T
     S = promote_type(T, Float64)
-    x = S(x)
-    v = S(v)
+    v, x = S(v), S(x)
 
     vmx = abs((v + x) * (x - v))
     vs = sqrt(vmx)
@@ -67,22 +102,23 @@ function hankel_debye(v, x::T) where T
     p2  = v^2 / vmx
 
     _, Uk_Yn = Uk_poly_Hankel(p*im, v, -p2, T(x))
-
     return coef_Yn * Uk_Yn
 end
 
-hankel_debye_cutoff(nu, x::Union{Float32, Float64}) = nu < 0.2 + x + Base.Math._approx_cbrt(-411*x)
-hankel_debye_cutoff(nu, x) = nu < -2 + 0.9987*x + Base.Math._approx_cbrt(-21570.3*Float64(x))
+# Cutoffs for hankel_debye expansions
+# regions where the debye expansions for large orders x > v are valid
+# determined by fitting a curve a + x + (bx)^(1/3) to where debye expansions provide desired precision
 
-function Uk_poly_Jn(p, v, p2, x::T) where T <: Float64
-    if v > 5.0 + 1.00033*x + Base.Math._approx_cbrt(1427.61*x)
-        return Uk_poly10(p, v, p2)
-    else
-        return Uk_poly20(p, v, p2)
-    end
-end
+# Float32
+hankel_debye_fit(x::Float32) = -3.5f0 + x + Base.Math._approx_cbrt(-411.0f0*x)
+hankel_debye_cutoff(nu, x::Float32) = nu < hankel_debye_fit(x)
 
-Uk_poly_Jn(p, v, p2, x::Float32) = Uk_poly10(p, v, p2)
+# Float64
+hankel_debye_fit(x::Float64) = 0.2 + x + Base.Math._approx_cbrt(-411.0*x)
+hankel_debye_cutoff(nu, x::Float64) = nu < hankel_debye_fit(x)
+
+# Float128
+#hankel_debye_cutoff(nu, x) = nu < -2 + 0.9987*x + Base.Math._approx_cbrt(-21570.3*Float64(x))
 
 function Uk_poly_Hankel(p, v, p2, x::T) where T <: Float64
     if v < 5.0 + 0.998*x + Base.Math._approx_cbrt(-1171.34*x)
@@ -93,35 +129,11 @@ function Uk_poly_Hankel(p, v, p2, x::T) where T <: Float64
 end
 
 Uk_poly_Hankel(p, v, p2, x::Float32) = Uk_poly5(p, v, p2)
-
 Uk_poly_Hankel(p, v, p2, x) = Uk_poly_Jn(p, v, p2, x)
 
-Uk_poly_In(p, v, p2, ::Type{Float32}) = Uk_poly5(p, v, p2)[1]
-Uk_poly_In(p, v, p2, ::Type{Float64}) = Uk_poly10(p, v, p2)[1]
-Uk_poly_Kn(p, v, p2, ::Type{Float32}) = Uk_poly5(p, v, p2)[2]
-Uk_poly_Kn(p, v, p2, ::Type{Float64}) = Uk_poly10(p, v, p2)[2]
-
-@inline function split_evalpoly(x, P)
-    # polynomial P must have an even number of terms
-    N = length(P)
-    xx = x*x
-
-    out = P[end]
-    out2 = P[end-1]
-
-    for i in N-2:-2:2
-        out = muladd(xx, out, P[i])
-        out2 = muladd(xx, out2, P[i-1])
-    end
-    if iszero(rem(N, 2))
-        out *= x
-        return out2 - out, out2 + out
-    else 
-        out = muladd(xx, out, P[1])
-        out2 *= x
-        return out - out2, out2 + out
-    end
-end
+#####
+##### U - polynomials
+#####
 
 function Uk_poly5(p, v, p2)
     u0 = 1.0
@@ -206,6 +218,32 @@ function Uk_poly_Jn(p, v, p2, x::T) where T
     Poly = (u0, u1, u2, u3, u4, u5, u6, u7, u8, u9, u10, u11, u12, u13, u14, u15, u16,  u17, u18, u19, u20)
     return split_evalpoly(-p/v, Poly)
 end
+
+# performs a second order horner scheme for polynomial evaluation
+# computes the even and odd coefficients of the polynomial independently within a loop to reduce latency
+# splits the polynomial to compute both 1 + ax + bx^2 + cx^3 and 1 - ax + bx^2 - cx^3 ....
+@inline function split_evalpoly(x, P)
+    # polynomial P must have an even number of terms
+    N = length(P)
+    xx = x*x
+
+    out = P[end]
+    out2 = P[end-1]
+
+    for i in N-2:-2:2
+        out = muladd(xx, out, P[i])
+        out2 = muladd(xx, out2, P[i-1])
+    end
+    if iszero(rem(N, 2))
+        out *= x
+        return out2 - out, out2 + out
+    else 
+        out = muladd(xx, out, P[1])
+        out2 *= x
+        return out - out2, out2 + out
+    end
+end
+
 #=
     u0 = one(x)
     u1 = p / 24 * (3 - 5*p^2) * -1 / v

@@ -1,4 +1,4 @@
-function besselj0(x::BigFloat)
+function _besselj0(x::BigFloat)
     x = abs(x)
     T = eltype(x)
     if iszero(x)

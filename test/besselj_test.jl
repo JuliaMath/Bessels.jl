@@ -86,6 +86,7 @@ for v in nu, xx in x
     sf = SpecialFunctions.besselj(BigFloat(v), BigFloat(xx))
     @test isapprox(besselj(v, xx), Float64(sf), rtol=5e-14)
     @test isapprox(Bessels.besseljy_positive_args(v, xx)[1], Float64(sf), rtol=5e-14)
+    @test isapprox(Bessels.besselj(Float32(v), Float32(xx)), Float32(sf))
 end
 
 # test half orders (SpecialFunctions does not give big float precision)
@@ -98,6 +99,7 @@ for v in nu, xx in x
     sf = SpecialFunctions.besselj(v, xx)
     @test isapprox(besselj(v, xx), sf, rtol=1e-12)
     @test isapprox(Bessels.besseljy_positive_args(v, xx)[1], sf, rtol=1e-12)
+    @test isapprox(Bessels.besselj(Float32(v), Float32(xx)), Float32(sf))
 end
 
 ## test large orders
