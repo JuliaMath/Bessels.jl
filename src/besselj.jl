@@ -284,6 +284,8 @@ function besselj_positive_args(nu::Real, x::T) where T
     # Shifting the order up decreases the value substantially for high orders and results in a stable forward recurrence
     # as the values rapidly increase
 
+    x = Float64(x)
+    v = Float64(x)
     debye_cutoff = ceil(2.0 + 1.00035*x + Base.Math._approx_cbrt(302.681*Float64(x)))
     nu_shift = ceil(Int, debye_cutoff - floor(nu))
     v = nu + nu_shift
@@ -307,6 +309,9 @@ Computes ``J_{nu}(x)`` using the power series.
 In general, this is most accurate for small arguments and when nu > x.
 """
 function besselj_power_series(v, x::T) where T
+    S = promote_type(T, Float64)
+    x = S(x)
+    v = S(v)
     MaxIter = 3000
     out = zero(T)
     a = (x/2)^v / gamma(v + one(T))
@@ -320,7 +325,7 @@ function besselj_power_series(v, x::T) where T
 end
 
 besselj_series_cutoff(v, x::Float64) = (x < 7.0) || v > (2 + x*(0.109 + 0.062x))
-#besselj_series_cutoff(v, x::Float32) = (x < 20.0) || v > (14.4 + x*(-0.455 + 0.027x))
+besselj_series_cutoff(v, x::Float32) = (x < 20.0) || v > (14.4 + x*(-0.455 + 0.027x))
 
 #=
 # this needs a better way to sum these as it produces large errors
