@@ -103,6 +103,7 @@ for v in nu, xx in x
     xx *= v
     sf = SpecialFunctions.besseli(v, xx)
     @test isapprox(besseli(v, xx), Float64(sf), rtol=2e-13)
+    @test isapprox(besseli(Float32(v), Float32(xx)), Float32(sf))
 end
 
 # test Inf

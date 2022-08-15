@@ -217,7 +217,7 @@ function besseli_positive_args(nu, x::T) where T <: Union{Float32, Float64}
     besseli_large_argument_cutoff(nu, x) && return besseli_large_argument(nu, x)
 
     # use uniform debye expansion if x or nu is large
-    besselik_debye_cutoff(nu, x) && return T(besseli_large_orders(nu, x))
+    besselik_debye_cutoff(nu, x) && return besseli_large_orders(nu, x)
 
     # for rest of values use the power series
     return besseli_power_series(nu, x)
@@ -236,12 +236,13 @@ _besselix(nu, x::Float16) = Float16(_besselix(nu, Float32(x)))
 function _besselix(nu, x::T) where T <: Union{Float32, Float64}
     iszero(nu) && return besseli0x(x)
     isone(nu) && return besseli1x(x)
+    isinf(x) && return T(Inf)
 
     # use large argument expansion if x >> nu
     besseli_large_argument_cutoff(nu, x) && return besseli_large_argument_scaled(nu, x)
 
     # use uniform debye expansion if x or nu is large
-    besselik_debye_cutoff(nu, x) && return T(besseli_large_orders_scaled(nu, x))
+    besselik_debye_cutoff(nu, x) && return besseli_large_orders_scaled(nu, x)
 
     # for rest of values use the power series
     return besseli_power_series(nu, x) * exp(-x)
@@ -259,7 +260,7 @@ end
 
 Debey's uniform asymptotic expansion for large order valid when v-> ∞ or x -> ∞
 """
-function besseli_large_orders(v, x::T) where T <: Union{Float32, Float64}
+function besseli_large_orders(v, x::T) where T
     S = promote_type(T, Float64)
     x = S(x)
     z = x / v
@@ -269,10 +270,10 @@ function besseli_large_orders(v, x::T) where T <: Union{Float32, Float64}
     p = inv(zs)
     p2  = v^2/fma(max(v,x), max(v,x), min(v,x)^2)
 
-    return coef*Uk_poly_In(p, v, p2, T)
+    return T(coef*Uk_poly_In(p, v, p2, T))
 end
 
-function besseli_large_orders_scaled(v, x::T) where T <: Union{Float32, Float64}
+function besseli_large_orders_scaled(v, x::T) where T
     S = promote_type(T, Float64)
     x = S(x)
     z = x / v
@@ -296,42 +297,35 @@ end
 
 Debey's uniform asymptotic expansion for large order valid when v-> ∞ or x -> ∞
 """
-function besseli_large_argument(v, z::T) where T
-    MaxIter = 1000
-    a = exp(z / 2)
-    coef = a / sqrt(2 * T(pi) * z)
+function besseli_large_argument(v, x::T) where T
+    a = exp(x / 2)
+    coef = a / sqrt(2 * (π * x))
+    return T(_besseli_large_argument(v, x) * coef * a)
+end
+
+besseli_large_argument_scaled(v, x::T) where T =  T(_besseli_large_argument(v, x) / sqrt(2 * (π * x)))
+
+function _besseli_large_argument(v, x::T) where T
+    MaxIter = 5000
+    S = promote_type(T, Float64)
+    v, x = S(v), S(x)
+
     fv2 = 4 * v^2
-    term = one(T)
+    term = one(S)
     res = term
     s = -term
     for i in 1:MaxIter
-        i = T(i)
         offset = muladd(2, i, -1)
-        term *= T(0.125) * muladd(offset, -offset, fv2) / (z * i)
+        term *= muladd(offset, -offset, fv2) / (8 * x * i)
         res = muladd(term, s, res)
         s = -s
         abs(term) <= eps(T) && break
     end
-    return res * coef * a
+    return res
 end
-function besseli_large_argument_scaled(v, z::T) where T
-    MaxIter = 1000
-    coef = inv(sqrt(2 * T(pi) * z))
-    fv2 = 4 * v^2
-    term = one(T)
-    res = term
-    s = -term
-    for i in 1:MaxIter
-        i = T(i)
-        offset = muladd(2, i, -1)
-        term *= T(0.125) * muladd(offset, -offset, fv2) / (z * i)
-        res = muladd(term, s, res)
-        s = -s
-        abs(term) <= eps(T) && break
-    end
-    return res * coef
-end
-besseli_large_argument_cutoff(nu, x) = x > maximum((30.0, nu^2 / 6))
+
+besseli_large_argument_cutoff(nu, x::Float64) = x > 23.0 && x > nu^2 / 1.8 + 23.0
+besseli_large_argument_cutoff(nu, x::Float32) = x > 18.0f0 && x > nu^2 / 19.5f0 + 18.0f0
 
 #####
 #####  Power series for I_{nu}(x)

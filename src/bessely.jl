@@ -34,7 +34,11 @@
 
 Bessel function of the second kind of order zero, ``Y_0(x)``.
 """
-function bessely0(x::T) where T <: Union{Float32, Float64}
+bessely0(x::Real) = _bessely0(float(x))
+
+_bessely0(x::Float16) = Float16(_bessely0(Float32(x)))
+
+function _bessely0(x::T) where T <: Union{Float32, Float64}
     if x <= zero(x)
         if iszero(x)
             return T(-Inf)
@@ -110,7 +114,11 @@ end
 
 Bessel function of the second kind of order one, ``Y_1(x)``.
 """
-function bessely1(x::T) where T <: Union{Float32, Float64}
+bessely1(x::Real) = _bessely1(float(x))
+
+_bessely1(x::Float16) = Float16(_bessely1(Float32(x)))
+
+function _bessely1(x::T) where T <: Union{Float32, Float64}
     if x <= zero(x)
         if iszero(x)
             return T(-Inf)
@@ -318,6 +326,7 @@ function bessely_positive_args(nu, x::T) where T
     # use power series for small x and for when nu > x
     bessely_series_cutoff(nu, x) && return bessely_power_series(nu, x)[1]
 
+    # shift nu down and use upward recurrence starting from either chebyshev approx or hankel expansion
     return bessely_fallback(nu, x)
 end
 
@@ -369,7 +378,7 @@ function bessely_power_series(v, x::T) where T
     return (out*c - out2) / s, out
 end
 bessely_series_cutoff(v, x::Float64) = (x < 7.0) || v > 1.35*x - 4.5
-bessely_series_cutoff(v, x::Float32) = (x < 21.0) || v > 1.38*x - 12.5
+bessely_series_cutoff(v, x::Float32) = (x < 21.0f0) || v > 1.38f0*x - 12.5f0
 
 #####
 #####  Fallback for Y_{nu}(x)
@@ -382,7 +391,7 @@ function bessely_fallback(nu, x)
     else
         # at this point x > 19.0 (for Float64) and fairly close to nu
         # shift nu down and use the debye expansion for Hankel function (valid x > nu) then use forward recurrence
-        nu_shift = ceil(nu) - floor(Int, hankel_debye_fit(x)) + 4
+        nu_shift = ceil(Int, nu) - floor(Int, hankel_debye_fit(x)) + 4
         v2 = maximum((nu - nu_shift, modf(nu)[1] + 1))
         return besselj_up_recurrence(x, imag(hankel_debye(v2, x)), imag(hankel_debye(v2 - 1, x)), v2, nu)[1]
     end
