@@ -108,7 +108,6 @@ t = [besselk(m, x) for m in m, x in x]
 @test besselkx(3.2, 1.1) ≈ SpecialFunctions.besselk(3.2, 1.1)*exp(1.1)
 @test besselkx(8.2, 9.1) ≈ SpecialFunctions.besselk(8.2, 9.1)*exp(9.1)
 
-
 ## Tests for besselk
 
 ## test all numbers and orders for 0<nu<100
@@ -118,6 +117,7 @@ for v in nu, xx in x
     xx *= v
     sf = SpecialFunctions.besselk(v, xx)
     @test isapprox(besselk(v, xx), Float64(sf), rtol=2e-13)
+    @test isapprox(besselk(Float32(v), Float32(xx)), Float32(sf))
 end
 
 # test Float16

@@ -13,6 +13,7 @@ j0_big = besselj0.(big.(x))
 @test j0_64[1] isa Float64
 @test j0_32[1] isa Float32
 @test j0_big[1] isa BigFloat
+@test besselj0(Float16(1.5)) isa Float16
 
 # test against SpecialFunctions.jl
 @test j0_32 ≈ j0_SpecialFunctions
@@ -48,6 +49,7 @@ j1_32 = besselj1.(Float32.(x))
 # make sure output types match input types
 @test j1_64[1] isa Float64
 @test j1_32[1] isa Float32
+@test besselj1(Float16(1.5)) isa Float16
 
 # test against SpecialFunctions.jl
 @test j1_64 ≈ j1_SpecialFunctions
@@ -86,6 +88,7 @@ for v in nu, xx in x
     sf = SpecialFunctions.besselj(BigFloat(v), BigFloat(xx))
     @test isapprox(besselj(v, xx), Float64(sf), rtol=5e-14)
     @test isapprox(Bessels.besseljy_positive_args(v, xx)[1], Float64(sf), rtol=5e-14)
+    @test isapprox(Bessels.besselj(Float32(v), Float32(xx)), Float32(sf))
 end
 
 # test half orders (SpecialFunctions does not give big float precision)
@@ -98,6 +101,7 @@ for v in nu, xx in x
     sf = SpecialFunctions.besselj(v, xx)
     @test isapprox(besselj(v, xx), sf, rtol=1e-12)
     @test isapprox(Bessels.besseljy_positive_args(v, xx)[1], sf, rtol=1e-12)
+    @test isapprox(Bessels.besselj(Float32(v), Float32(xx)), Float32(sf))
 end
 
 ## test large orders

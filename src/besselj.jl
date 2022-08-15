@@ -28,7 +28,11 @@
 
 Bessel function of the first kind of order zero, ``J_0(x)``.
 """
-function besselj0(x::Float64)
+besselj0(x::Real) = _besselj0(float(x))
+
+_besselj0(x::Float16) = Float16(_besselj0(Float32(x)))
+
+function _besselj0(x::Float64)
     T = Float64
     x = abs(x)
 
@@ -64,7 +68,7 @@ function besselj0(x::Float64)
         return a * b
     end
 end
-function besselj0(x::Float32)
+function _besselj0(x::Float32)
     T = Float32
     x = abs(x)
 
@@ -93,13 +97,17 @@ end
 
 Bessel function of the first kind of order one, ``J_1(x)``.
 """
-function besselj1(x::Float64)
+besselj1(x::Real) = _besselj1(float(x))
+
+_besselj1(x::Float16) = Float16(_besselj1(Float32(x)))
+
+function _besselj1(x::Float64)
     T = Float64
     s = sign(x)
     x = abs(x)
 
     if x <= 26.0
-        x <= pi/2 && return x * evalpoly(x * x, J1_POLY_PIO2(T))
+        x <= pi/2 && return x * evalpoly(x * x, J1_POLY_PIO2(T)) * s
         n = unsafe_trunc(Int, TWOOPI(T) * x)
         root = @inbounds J1_ROOTS(T)[n]
         r = x - root[1] - root[2]
@@ -129,7 +137,7 @@ function besselj1(x::Float64)
         return a * b * s
     end
 end
-function besselj1(x::Float32)
+function _besselj1(x::Float32)
     T = Float32
     s = sign(x)
     x = abs(x)
@@ -200,11 +208,9 @@ nu and x must be real where nu and x can be positive or negative.
 """
 besselj(nu::Real, x::Real) = _besselj(nu, float(x))
 
-_besselj(nu, x::Float32) = Float32(_besselj(nu, Float64(x)))
-
 _besselj(nu, x::Float16) = Float16(_besselj(nu, Float32(x)))
 
-function _besselj(nu, x::T) where T <: Float64
+function _besselj(nu, x::T) where T <: Union{Float32, Float64}
     isinteger(nu) && return _besselj(Int(nu), x)
     abs_nu = abs(nu)
     abs_x = abs(x)
@@ -212,7 +218,7 @@ function _besselj(nu, x::T) where T <: Float64
     Jnu = besselj_positive_args(abs_nu, abs_x)
     if nu >= zero(T)
         if x >= zero(T)
-            return Jnu
+            return T(Jnu)
         else
             return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
             #return Jnu * cispi(abs_nu)
@@ -222,7 +228,7 @@ function _besselj(nu, x::T) where T <: Float64
         spi, cpi = sincospi(abs_nu)
         out = Jnu * cpi - Ynu * spi
         if x >= zero(T)
-            return out
+            return T(out)
         else
             return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
             #return out * cispi(nu)
@@ -230,21 +236,21 @@ function _besselj(nu, x::T) where T <: Float64
     end
 end
 
-function _besselj(nu::Integer, x::T) where T <: Float64
+function _besselj(nu::Integer, x::T) where T <: Union{Float32, Float64}
     abs_nu = abs(nu)
     abs_x = abs(x)
     sg = iseven(abs_nu) ? 1 : -1
 
     Jnu = besselj_positive_args(abs_nu, abs_x)
     if nu >= zero(T)
-        return x >= zero(T) ? Jnu : Jnu * sg
+        return x >= zero(T) ? T(Jnu) : T(Jnu * sg)
     else
         if x >= zero(T)
-            return Jnu * sg
+            return T(Jnu * sg)
         else
             Ynu = bessely_positive_args(abs_nu, abs_x)
             spi, cpi = sincospi(abs_nu)
-            return (cpi*Jnu - spi*Ynu) * sg
+            return T((cpi*Jnu - spi*Ynu) * sg)
         end
     end
 end
@@ -273,33 +279,17 @@ function besselj_positive_args(nu::Real, x::T) where T
     # use power series for small x and for when nu > x
     besselj_series_cutoff(nu, x) && return besselj_power_series(nu, x)
 
-    # At this point we must fill the region when x ≈ v with recurrence
-    # Backward recurrence is always stable and forward recurrence is stable when x > nu
-    # However, we only use backward recurrence by shifting the order up and using `besseljy_debye` to generate start values
-    # Both `besseljy_debye` and `hankel_debye` get more accurate for large orders,
-    # however `besseljy_debye` is slightly more efficient (no complex variables) and we need no branches if only consider one direction.
-    # On the other hand, shifting the order down avoids any concern about underflow for large orders
-    # Shifting the order too high while keeping x fixed could result in numerical underflow
-    # Therefore we need to shift up only until the `besseljy_debye` is accurate and need to test that no underflow occurs
-    # Shifting the order up decreases the value substantially for high orders and results in a stable forward recurrence
-    # as the values rapidly increase
-
-    debye_cutoff = ceil(2.0 + 1.00035*x + Base.Math._approx_cbrt(302.681*Float64(x)))
-    nu_shift = ceil(Int, debye_cutoff - floor(nu))
-    v = nu + nu_shift
-    jnu = besseljy_debye(v, x)[1]
-    jnup1 = besseljy_debye(v+1, x)[1]
-    return besselj_down_recurrence(x, jnu, jnup1, v, nu)[1]
+    # shift nu up and use downward recurrence
+    return besselj_recurrence(nu, x)
 end
 
 #####
 ##### Power series for J_{nu}(x)
 #####
 
-# accurate for x < 7.0 or nu > 2+ 0.109x + 0.062x^2 for Float64
-# accurate for x < 20.0 or nu > 14.4 - 0.455x + 0.027x^2 for Float32 (when using F64 precision)
 # only valid in non-oscillatory regime (v>1/2, 0<t<sqrt(v^2 - 0.25))
 # power series has premature underflow for large orders though use besseljy_debye for large orders
+# computes in precision of promote_type(eltype(x), Float64) but will return eltype(x)
 """
     besselj_power_series(nu, x::T) where T <: Float64
 
@@ -308,19 +298,26 @@ In general, this is most accurate for small arguments and when nu > x.
 """
 function besselj_power_series(v, x::T) where T
     MaxIter = 3000
-    out = zero(T)
-    a = (x/2)^v / gamma(v + one(T))
+    S = promote_type(T, Float64)
+    v, x = S(v), S(x)
+
+    out = zero(S)
+    a = (x/2)^v / gamma(v + one(S))
     t2 = (x/2)^2
     for i in 0:MaxIter
         out += a
         abs(a) < eps(T) * abs(out) && break
-        a *= -inv((v + i + one(T)) * (i + one(T))) * t2
+        a *= -inv((v + i + one(S)) * (i + one(S))) * t2
     end
-    return out
+    return T(out)
 end
 
-besselj_series_cutoff(v, x::Float64) = (x < 7.0) || v > (2 + x*(0.109 + 0.062x))
-#besselj_series_cutoff(v, x::Float32) = (x < 20.0) || v > (14.4 + x*(-0.455 + 0.027x))
+# Cutoff where power series can provide good accuracy
+# Cutoff for Float32 determined from using Float64 precision down to eps(Float32)
+besselj_series_cutoff(v, x::Float32) = (x < 20.0) || v > (14.4 + x*(-0.455 + 0.027*x))
+besselj_series_cutoff(v, x::Float64) = (x < 7.0) || v > (2 + x*(0.109 + 0.062*x))
+# cutoff for Float128 for ~1e-35 relative error 
+#besselj_series_cutoff(v, x::AbstractFloat) = (x < 4.0) || v > (x*(0.08 + 0.12*x))
 
 #=
 # this needs a better way to sum these as it produces large errors
@@ -341,3 +338,28 @@ function log_besselj_small_arguments_orders(v, x::T) where T
     return exp(logout)
 end
 =#
+
+#####
+##### Recurrence J_{nu}(x)
+#####
+
+# At this point we must fill the region when x ≈ v with recurrence
+# Backward recurrence is always stable and forward recurrence is stable when x > nu
+# However, we only use backward recurrence by shifting the order up and using `besseljy_debye` to generate start values
+# Both `besseljy_debye` and `hankel_debye` get more accurate for large orders,
+# however `besseljy_debye` is slightly more efficient (no complex variables) and we need no branches if only consider one direction.
+# On the other hand, shifting the order down avoids any concern about underflow for large orders
+# Shifting the order too high while keeping x fixed could result in numerical underflow
+# Therefore we need to shift up only until the `besseljy_debye` is accurate and need to test that no underflow occurs
+# Shifting the order up decreases the value substantially for high orders and results 
+# in a stable forward recurrence as the values rapidly increase
+function besselj_recurrence(nu, x)
+    # shift order up to where expansions are valid see src/U_polynomials.jl
+    debye_cutoff = ceil(besseljy_debye_fit(x))
+    nu_shift = ceil(Int, debye_cutoff - floor(nu))
+    v = nu + nu_shift
+    # compute jnu and jnup1 then use downard recurrence starting from order v down to nu see src/recurrence.jl
+    jnu = besseljy_debye(v, x)[1]
+    jnup1 = besseljy_debye(v+1, x)[1]
+    return besselj_down_recurrence(x, jnu, jnup1, v, nu)[1]
+end

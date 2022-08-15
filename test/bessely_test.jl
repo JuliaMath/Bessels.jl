@@ -14,6 +14,7 @@ y0_big = bessely0.(big.(x))
 @test y0_64[1] isa Float64
 @test y0_32[1] isa Float32
 @test y0_big[1] isa BigFloat
+@test bessely0(Float16(1.5)) isa Float16
 
 # test against SpecialFunctions.jl
 @test y0_SpecialFunctions ≈ y0_64
@@ -47,6 +48,7 @@ y1_32 = bessely1.(Float32.(x))
 # make sure output types match input types
 @test y1_64[1] isa Float64
 @test y1_32[1] isa Float32
+@test bessely1(Float16(1.5)) isa Float16
 
 # test against SpecialFunctions.jl
 @test y1_64 ≈ y1_SpecialFunctions
@@ -76,6 +78,7 @@ for v in nu, xx in x
     sf = SpecialFunctions.bessely(BigFloat(v), BigFloat(xx))
     @test isapprox(bessely(v, xx), Float64(sf), rtol=2e-13)
     @test isapprox(Bessels.besseljy_positive_args(v, xx)[2], Float64(sf), rtol=5e-12)
+    @test isapprox(bessely(Float32(v), Float32(xx)), Float32(sf))
 end
 
 # test decimal orders
@@ -85,8 +88,10 @@ x = [0.05, 0.1, 0.2, 0.25, 0.3, 0.4, 0.5,0.55,  0.6,0.65,  0.7, 0.75, 0.8, 0.85,
 nu = [0.1, 0.4567, 0.8123, 1.5, 2.5, 4.1234, 6.8, 12.3, 18.9, 28.2345, 38.1235, 51.23, 72.23435, 80.5, 98.5, 104.2]
 for v in nu, xx in x
     xx *= v
-    @test isapprox(bessely(v, xx), SpecialFunctions.bessely(v, xx), rtol=5e-12)
+    sf = SpecialFunctions.bessely(v, xx)
+    @test isapprox(bessely(v, xx), sf, rtol=5e-12)
     @test isapprox(Bessels.besseljy_positive_args(v, xx)[2], SpecialFunctions.bessely(v, xx), rtol=5e-12)
+    @test isapprox(bessely(Float32(v), Float32(xx)), Float32(sf))
 end
 
 # test Float16

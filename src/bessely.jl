@@ -34,7 +34,11 @@
 
 Bessel function of the second kind of order zero, ``Y_0(x)``.
 """
-function bessely0(x::T) where T <: Union{Float32, Float64}
+bessely0(x::Real) = _bessely0(float(x))
+
+_bessely0(x::Float16) = Float16(_bessely0(Float32(x)))
+
+function _bessely0(x::T) where T <: Union{Float32, Float64}
     if x <= zero(x)
         if iszero(x)
             return T(-Inf)
@@ -110,7 +114,11 @@ end
 
 Bessel function of the second kind of order one, ``Y_1(x)``.
 """
-function bessely1(x::T) where T <: Union{Float32, Float64}
+bessely1(x::Real) = _bessely1(float(x))
+
+_bessely1(x::Float16) = Float16(_bessely1(Float32(x)))
+
+function _bessely1(x::T) where T <: Union{Float32, Float64}
     if x <= zero(x)
         if iszero(x)
             return T(-Inf)
@@ -237,11 +245,9 @@ nu and x must be real where nu and x can be positive or negative.
 """
 bessely(nu::Real, x::Real) = _bessely(nu, float(x))
 
-_bessely(nu, x::Float32) = Float32(_bessely(nu, Float64(x)))
-
 _bessely(nu, x::Float16) = Float16(_bessely(nu, Float32(x)))
 
-function _bessely(nu, x::T) where T <: Float64
+function _bessely(nu, x::T) where T <: Union{Float32, Float64}
     isnan(nu) || isnan(x) && return NaN
     isinteger(nu) && return _bessely(Int(nu), x)
     abs_nu = abs(nu)
@@ -250,7 +256,7 @@ function _bessely(nu, x::T) where T <: Float64
     Ynu = bessely_positive_args(abs_nu, abs_x)
     if nu >= zero(T)
         if x >= zero(T)
-            return Ynu
+            return T(Ynu)
         else
             return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
             #return Ynu * cispi(-nu) + 2im * besselj_positive_args(abs_nu, abs_x) * cospi(abs_nu)
@@ -259,7 +265,7 @@ function _bessely(nu, x::T) where T <: Float64
         Jnu = besselj_positive_args(abs_nu, abs_x)
         spi, cpi = sincospi(abs_nu)
         if x >= zero(T)
-            return Ynu * cpi + Jnu * spi
+            return T(Ynu * cpi + Jnu * spi)
         else
             return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
             #return cpi * (Ynu * cispi(nu) + 2im * Jnu * cpi) + Jnu * spi * cispi(abs_nu)
@@ -267,7 +273,7 @@ function _bessely(nu, x::T) where T <: Float64
     end
 end
 
-function _bessely(nu::Integer, x::T) where T <: Float64
+function _bessely(nu::Integer, x::T) where T <: Union{Float32, Float64}
     abs_nu = abs(nu)
     abs_x = abs(x)
     sg = iseven(abs_nu) ? 1 : -1
@@ -275,14 +281,14 @@ function _bessely(nu::Integer, x::T) where T <: Float64
     Ynu = bessely_positive_args(abs_nu, abs_x)
     if nu >= zero(T)
         if x >= zero(T)
-            return Ynu
+            return T(Ynu)
         else
             return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
             #return Ynu * sg + 2im * sg * besselj_positive_args(abs_nu, abs_x)
         end
     else
         if x >= zero(T)
-            return Ynu * sg
+            return T(Ynu * sg)
         else
             return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
             #return Ynu + 2im * besselj_positive_args(abs_nu, abs_x)
@@ -320,14 +326,8 @@ function bessely_positive_args(nu, x::T) where T
     # use power series for small x and for when nu > x
     bessely_series_cutoff(nu, x) && return bessely_power_series(nu, x)[1]
 
-    # for x ∈ (6, 19) we use Chebyshev approximation and forward recurrence
-    besseljy_chebyshev_cutoff(nu, x) && return bessely_chebyshev(nu, x)[1]
-
-    # at this point x > 19.0 (for Float64) and fairly close to nu
-    # shift nu down and use the debye expansion for Hankel function (valid x > nu) then use forward recurrence
-    nu_shift = ceil(nu) - floor(Int, -1.5 + x + Base.Math._approx_cbrt(-411*x)) + 2
-    v2 = maximum((nu - nu_shift, modf(nu)[1] + 1))
-    return besselj_up_recurrence(x, imag(hankel_debye(v2, x)), imag(hankel_debye(v2 - 1, x)), v2, nu)[1]
+    # shift nu down and use upward recurrence starting from either chebyshev approx or hankel expansion
+    return bessely_fallback(nu, x)
 end
 
 #####
@@ -354,27 +354,48 @@ Outpus both (Y_{nu}(x), J_{nu}(x)).
 """
 function bessely_power_series(v, x::T) where T
     MaxIter = 3000
-    out = zero(T)
-    out2 = zero(T)
+    S = promote_type(T, Float64)
+    v, x = S(v), S(x)
+
+    out = zero(S)
+    out2 = zero(S)
     a = (x/2)^v
     # check for underflow and return limit for small arguments
     iszero(a) && return (-T(Inf), a)
 
     b = inv(a)
-    a /= gamma(v + one(T))
-    b /= gamma(-v + one(T))
+    a /= gamma(v + one(S))
+    b /= gamma(-v + one(S))
     t2 = (x/2)^2
     for i in 0:MaxIter
         out += a
         out2 += b
-        abs(b) < eps(Float64) * abs(out2) && break
-        a *= -inv((v + i + one(T)) * (i + one(T))) * t2
-        b *= -inv((-v + i + one(T)) * (i + one(T))) * t2
+        abs(b) < eps(T) * abs(out2) && break
+        a *= -inv((v + i + one(S)) * (i + one(S))) * t2
+        b *= -inv((-v + i + one(S)) * (i + one(S))) * t2
     end
     s, c = sincospi(v)
     return (out*c - out2) / s, out
 end
-bessely_series_cutoff(v, x) = (x < 7.0) || v > 1.35*x - 4.5
+bessely_series_cutoff(v, x::Float64) = (x < 7.0) || v > 1.35*x - 4.5
+bessely_series_cutoff(v, x::Float32) = (x < 21.0f0) || v > 1.38f0*x - 12.5f0
+
+#####
+#####  Fallback for Y_{nu}(x)
+#####
+
+function bessely_fallback(nu, x)
+    # for x ∈ (6, 19) we use Chebyshev approximation and forward recurrence
+    if besseljy_chebyshev_cutoff(nu, x)
+        return bessely_chebyshev(nu, x)[1]
+    else
+        # at this point x > 19.0 (for Float64) and fairly close to nu
+        # shift nu down and use the debye expansion for Hankel function (valid x > nu) then use forward recurrence
+        nu_shift = ceil(Int, nu) - floor(Int, hankel_debye_fit(x)) + 4
+        v2 = maximum((nu - nu_shift, modf(nu)[1] + 1))
+        return besselj_up_recurrence(x, imag(hankel_debye(v2, x)), imag(hankel_debye(v2 - 1, x)), v2, nu)[1]
+    end
+end
 
 #####
 #####  Chebyshev approximation for Y_{nu}(x)

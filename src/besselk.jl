@@ -301,7 +301,7 @@ function besselk_large_orders_scaled(v, x::T) where T
     return T(coef*Uk_poly_Kn(p, v, p2, T))
 end
 besselik_debye_cutoff(nu, x::Float64) = nu > 25.0 || x > 35.0
-besselik_debye_cutoff(nu, x::Float32) = nu > 15.0 || x > 20.0
+besselik_debye_cutoff(nu, x::Float32) = nu > 15.0f0 || x > 20.0f0
 
 #####
 #####  Continued fraction with Wronskian for K_{nu}(x)
@@ -389,9 +389,11 @@ No checks are performed on nu so this is not accurate when nu is an integer.
 """
 function besselk_power_series(v, x::T) where T
     MaxIter = 1000
+    S = promote_type(T, Float64)
+    v, x = S(v), S(x)
+
     z  = x / 2
     zz = z * z
-    
     logz = log(z)
     xd2_v = exp(v*logz)
     xd2_nv = inv(xd2_v)
@@ -399,14 +401,14 @@ function besselk_power_series(v, x::T) where T
     # use the reflection identify to calculate gamma(-v)
     # use relation gamma(v)*v = gamma(v+1) to avoid two gamma calls
     gam_v = gamma(v)
-    xp1 = abs(v) + one(T)
+    xp1 = abs(v) + one(S)
     gam_nv = π / (sinpi(xp1) * gam_v * v)
     gam_1mv = -gam_nv * v
     gam_1mnv = gam_v * v
 
     _t1 = gam_v * xd2_nv * gam_1mv
     _t2 = gam_nv * xd2_v * gam_1mnv
-    (xd2_pow, fact_k, out) = (one(T), one(T), zero(T))
+    (xd2_pow, fact_k, out) = (one(S), one(S), zero(S))
     for k in 0:MaxIter
         t1 = xd2_pow * T(0.5)
         tmp = muladd(_t1, gam_1mnv, _t2 * gam_1mv)
@@ -414,10 +416,11 @@ function besselk_power_series(v, x::T) where T
         term = t1 * tmp
         out += term
         abs(term / out) < eps(T) && break
-        (gam_1mnv, gam_1mv) = (gam_1mnv*(one(T) + v + k), gam_1mv*(one(T) - v + k)) 
+        (gam_1mnv, gam_1mv) = (gam_1mnv*(one(S) + v + k), gam_1mv*(one(S) - v + k)) 
         xd2_pow *= zz
-        fact_k *= k + one(T)
+        fact_k *= k + one(S)
     end
-    return out
+    return T(out)
 end
-besselk_power_series_cutoff(nu, x) = x < 2.0 || nu > 1.6x - 1.0
+besselk_power_series_cutoff(nu, x::Float64) = x < 2.0 || nu > 1.6x - 1.0
+besselk_power_series_cutoff(nu, x::Float32) = x < 10.0f0 || nu > 1.65f0*x - 8.0f0
