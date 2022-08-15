@@ -91,6 +91,7 @@ end
 
 # test Float16
 @test bessely(10, Float16(1.0)) isa Float16
+@test bessely(10.2f0, 1.0f0) isa Float32
 
 # test limits for small arguments see https://github.com/JuliaMath/Bessels.jl/issues/35
 @test bessely(185.0, 1.01) == -Inf
