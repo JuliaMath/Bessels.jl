@@ -10,13 +10,13 @@ For bug fixes, performance enhancements, or fixes to unexported functions we wil
 
 # Unreleased
 
-# Version 0.2.0
-
 ### Added
  - Add more optimized methods for Float32 calculations that are faster([PR #43](https://github.com/JuliaMath/Bessels.jl/pull/43))
 
 ### Fixed
  - Reduce compile time and time to first call of besselj and bessely ([PR #42](https://github.com/JuliaMath/Bessels.jl/pull/42))
+
+# Version 0.2.0
 
 ### Added
  - add an unexport method (`Bessels.besseljy(nu, x)`) for faster computation of `besselj` and `bessely` (#33)
