@@ -48,11 +48,11 @@ end
 # determined by fitting a curve a + bx + (cx)^(1/3) to where debye expansions provide desired precision
 
 # Float32
-besseljy_debye_fit(x::Float32) =  2.5f0 + 1.00035f0*x + Base.Math._approx_cbrt(360.0f0*x)
+besseljy_debye_fit(x::Float32) =  2.5f0 + 1.00035f0*x + 7.114f0*Base.Math._approx_cbrt(x)
 besseljy_debye_cutoff(nu, x::Float32) = nu > besseljy_debye_fit(x) && nu > 6
 
 # Float64
-besseljy_debye_fit(x::Float64) = 2.0 + 1.00035*x + Base.Math._approx_cbrt(302.681*x)
+besseljy_debye_fit(x::Float64) = 2.0 + 1.00035*x + 6.714*Base.Math._approx_cbrt(x)
 besseljy_debye_cutoff(nu, x::Float64) = nu > besseljy_debye_fit(x) && nu > 15
 
 # Float128 - provide roughly ~1e-35 precision
@@ -64,7 +64,7 @@ besseljy_debye_cutoff(nu, x::Float64) = nu > besseljy_debye_fit(x) && nu > 15
 #####
 
 function Uk_poly_Jn(p, v, p2, x::Float64)
-    if v > 5.0 + 1.00033*x + Base.Math._approx_cbrt(1427.61*x)
+    if v > 5.0 + 1.00033*x + 11.26*Base.Math._approx_cbrt(x)
         return Uk_poly10(p, v, p2)
     else
         return Uk_poly20(p, v, p2)
@@ -110,18 +110,18 @@ end
 # determined by fitting a curve a + x + (bx)^(1/3) to where debye expansions provide desired precision
 
 # Float32
-hankel_debye_fit(x::Float32) = -3.5f0 + x + Base.Math._approx_cbrt(-411.0f0*x)
+hankel_debye_fit(x::Float32) = -3.5f0 + x + 7.435f0*Base.Math._approx_cbrt(-x)
 hankel_debye_cutoff(nu, x::Float32) = nu < hankel_debye_fit(x)
 
 # Float64
-hankel_debye_fit(x::Float64) = 0.2 + x + Base.Math._approx_cbrt(-411.0*x)
+hankel_debye_fit(x::Float64) = 0.2 + x + 7.435*Base.Math._approx_cbrt(-x)
 hankel_debye_cutoff(nu, x::Float64) = nu < hankel_debye_fit(x)
 
 # Float128
 #hankel_debye_cutoff(nu, x) = nu < -2 + 0.9987*x + Base.Math._approx_cbrt(-21570.3*Float64(x))
 
 function Uk_poly_Hankel(p, v, p2, x::T) where T <: Float64
-    if v < 5.0 + 0.998*x + Base.Math._approx_cbrt(-1171.34*x)
+    if v < 5.0 + 0.998*x + 10.541*Base.Math._approx_cbrt(-x)
         return Uk_poly10(p, v, p2)
     else
         return Uk_poly20(p, v, p2)
