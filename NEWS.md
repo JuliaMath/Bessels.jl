@@ -11,6 +11,12 @@ For bug fixes, performance enhancements, or fixes to unexported functions we wil
 # Unreleased
 
 ### Added
+ - Add more optimized methods for Float32 calculations that are faster([PR #43](https://github.com/JuliaMath/Bessels.jl/pull/43))
+
+### Fixed
+ - Reduce compile time and time to first call of besselj and bessely ([PR #42](https://github.com/JuliaMath/Bessels.jl/pull/42))
+
+### Added
  - add an unexport method (`Bessels.besseljy(nu, x)`) for faster computation of `besselj` and `bessely` (#33)
  - add exported methods for Hankel functions `besselh(nu, k, x)`, `hankelh1(nu, x)`, `hankelh2(nu, x)` (#33)
  - add exported methods for spherical bessel function `sphericalbesselj(nu, x)`, `sphericalbesselj(nu, x)`, (#38)
