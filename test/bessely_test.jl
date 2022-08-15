@@ -1,5 +1,5 @@
 # general array for testing input to SpecialFunctions.jl
-#=
+
 x = 0.01:0.01:150.0
 
 ### Tests for bessely0
@@ -14,6 +14,7 @@ y0_big = bessely0.(big.(x))
 @test y0_64[1] isa Float64
 @test y0_32[1] isa Float32
 @test y0_big[1] isa BigFloat
+@test bessely0(Float16(1.5)) isa Float16
 
 # test against SpecialFunctions.jl
 @test y0_SpecialFunctions ≈ y0_64
@@ -47,6 +48,7 @@ y1_32 = bessely1.(Float32.(x))
 # make sure output types match input types
 @test y1_64[1] isa Float64
 @test y1_32[1] isa Float32
+@test bessely1(Float16(1.5)) isa Float16
 
 # test against SpecialFunctions.jl
 @test y1_64 ≈ y1_SpecialFunctions
@@ -65,7 +67,6 @@ y1_32 = bessely1.(Float32.(x))
 # test that Inf inputs go to zero
 @test bessely1(Inf32) == zero(Float32)
 @test bessely1(Inf64) == zero(Float64)
-=#
 
 ## Tests for bessely
 

@@ -317,7 +317,7 @@ end
 besselj_series_cutoff(v, x::Float32) = (x < 20.0) || v > (14.4 + x*(-0.455 + 0.027*x))
 besselj_series_cutoff(v, x::Float64) = (x < 7.0) || v > (2 + x*(0.109 + 0.062*x))
 # cutoff for Float128 for ~1e-35 relative error 
-besselj_series_cutoff(v, x::AbstractFloat) = (x < 4.0) || v > (x*(0.08 + 0.12*x))
+#besselj_series_cutoff(v, x::AbstractFloat) = (x < 4.0) || v > (x*(0.08 + 0.12*x))
 
 #=
 # this needs a better way to sum these as it produces large errors

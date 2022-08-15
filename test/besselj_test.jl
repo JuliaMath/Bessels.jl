@@ -13,6 +13,7 @@ j0_big = besselj0.(big.(x))
 @test j0_64[1] isa Float64
 @test j0_32[1] isa Float32
 @test j0_big[1] isa BigFloat
+@test besselj0(Float16(1.5)) isa Float16
 
 # test against SpecialFunctions.jl
 @test j0_32 ≈ j0_SpecialFunctions
@@ -48,6 +49,7 @@ j1_32 = besselj1.(Float32.(x))
 # make sure output types match input types
 @test j1_64[1] isa Float64
 @test j1_32[1] isa Float32
+@test besselj1(Float16(1.5)) isa Float16
 
 # test against SpecialFunctions.jl
 @test j1_64 ≈ j1_SpecialFunctions

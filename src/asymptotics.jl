@@ -19,11 +19,11 @@
 
 besseljy_large_argument_min(x::Float32) = 15.0f0
 besseljy_large_argument_min(x::Float64) = 20.0
-besseljy_large_argument_min(x) = 40.0
+#besseljy_large_argument_min(x) = 40.0
 
 besseljy_large_argument_cutoff(v, x::Float32) = (x > 1.2f0*v && x > besseljy_large_argument_min(x))
 besseljy_large_argument_cutoff(v, x::Float64) = (x > 1.65*v && x > besseljy_large_argument_min(x))
-besseljy_large_argument_cutoff(v, x) = (x > 4*v && x > besseljy_large_argument_min(x))
+#besseljy_large_argument_cutoff(v, x) = (x > 4*v && x > besseljy_large_argument_min(x))
 
 """
     besseljy_large_argument(nu, x::T)
