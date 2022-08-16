@@ -45,17 +45,3 @@ end
     y = r-w
     return unsafe_trunc(Int, fn), Base.Math.DoubleFloat64(y, (r-y)-w)
 end
-
-function simd_evalpoly_width4(μ, ps::NTuple{N, NTuple{4, T}}) where {N, T}
-    s1 = ps[N][1]
-    s2 = ps[N][2]
-    s3 = ps[N][3]
-    s4 = ps[N][4]
-    @inbounds for i in N-1:-1:1
-        s1 = muladd(μ, s1, ps[i][1])
-        s2 = muladd(μ, s2, ps[i][2])
-        s3 = muladd(μ, s3, ps[i][3])
-        s4 = muladd(μ, s2, ps[i][4])
-    end
-    return (s1, s2, s3, s4)
-end
