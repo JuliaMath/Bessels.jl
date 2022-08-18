@@ -1,4 +1,19 @@
 
+"""
+    sphericalbesselk(nu, x::T) where T <: {Float32, Float64}
+
+Computes `k_{ν}(x)`, the modified second-kind spherical Bessel function, and offers special branches for integer orders.
+"""
+sphericalbesselk(nu, x) = _sphericalbesselk(nu, float(x))
+
+function _sphericalbesselk(nu, x::T) where T
+    if isinteger(nu) && nu < 41.5
+        return sphericalbesselk_int(nu, x)
+    else
+        return inv(SQRT_PID2(T)*sqrt(x))*besselk(nu+1/2, x)
+    end
+end
+
 function sphericalbesselk_int(v::Int, x)
     b0 = inv(x)
     b1 = (x+one(x))/(x*x)
@@ -11,22 +26,4 @@ function sphericalbesselk_int(v::Int, x)
     end
     exp(-x)*b1
 end
-
-function _sphericalbesselk(nu, x::T) where T
-    if isinteger(nu) && nu < 41.5
-        return sphericalbesselk_int(nu, x)
-    else
-        return inv(SQRT_PID2(T)*sqrt(x))*besselk(nu+1/2, x)
-    end
-end
-
-
-"""
-    sphericalbesselk(nu, x::T) where T <: {Float32, Float64}
-
-Computes `k_{ν}(x)`, the modified second-kind spherical Bessel function, and offers special branches for integer orders.
-"""
-sphericalbesselk(nu, x) = _sphericalbesselk(nu, float(x))
-
-
 
