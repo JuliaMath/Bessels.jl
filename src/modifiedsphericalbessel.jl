@@ -14,7 +14,7 @@ function _sphericalbesselk(nu, x::T) where T
         #        = (...)*K_{|n|    - 1/2}
         #        = (...)*K_{|n|-1  + 1/2}
         #        = k_{|n|-1}  
-        _nu = ifelse(nu<zero(nu), abs(nu)-one(nu), nu)
+        _nu = ifelse(nu<zero(nu), -one(nu)-nu, nu)
         return sphericalbesselk_int(Int(_nu), x)
     else
         return inv(SQRT_PID2(T)*sqrt(x))*besselk(nu+1/2, x)
