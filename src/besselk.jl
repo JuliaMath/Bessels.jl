@@ -227,7 +227,7 @@ function besselk_positive_args(nu, x::T) where T <: Union{Float32, Float64}
     iszero(nu) && return besselk0(x)
 
     # check if nu is a half-integer:
-    isinteger(nu-1/2) && return besselk_vhalfint(nu, x)
+    besselk_vhalfint_check(nu, x) && return besselk_vhalfint(nu, x)
 
     # use uniform debye expansion if x or nu is large
     besselik_debye_cutoff(nu, x) && return besselk_large_orders(nu, x)
@@ -447,3 +447,5 @@ function besselk_vhalfint(v, x::T) where T
     end
     b1
 end
+besselk_vhalfint_check(nu, x) = isinteger(nu-1/2) && (nu < 41.5) #@inline?
+
