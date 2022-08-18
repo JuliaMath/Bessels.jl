@@ -1,5 +1,5 @@
 
-function sphericalbesselk_int(v, x)
+function sphericalbesselk_int(v::Int, x)
     b0 = inv(x)
     b1 = (x+one(x))/(x*x)
     iszero(v) && return b0*exp(-x)
@@ -24,8 +24,7 @@ end
 """
     sphericalbesselk(nu, x::T) where T <: {Float32, Float64}
 
-Computes `k_{ν}(x)`, the modified second-kind spherical Bessel function, and \
-offers special branches for integer orders.
+Computes `k_{ν}(x)`, the modified second-kind spherical Bessel function, and offers special branches for integer orders.
 """
 sphericalbesselk(nu, x) = _sphericalbesselk(nu, float(x))
 
