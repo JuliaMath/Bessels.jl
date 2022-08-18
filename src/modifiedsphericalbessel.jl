@@ -8,7 +8,14 @@ sphericalbesselk(nu, x) = _sphericalbesselk(nu, float(x))
 
 function _sphericalbesselk(nu, x::T) where T
     if isinteger(nu) && nu < 41.5
-        return sphericalbesselk_int(nu, x)
+        # using ifelse here to hopefully cut out a branch on nu < 0 or not. The
+        # symmetry here is that 
+        # k_{-n} = (...)*K_{-n     + 1/2}
+        #        = (...)*K_{|n|    - 1/2}
+        #        = (...)*K_{|n|-1  + 1/2}
+        #        = k_{|n|-1}  
+        _nu = ifelse(nu<zero(nu), abs(nu)-one(nu), nu)
+        return sphericalbesselk_int(Int(_nu), x)
     else
         return inv(SQRT_PID2(T)*sqrt(x))*besselk(nu+1/2, x)
     end
