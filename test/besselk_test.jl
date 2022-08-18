@@ -67,6 +67,12 @@ k1x_32 = besselk1x.(Float32.(x))
 @test besselk(100, 3.9) ≈ SpecialFunctions.besselk(100, 3.9)
 @test besselk(100, 234.0) ≈ SpecialFunctions.besselk(100, 234.0)
 
+# test half-integer orders:
+for v in (-3/2, -1/2, 1/2, 3/2, 5/2, 7/2, 9/2)
+  @test besselk(v, 7.0) ≈ SpecialFunctions.besselk(v, 7.0)
+  @test besselk(Float32(v), Float32(7.0)) ≈ SpecialFunctions.besselk(Float32(v), Float32(7.0))
+end
+
 # test small arguments and order
 m = 0:40; x = [1e-6; 1e-4; 1e-3; 1e-2; 0.1; 1.0:2.0:500.0]
 for m in m, x in x
