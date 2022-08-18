@@ -225,12 +225,15 @@ function besselk_positive_args(nu, x::T) where T <: Union{Float32, Float64}
 
     # dispatch to avoid uniform expansion when nu = 0 
     iszero(nu) && return besselk0(x)
+    
+    # pre-compute the uniform asymptotic expansion cutoff:
+    debye_cut = besselik_debye_cutoff(nu, x)
 
     # check if nu is a half-integer:
-    besselk_vhalfint_check(nu, x) && return besselk_vhalfint(nu, x)
+    (isinteger(nu-1/2) && !debye_cut) && return sphericalbesselk_int(nu-1/2, x)*SQRT_PID2(T)*sqrt(x)
 
     # use uniform debye expansion if x or nu is large
-    besselik_debye_cutoff(nu, x) && return besselk_large_orders(nu, x)
+    debye_cut && return besselk_large_orders(nu, x)
 
     # for integer nu use forward recurrence starting with K_0 and K_1
     isinteger(nu) && return besselk_up_recurrence(x, besselk1(x), besselk0(x), 1, nu)[1]
@@ -427,25 +430,4 @@ function besselk_power_series(v, x::T) where T
 end
 besselk_power_series_cutoff(nu, x::Float64) = x < 2.0 || nu > 1.6x - 1.0
 besselk_power_series_cutoff(nu, x::Float32) = x < 10.0f0 || nu > 1.65f0*x - 8.0f0
-
-
-"""
-    besselk_vhalfint(nu, x::T) where T <: {Float32, Float64}
-
-Computes `K_{ν}(x)` when `v + 1/2` is an integer using the fact that the
-asymptotic expansion actually terminates and is exact for those specific `v` values.
-"""
-function besselk_vhalfint(v, x::T) where T
-    v = abs(v)
-    invx = inv(x)
-    b0 = b1 = SQRT_PID2(T)*sqrt(invx)*exp(-x) 
-    twodx = 2*invx
-    _v  = T(1/2)
-    while _v < v
-        b0, b1 = b1, muladd(b1, twodx*_v, b0)
-        _v += one(T)
-    end
-    b1
-end
-besselk_vhalfint_check(nu, x) = isinteger(nu-1/2) && (nu < 41.5) #@inline?
 

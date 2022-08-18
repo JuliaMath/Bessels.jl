@@ -41,6 +41,7 @@ include("bessely.jl")
 include("hankel.jl")
 include("airy.jl")
 include("sphericalbessel.jl")
+include("modifiedsphericalbessel.jl")
 
 include("Float128/besseli.jl")
 include("Float128/besselj.jl")
