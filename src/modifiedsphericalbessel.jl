@@ -7,7 +7,11 @@ Computes `k_{ν}(x)`, the modified second-kind spherical Bessel function, and of
 sphericalbesselk(nu, x) = _sphericalbesselk(nu, float(x))
 
 function _sphericalbesselk(nu, x::T) where T
+    isnan(x) && return NaN
     if isinteger(nu) && nu < 41.5
+        if x < zero(x)
+            return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
+        end
         # using ifelse here to hopefully cut out a branch on nu < 0 or not. The
         # symmetry here is that 
         # k_{-n} = (...)*K_{-n     + 1/2}
