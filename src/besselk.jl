@@ -230,7 +230,7 @@ function besselk_positive_args(nu, x::T) where T <: Union{Float32, Float64}
     debye_cut = besselik_debye_cutoff(nu, x)
 
     # check if nu is a half-integer:
-    (isinteger(nu-1/2) && !debye_cut) && return sphericalbesselk_int(nu-1/2, x)*SQRT_PID2(T)*sqrt(x)
+    (isinteger(nu-1/2) && !debye_cut) && return sphericalbesselk(nu-1/2, x)*SQRT_PID2(T)*sqrt(x)
 
     # use uniform debye expansion if x or nu is large
     debye_cut && return besselk_large_orders(nu, x)
