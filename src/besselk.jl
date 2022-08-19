@@ -226,14 +226,11 @@ function besselk_positive_args(nu, x::T) where T <: Union{Float32, Float64}
     # dispatch to avoid uniform expansion when nu = 0 
     iszero(nu) && return besselk0(x)
     
-    # pre-compute the uniform asymptotic expansion cutoff:
-    debye_cut = besselik_debye_cutoff(nu, x)
-
-    # check if nu is a half-integer:
-    (isinteger(nu-1/2) && !debye_cut) && return sphericalbesselk(nu-1/2, x)*SQRT_PID2(T)*sqrt(x)
+    # check if nu is a half-integer
+    (isinteger(nu-1/2) && sphericalbesselk_cutoff(nu)) && return sphericalbesselk_int(Int(nu-1/2), x)*SQPIO2(T)*sqrt(x)
 
     # use uniform debye expansion if x or nu is large
-    debye_cut && return besselk_large_orders(nu, x)
+    besselik_debye_cutoff(nu, x) && return besselk_large_orders(nu, x)
 
     # for integer nu use forward recurrence starting with K_0 and K_1
     isinteger(nu) && return besselk_up_recurrence(x, besselk1(x), besselk0(x), 1, nu)[1]
@@ -430,4 +427,3 @@ function besselk_power_series(v, x::T) where T
 end
 besselk_power_series_cutoff(nu, x::Float64) = x < 2.0 || nu > 1.6x - 1.0
 besselk_power_series_cutoff(nu, x::Float32) = x < 10.0f0 || nu > 1.65f0*x - 8.0f0
-

@@ -1,40 +1,58 @@
-
+#                           Modified Spherical Bessel functions
+#
+#                                 sphericalbesselk(nu, x)
+#
+#    A numerical routine to compute the modified spherical bessel functions of the second kind.
+#    For moderate sized integer orders, forward recurrence is used starting from explicit formulas for k0(x) [1] and k1(x) [2].
+#    Large orders are determined from the uniform asymptotic expansions (see src/besselk.jl for details)
+#    For non-integer orders, we directly call the besselk routine using the relation k_{n}(x) = sqrt(pi/(2x))*besselk(n+1/2, x) [3].
+#    
+# [1] http://dlmf.nist.gov/10.49.E12
+# [2] http://dlmf.nist.gov/10.49.E13
+# [3] http://dlmf.nist.gov/10.47.E9
+#
 """
     sphericalbesselk(nu, x::T) where T <: {Float32, Float64}
 
 Computes `k_{ν}(x)`, the modified second-kind spherical Bessel function, and offers special branches for integer orders.
 """
-sphericalbesselk(nu, x) = _sphericalbesselk(nu, float(x))
+sphericalbesselk(nu::Real, x::Real) = _sphericalbesselk(nu, float(x))
 
-function _sphericalbesselk(nu, x::T) where T
-    isnan(x) && return NaN
-    if isinteger(nu) && nu < 41.5
+_sphericalbesselk(nu, x::Float16) = Float16(_sphericalbesselk(nu, Float32(x)))
+
+function _sphericalbesselk(nu, x::T) where T <: Union{Float32, Float64}
+    if ~isfinite(x)
+        isnan(x) && return x
+        isinf(x) && return zero(x)
+    end
+    if isinteger(nu) && sphericalbesselk_cutoff(nu)
         if x < zero(x)
             return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
         end
-        # using ifelse here to hopefully cut out a branch on nu < 0 or not. The
-        # symmetry here is that 
+        # using ifelse here to cut out a branch on nu < 0 or not.
+        # The symmetry here is that
         # k_{-n} = (...)*K_{-n     + 1/2}
         #        = (...)*K_{|n|    - 1/2}
         #        = (...)*K_{|n|-1  + 1/2}
-        #        = k_{|n|-1}  
+        #        = k_{|n|-1}
         _nu = ifelse(nu<zero(nu), -one(nu)-nu, nu)
         return sphericalbesselk_int(Int(_nu), x)
     else
-        return inv(SQRT_PID2(T)*sqrt(x))*besselk(nu+1/2, x)
+        return inv(SQPIO2(T)*sqrt(x))*besselk(nu+1/2, x)
     end
 end
+sphericalbesselk_cutoff(nu) = nu < 41.5
 
 function sphericalbesselk_int(v::Int, x)
-    b0 = inv(x)
-    b1 = (x+one(x))/(x*x)
-    iszero(v) && return b0*exp(-x)
+    xinv = inv(x)
+    b0 = exp(-x) * xinv
+    b1 = b0 * (x + one(x)) * xinv
+    iszero(v) && return b0
     _v = one(v)
     invx = inv(x)
     while _v < v
         _v += one(_v)
         b0, b1 = b1, b0 + (2*_v - one(_v))*b1*invx
     end
-    exp(-x)*b1
+    b1
 end
-
