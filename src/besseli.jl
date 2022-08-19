@@ -170,6 +170,10 @@ _besseli(nu, x::Float16) = Float16(_besseli(nu, Float32(x)))
 
 function _besseli(nu, x::T) where T <: Union{Float32, Float64}
     isinteger(nu) && return _besseli(Int(nu), x)
+    if ~isfinite(x)
+        isnan(x) && return x
+        isinf(x) && return x
+    end
     abs_nu = abs(nu)
     abs_x = abs(x)
 
@@ -192,6 +196,10 @@ function _besseli(nu, x::T) where T <: Union{Float32, Float64}
     end
 end
 function _besseli(nu::Integer, x::T) where T <: Union{Float32, Float64}
+    if ~isfinite(x)
+        isnan(x) && return x
+        isinf(x) && return x
+    end
     abs_nu = abs(nu)
     abs_x = abs(x)
     sg = iseven(abs_nu) ? 1 : -1
@@ -211,7 +219,6 @@ Modified Bessel function of the first kind of order nu, ``I_{nu}(x)`` for positi
 function besseli_positive_args(nu, x::T) where T <: Union{Float32, Float64}
     iszero(nu) && return besseli0(x)
     isone(nu) && return besseli1(x)
-    isinf(x) && return T(Inf)
 
     # use large argument expansion if x >> nu
     besseli_large_argument_cutoff(nu, x) && return besseli_large_argument(nu, x)
