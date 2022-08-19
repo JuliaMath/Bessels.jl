@@ -170,10 +170,7 @@ _besseli(nu, x::Float16) = Float16(_besseli(nu, Float32(x)))
 
 function _besseli(nu, x::T) where T <: Union{Float32, Float64}
     isinteger(nu) && return _besseli(Int(nu), x)
-    if ~isfinite(x)
-        isnan(x) && return x
-        isinf(x) && return x
-    end
+    ~isfinite(x) && return x
     abs_nu = abs(nu)
     abs_x = abs(x)
 
@@ -196,10 +193,7 @@ function _besseli(nu, x::T) where T <: Union{Float32, Float64}
     end
 end
 function _besseli(nu::Integer, x::T) where T <: Union{Float32, Float64}
-    if ~isfinite(x)
-        isnan(x) && return x
-        isinf(x) && return x
-    end
+    ~isfinite(x) && return x
     abs_nu = abs(nu)
     abs_x = abs(x)
     sg = iseven(abs_nu) ? 1 : -1
