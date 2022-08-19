@@ -463,11 +463,9 @@ end
 # re-implemented. And with an order of, like, 10, this seems to be pretty
 # accurate and still faster than the uniform asymptotic expansion.
 function _besselk_as_pair(v, x::T, order) where{T}
-    twox  = T(2)
     fv = 4*v*v
     fvp1 = 4*(v+one(v))^2
     _z = x
-    ser = zero(T)
     ser_v = one(T)
     ser_vp1 = one(T)
     floatj = one(T)
