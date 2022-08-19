@@ -3,13 +3,11 @@
 #                                 sphericalbesselk(nu, x)
 #
 #    A numerical routine to compute the modified spherical bessel functions of the second kind.
-#    For moderate sized integer orders, forward recurrence is used starting from explicit formulas for k0(x) [1] and k1(x) [2].
+#    For moderate sized integer orders, forward recurrence is used starting from explicit formulas for k0(x) = exp(-x) / x  and k1(x) = k0(x) * (x+1) / x [1].
 #    Large orders are determined from the uniform asymptotic expansions (see src/besselk.jl for details)
-#    For non-integer orders, we directly call the besselk routine using the relation k_{n}(x) = sqrt(pi/(2x))*besselk(n+1/2, x) [3].
+#    For non-integer orders, we directly call the besselk routine using the relation k_{n}(x) = sqrt(pi/(2x))*besselk(n+1/2, x) [1].
 #    
-# [1] http://dlmf.nist.gov/10.49.E12
-# [2] http://dlmf.nist.gov/10.49.E13
-# [3] http://dlmf.nist.gov/10.47.E9
+# [1] https://mathworld.wolfram.com/ModifiedSphericalBesselFunctionoftheSecondKind.html
 #
 """
     sphericalbesselk(nu, x::T) where T <: {Float32, Float64}
