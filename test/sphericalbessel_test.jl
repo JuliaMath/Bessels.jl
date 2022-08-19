@@ -58,3 +58,9 @@ v, x = -4.0, 5.6
 v, x = -6.8, 15.6
 @test isapprox(Bessels.sphericalbesselj(v, x), 0.04386355397884301866595, rtol=3e-12)
 @test isapprox(Bessels.sphericalbessely(v, x), 0.05061013363904335437354, rtol=3e-12)
+
+# test for negative order of spherical modified besselk in the special integer
+# routine:
+for v in 1:10
+  @test Bessels.sphericalbesselk(-v, 1.1) ≈ Bessels.sphericalbesselk(v-1, 1.1)
+end
