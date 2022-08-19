@@ -233,7 +233,7 @@ function besselk_positive_args(nu, x::T) where T <: Union{Float32, Float64}
     (isinteger(nu-1/2) && !debye_cut) && return sphericalbesselk(nu-1/2, x)*SQRT_PID2(T)*sqrt(x)
 
     # check if the standard asymptotic expansion can be used:
-    besselk_asexp_cutoff(nu, x) && return besselk_asymptoticexp(nu, x)
+    besselk_asexp_cutoff(nu, x) && return besselk_asymptoticexp(nu, x, 10)
 
     # use uniform debye expansion if x or nu is large
     debye_cut && return besselk_large_orders(nu, x)
@@ -438,27 +438,24 @@ besselk_power_series_cutoff(nu, x::Float32) = x < 10.0f0 || nu > 1.65f0*x - 8.0f
 """
   besselk_asymptoticexp(v, x, order)
 
-Computes the asymptotic expansion of K_ν w.r.t. argument. Accurate for large x, and faster than uniform asymptotic expansion for small to small-ish orders. The default order of the expansion is 10.
+Computes the asymptotic expansion of K_ν w.r.t. argument. Accurate for large x, and faster than uniform asymptotic expansion for small to small-ish orders. The default order of the expansion in `Bessels.besselk` is 10.
 """
-function besselk_asymptoticexp(v, x::T) where T 
-  _besselk_asymptoticexp(v, float(x), 10)
-end
-besselk_asexp_cutoff(nu, x) = (nu < 20.0) && (x > 25.0)
+besselk_asexp_cutoff(nu, x::T) where T = (nu < 20.0) && (x > ASEXP_CUTOFF(T))
 
 # Compute the function for (_v, _v+1), where _v = v-floor(v), and then do
 # forward recursion. If the argument is really large, this should be faster than
 # the uniform asymptotic expansion and plenty accurate.
-function _besselk_asymptoticexp(v, x::T, order) where T
-  _v  = v - floor(v)
-  (kv, kvp1) = _besselk_as_pair(_v, x, order)
-  v == _v && return kv
-  _v += one(v)
-  twodx = T(2)*inv(x)
-  while _v < v
-    (kv, kvp1) = (kvp1, muladd(kvp1, twodx*_v, kv))
-    _v += one(_v)
-  end
-  kvp1
+function besselk_asymptoticexp(v, x::T, order) where T
+    _v  = v - floor(v)
+    (kv, kvp1) = _besselk_as_pair(_v, x, order)
+    v == _v && return kv
+    _v += one(v)
+    twodx = T(2)*inv(x)
+    while _v < v
+        (kv, kvp1) = (kvp1, muladd(kvp1, twodx*_v, kv))
+        _v += one(_v)
+    end
+    kvp1
 end
 
 # For now, no exponential improvement. It requires the exponential integral
@@ -466,36 +463,36 @@ end
 # re-implemented. And with an order of, like, 10, this seems to be pretty
 # accurate and still faster than the uniform asymptotic expansion.
 function _besselk_as_pair(v, x::T, order) where{T}
-  twox      = T(2)
-  fv        = 4*v*v
-  fvp1      = 4*(v+one(v))^2
-  _z        = x
-  ser       = zero(T)
-  ser_v     = one(T)
-  ser_vp1   = one(T)
-  floatj    = one(T)
-  ak_numv   = fv   - floatj
-  ak_numvp1 = fvp1 - floatj
-  factj     = one(T)
-  twofloatj = one(T)
-  eightj    = T(8)
-  for _ in 1:order
-    # add to the series:
-    term_v     = ak_numv/(factj*_z*eightj)
-    ser_v     += term_v
-    term_vp1   = ak_numvp1/(factj*_z*eightj)
-    ser_vp1   += term_vp1
-    # update ak and _z:
-    floatj    += one(T)
-    twofloatj += T(2)
-    factj     *= floatj
-    fourfloatj = twofloatj*twofloatj
-    ak_numv   *= (fv   - fourfloatj)
-    ak_numvp1 *= (fvp1 - fourfloatj)
-    _z        *= x
-    eightj    *= T(8)
-  end
-  pre_multiply = SQRT_PID2(T)*exp(-x)/sqrt(x)
-  (pre_multiply*ser_v, pre_multiply*ser_vp1)
+    twox  = T(2)
+    fv = 4*v*v
+    fvp1 = 4*(v+one(v))^2
+    _z = x
+    ser = zero(T)
+    ser_v = one(T)
+    ser_vp1 = one(T)
+    floatj = one(T)
+    ak_numv = fv   - floatj
+    ak_numvp1 = fvp1 - floatj
+    factj = one(T)
+    twofloatj = one(T)
+    eightj = T(8)
+    for _ in 1:order
+        # add to the series:
+        term_v = ak_numv/(factj*_z*eightj)
+        ser_v += term_v
+        term_vp1 = ak_numvp1/(factj*_z*eightj)
+        ser_vp1 += term_vp1
+        # update ak and _z:
+        floatj += one(T)
+        twofloatj += T(2)
+        factj  *= floatj
+        fourfloatj = twofloatj*twofloatj
+        ak_numv *= (fv   - fourfloatj)
+        ak_numvp1 *= (fvp1 - fourfloatj)
+        _z *= x
+        eightj *= T(8)
+    end
+    pre_multiply = SQRT_PID2(T)*exp(-x)/sqrt(x)
+    (pre_multiply*ser_v, pre_multiply*ser_vp1)
 end
 
