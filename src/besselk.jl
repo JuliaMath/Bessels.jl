@@ -462,7 +462,7 @@ end
 # function, which would either need to be lifted from SpecialFunctions.jl or
 # re-implemented. And with an order of, like, 10, this seems to be pretty
 # accurate and still faster than the uniform asymptotic expansion.
-function _besselk_as_pair(v, x::T, order) where{T}
+function _besselk_as_pair(v, x::T, order) where T
     fv = 4*v*v
     fvp1 = 4*(v+one(v))^2
     _z = x
