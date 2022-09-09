@@ -462,29 +462,7 @@ end
 # function, which would either need to be lifted from SpecialFunctions.jl or
 # re-implemented. And with an order of, like, 10, this seems to be pretty
 # accurate and still faster than the uniform asymptotic expansion.
-function _besselk_as_pair(v, x::T, order) where T
-    fv = 4*v*v
-    fvp1 = 4*(v+one(v))^2
-    z = 8*x
-    knu, knpu1 = one(T), one(T)
-    ak_nu = fv - 1
-    ak_nup1 = fvp1 - 1
-
-    for i in 1:order
-        term_v = ak_nu / z
-        term_vp1 = ak_nup1 / z
-        knu += term_v
-        knpu1 += term_vp1
-
-        a = muladd(2, i, one(T))^2
-        z *= 8*x*(i + one(T))
-
-        ak_nu *= fv - a
-        ak_nup1 *= fvp1 - a
-    end
-    coef = SQRT_PID2(T)*exp(-x)/sqrt(x)
-    return coef*knu, coef*knpu1
-end
+function _besselk_as_pair(v, x::T, order) where{T}
     fv = 4*v*v
     fvp1 = 4*(v+one(v))^2
     _z = x
