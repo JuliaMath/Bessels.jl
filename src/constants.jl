@@ -287,3 +287,6 @@ const Q3_k1(::Type{Float64}) = (
 
 const SQRT_PID2(::Type{Float64}) = 1.2533141373155003
 const SQRT_PID2(::Type{Float32}) = 1.2533141f0
+
+const ASEXP_CUTOFF(::Type{Float64}) = 35.0
+const ASEXP_CUTOFF(::Type{Float32}) = 35.0f0 # temporary
