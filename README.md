@@ -209,6 +209,8 @@ Benchmarks were run using Julia Version 1.7.2 on an Apple M1 using Rosetta.
 - `hankelh2(nu, x)`
 - `sphericalbesselj(nu, x)`
 - `sphericalbessely(nu, x)`
+- `Bessels.sphericalbesseli(nu, x)`
+- `Bessels.sphericalbesselk(nu, x)`
 - `airyai(x)`
 - `airyaiprime(x)`
 - `airybi(x)`
