@@ -259,6 +259,9 @@ function _besselkx(nu, x::T) where T <: Union{Float32, Float64}
     # dispatch to avoid uniform expansion when nu = 0 
     iszero(nu) && return besselk0x(x)
 
+    # check if the standard asymptotic expansion can be used
+    besseli_large_argument_cutoff(nu, x) && return besselk_large_argument_scaled(nu, x)
+
     # use uniform debye expansion if x or nu is large
     besselik_debye_cutoff(nu, x) && return besselk_large_orders_scaled(nu, x)
 
