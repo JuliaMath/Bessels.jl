@@ -1,7 +1,7 @@
 name = "Bessels"
 uuid = "0e736298-9ec6-45e8-9647-e4fc86a2fe38"
 authors = ["Michael Helton <heltonmc@protonmail.com> and contributors"]
-version = "0.2.0"
+version = "0.2.1"
 
 [compat]
 julia = "1.6"
