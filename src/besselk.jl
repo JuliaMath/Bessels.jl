@@ -160,6 +160,7 @@ end
 #
 #    The identities are computed by calling the `besseli_positive_args(nu, x)` function which computes K_{ν}(x)
 #    for positive arguments and orders. For large orders, Debye's uniform asymptotic expansions are used.
+#    For large arguments x >> nu, large argument expansion is used [9].
 #    For small value and when nu > ~x the power series is used. The rest of the values are computed using slightly different methods.
 #    The power series for besseli is modified to give both I_{v} and I_{v-1} where the ratio K_{v+1} / K_{v} is computed using continued fractions [8].
 #    The wronskian connection formula is then used to compute K_v.
@@ -178,6 +179,7 @@ end
 #     arXiv preprint arXiv:2201.00090 (2022).
 # [8] Cuyt, A. A., Petersen, V., Verdonk, B., Waadeland, H., & Jones, W. B. (2008). 
 #     Handbook of continued fractions for special functions. Springer Science & Business Media.
+# [9] http://dlmf.nist.gov/10.40.E2
 #
 
 """
@@ -226,17 +228,14 @@ function besselk_positive_args(nu, x::T) where T <: Union{Float32, Float64}
     # dispatch to avoid uniform expansion when nu = 0 
     iszero(nu) && return besselk0(x)
     
-    # pre-compute the uniform asymptotic expansion cutoff:
-    debye_cut = besselik_debye_cutoff(nu, x)
+    # check if nu is a half-integer
+    (isinteger(nu-1/2) && sphericalbesselk_cutoff(nu)) && return sphericalbesselk_int(Int(nu-1/2), x)*SQPIO2(T)*sqrt(x)
 
-    # check if nu is a half-integer:
-    (isinteger(nu-1/2) && !debye_cut) && return sphericalbesselk(nu-1/2, x)*SQRT_PID2(T)*sqrt(x)
-
-    # check if the standard asymptotic expansion can be used:
-    besselk_asexp_cutoff(nu, x) && return besselk_large_argument(nu, x)
+    # check if the standard asymptotic expansion can be used
+    besseli_large_argument_cutoff(nu, x) && return besselk_large_argument(nu, x)
 
     # use uniform debye expansion if x or nu is large
-    debye_cut && return besselk_large_orders(nu, x)
+    besselik_debye_cutoff(nu, x) && return besselk_large_orders(nu, x)
 
     # for integer nu use forward recurrence starting with K_0 and K_1
     isinteger(nu) && return besselk_up_recurrence(x, besselk1(x), besselk0(x), 1, nu)[1]
@@ -259,6 +258,9 @@ _besselkx(nu, x::Float16) = Float16(_besselkx(nu, Float32(x)))
 function _besselkx(nu, x::T) where T <: Union{Float32, Float64}
     # dispatch to avoid uniform expansion when nu = 0 
     iszero(nu) && return besselk0x(x)
+
+    # check if the standard asymptotic expansion can be used
+    besseli_large_argument_cutoff(nu, x) && return besselk_large_argument_scaled(nu, x)
 
     # use uniform debye expansion if x or nu is large
     besselik_debye_cutoff(nu, x) && return besselk_large_orders_scaled(nu, x)
@@ -434,13 +436,13 @@ end
 besselk_power_series_cutoff(nu, x::Float64) = x < 2.0 || nu > 1.6x - 1.0
 besselk_power_series_cutoff(nu, x::Float32) = x < 10.0f0 || nu > 1.65f0*x - 8.0f0
 
+#####
+#####  Large argument expansion for K_{nu}(x)
+#####
 
-"""
-  besselk_asymptoticexp(v, x, order)
-
-Computes the asymptotic expansion of K_ν w.r.t. argument. Accurate for large x, and faster than uniform asymptotic expansion for small to small-ish orders. The default order of the expansion in `Bessels.besselk` is 10.
-"""
-besselk_asexp_cutoff(nu, x::T) where T = (nu < 20.0) && (x > ASEXP_CUTOFF(T))
+# Computes the asymptotic expansion of K_ν w.r.t. argument. 
+# Accurate for large x, and faster than uniform asymptotic expansion for small to small-ish orders
+# See http://dlmf.nist.gov/10.40.E2
 
 function besselk_large_argument(v, x::T) where T
     a = exp(-x / 2)
