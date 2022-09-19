@@ -229,6 +229,9 @@ function besselk_positive_args(nu, x::T) where T <: Union{Float32, Float64}
     # check if nu is a half-integer
     (isinteger(nu-1/2) && sphericalbesselk_cutoff(nu)) && return sphericalbesselk_int(Int(nu-1/2), x)*SQPIO2(T)*sqrt(x)
 
+    # check if the standard asymptotic expansion can be used
+    besseli_large_argument_cutoff(nu, x) && return besselk_large_argument(nu, x)
+
     # use uniform debye expansion if x or nu is large
     besselik_debye_cutoff(nu, x) && return besselk_large_orders(nu, x)
 
@@ -427,3 +430,37 @@ function besselk_power_series(v, x::T) where T
 end
 besselk_power_series_cutoff(nu, x::Float64) = x < 2.0 || nu > 1.6x - 1.0
 besselk_power_series_cutoff(nu, x::Float32) = x < 10.0f0 || nu > 1.65f0*x - 8.0f0
+
+#####
+#####  Large argument expansion for K_{nu}(x)
+#####
+
+# Computes the asymptotic expansion of K_ν w.r.t. argument. 
+# Accurate for large x, and faster than uniform asymptotic expansion for small to small-ish orders
+# See http://dlmf.nist.gov/10.40.E2
+
+function besselk_large_argument(v, x::T) where T
+    a = exp(-x / 2)
+    coef = a * sqrt(pi / 2x)
+    return T(_besselk_large_argument(v, x) * coef * a)
+end
+
+besselk_large_argument_scaled(v, x::T) where T =  T(_besselk_large_argument(v, x) * sqrt(pi / 2x))
+
+function _besselk_large_argument(v, x::T) where T
+    MaxIter = 5000 
+    S = promote_type(T, Float64) 
+    v, x = S(v), S(x) 
+ 
+    fv2 = 4 * v^2 
+    term = one(S) 
+    res = term 
+    s = term 
+    for i in 1:MaxIter 
+        offset = muladd(2, i, -1) 
+        term *= muladd(offset, -offset, fv2) / (8 * x * i) 
+        res = muladd(term, s, res) 
+        abs(term) <= eps(T) && break 
+    end 
+    return res 
+end
