@@ -160,6 +160,7 @@ end
 #
 #    The identities are computed by calling the `besseli_positive_args(nu, x)` function which computes K_{ν}(x)
 #    for positive arguments and orders. For large orders, Debye's uniform asymptotic expansions are used.
+#    For large arguments x >> nu, large argument expansion is used [9].
 #    For small value and when nu > ~x the power series is used. The rest of the values are computed using slightly different methods.
 #    The power series for besseli is modified to give both I_{v} and I_{v-1} where the ratio K_{v+1} / K_{v} is computed using continued fractions [8].
 #    The wronskian connection formula is then used to compute K_v.
@@ -178,6 +179,7 @@ end
 #     arXiv preprint arXiv:2201.00090 (2022).
 # [8] Cuyt, A. A., Petersen, V., Verdonk, B., Waadeland, H., & Jones, W. B. (2008). 
 #     Handbook of continued fractions for special functions. Springer Science & Business Media.
+# [9] http://dlmf.nist.gov/10.40.E2
 #
 
 """

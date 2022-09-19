@@ -12,7 +12,8 @@ For bug fixes, performance enhancements, or fixes to unexported functions we wil
 
 ### Added
  - Add more optimized methods for Float32 calculations that are faster ([PR #43](https://github.com/JuliaMath/Bessels.jl/pull/43))
- - Add methods for computing modified spherical bessel function of second ([PR #46](https://github.com/JuliaMath/Bessels.jl/pull/46) and ([PR #47](https://github.com/JuliaMath/Bessels.jl/pull/47))) currently unexported closes ([Issue #25](https://github.com/JuliaMath/Bessels.jl/issues/25))
+ - Add methods for computing modified spherical bessel function of second ([PR #46](https://github.com/JuliaMath/Bessels.jl/pull/46) contributed by @cgeoga and first ([PR #47](https://github.com/JuliaMath/Bessels.jl/pull/47))) kind. These functions are currently not exported. Closes ([Issue #25](https://github.com/JuliaMath/Bessels.jl/issues/25))
+ - Asymptotic expansion for x >> nu was added ([PR #48](https://github.com/JuliaMath/Bessels.jl/pull/48)) that decreases computation time for large arguments. Contributed by @cgeoga
 
 ### Fixed
  - Reduce compile time and time to first call of besselj and bessely ([PR #42](https://github.com/JuliaMath/Bessels.jl/pull/42))
