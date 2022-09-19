@@ -234,9 +234,6 @@ function besselk_positive_args(nu, x::T) where T <: Union{Float32, Float64}
     # check if the standard asymptotic expansion can be used
     besseli_large_argument_cutoff(nu, x) && return besselk_large_argument(nu, x)
 
-    # check if the standard asymptotic expansion can be used
-    besseli_large_argument_cutoff(nu, x) && return besselk_large_argument(nu, x)
-
     # use uniform debye expansion if x or nu is large
     besselik_debye_cutoff(nu, x) && return besselk_large_orders(nu, x)
 
