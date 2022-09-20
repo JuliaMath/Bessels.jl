@@ -19,95 +19,95 @@ julia> using Bessels
 julia> x = 12.3; nu = 1.3
 
 julia> besselj(nu, x)
--0.2267581644816903
+-0.2267581644816917
 ```
 
 # Supported functions
 
-### Bessel Functions of the first kind
+### Bessel functions of the first kind
 
-$$ J_{\nu} = \sum_{m=0}^{\infty} \frac{(-1)^m}{m!\Gamma(m+\nu+1)}(\frac{x}{2})^{2m+\nu}    $$
+$$ J_{\nu}(x) = \sum_{m=0}^{\infty} \frac{(-1)^m}{m!\Gamma(m+\nu+1)}(\frac{x}{2})^{2m+\nu} $$
 
 Bessel functions of the first kind, denoted as $J_{\nu}(x)$, can be called with `besselj(nu, x)` where `nu` is the order of the Bessel function with argument `x`. Routines are also available for orders `0` and `1` which can be called with `besselj0(x)` and `besselj1(x)`.
 
 ```julia
-julia> v, x = 1.4, 12.3
+julia> ν, x = 1.4, 12.3
 
-# generic call for any order v
-julia> besselj(v, x)
--0.22796228516266664
+# generic call for any order ν
+julia> besselj(ν, x)
+-0.22796228516266345
 
-# v = 0
+# ν = 0
 julia> besselj0(x)
 0.11079795030758544
 
-# v = 1
+# ν = 1
 julia> besselj1(x)
 -0.1942588480405914
 ```
 
-### Bessel Functions of the second kind
+### Bessel functions of the second kind
 
-$$ Y_{\nu} = \frac{J_{\nu} \cos(\nu \pi) - J_{-\nu}}{\sin(\nu \pi)}    $$
+$$ Y_{\nu}(x) = \frac{J_{\nu}(x) \cos(\nu \pi) - J_{-\nu}(x)}{\sin(\nu \pi)} $$
 
 Bessel functions of the second kind, denoted as $Y_{\nu}(x)$, can be called with `bessely(nu, x)`. Routines are also available for orders `0` and `1` which can be called with `bessely0(x)` and `bessely1(x)`.
 
 ```julia
-julia> v, x = 1.4, 12.3
+julia> ν, x = 1.4, 12.3
 
-# generic call for any order v
-julia> bessely(v, x)
+# generic call for any order ν
+julia> bessely(ν, x)
 0.00911009829832235
 
-# v = 0
+# ν = 0
 julia> bessely0(x)
 -0.19859309463502633
 
-# v = 1
+# ν = 1
 julia> bessely1(x)
--0.11894840329926633
+-0.11894840329926631
 ```
 
 ### Modified Bessel functions of the first kind
 
-$$ I_{\nu} = \sum_{m=0}^{\infty} \frac{1}{m!\Gamma(m+\nu+1)}(\frac{x}{2})^{2m+\nu}    $$
+$$ I_{\nu}(x) = \sum_{m=0}^{\infty} \frac{1}{m!\Gamma(m+\nu+1)}(\frac{x}{2})^{2m+\nu} $$
 
-Modified Bessel functions of the first kind, denoted as $I_{\nu}(x)$, can be called with `besseli(nu, x)` where `nu` is the order of the Bessel function with argument `x`. Routines are also available for orders `0` and `1` which can be called with `besseli0(x)` and `besseli1`. Exponentially scaled versions of these functions $I_{\nu}(x) * e^{-x}$ are also provided which can be called with `besseli0x(nu, x)`, `besseli1x(nu, x)`, and `besselix(nu, x)`.
+Modified Bessel functions of the first kind, denoted as $I_{\nu}(x)$, can be called with `besseli(nu, x)` where `nu` is the order of the Bessel function with argument `x`. Routines are also available for orders `0` and `1` which can be called with `besseli0(x)` and `besseli1(x)`. Exponentially scaled versions of these functions $I_{\nu}(x) \cdot e^{-x}$ are also provided which can be called with `besseli0x(x)`, `besseli1x(x)`, and `besselix(nu, x)`.
 
 ```julia
-julia> v, x = 1.4, 12.3
+julia> ν, x = 1.4, 12.3
 
 # generic call for any order v
-julia> besseli(v, x)
-23781.28963619158
+julia> besseli(ν, x)
+23242.698263113296
 
 # exponentially scaled version
-julia> besselix(v, x)
-0.10824635342651369
+julia> besselix(ν, x)
+0.10579482312624018
 
-# v = 0
+# ν = 0
 julia> besseli0(x)
 25257.48759692308
 julia> besseli0x(x)
 0.11496562932068803
 
-# v = 1
+# ν = 1
 julia> besseli1(x)
 24207.933018435186
 julia> besseli1x(x)
 0.11018832507935208
 ```
 
-### Modified Bessel Functions of the second kind
+### Modified Bessel functions of the second kind
 
-$$ K_{\nu} = \frac{\pi}{2} \frac{I_{-\nu} - I_{\nu}}{\sin(\nu \pi)}    $$
+$$ K_{\nu}(x) = \frac{\pi}{2} \frac{I_{-\nu}(x) - I_{\nu}(x)}{\sin(\nu \pi)} $$
 
-Modified Bessel functions of the second kind, denoted as $K_{\nu}(x)$, can be called with `besselk(nu, x)`. Routines are available for orders `0` and `1` which can be called with `besselk0(x)` and `besselk1`. Exponentially scaled versions of these functions $K_{\nu}(x) * e^{x}$ are also provided which can be called with `besselk0x(nu, x)`, `besselk1x(nu, x)`, and `besselkx(nu, x)`.
+Modified Bessel functions of the second kind, denoted as $K_{\nu}(x)$, can be called with `besselk(nu, x)`. Routines are available for orders `0` and `1` which can be called with `besselk0(x)` and `besselk1(x)`. Exponentially scaled versions of these functions $K_{\nu}(x) \cdot e^{x}$ are also provided which can be called with `besselk0x(x)`, `besselk1x(x)`, and `besselkx(nu, x)`.
 
 ```julia
-julia> v, x = 1.4, 12.3
+julia> ν, x = 1.4, 12.3
 
-julia> besselk(v, x)
+julia> besselk(ν, x)
 1.739055243080153e-6
 
 julia> besselk0(x)
@@ -122,23 +122,25 @@ julia> besselk1(x)
 Support is provided for negative arguments and orders only if the return value is real. A domain error will be thrown if the return value is complex. See https://github.com/heltonmc/Bessels.jl/issues/30 for more details.
 
 ```julia
-julia> (v,x) = 13.0, -1.0
-julia> besseli(v,x)
--1.9956316782072008e-14
+julia> ν, x = 13.0, -1.0
+julia> besseli(ν, x)
+-1.9956316782072005e-14
 
-julia> (v, x) = -14.0, -9.9
-julia> besseli(v,x)
+julia> ν, x = -14.0, -9.9
+julia> besseli(ν, x)
 0.2892290867115618
 
-julia> (v,x) = 12.6, -3.0
-julia> besseli(v,x)
+julia> ν, x = 12.6, -3.0
+julia> besseli(ν, x)
 ERROR: DomainError with -3.0:
 Complex result returned for real arguments. Complex arguments are currently not supported
 Stacktrace:
- [1] besseli(nu::Float64, x::Float64)
-   @ Bessels ~/Documents/code/repos/Bessels.jl/src/besseli.jl:176
- [2] top-level scope
-   @ REPL[9]:1
+ [1] _besseli(nu::Float64, x::Float64)
+   @ Bessels ~/.julia/packages/Bessels/OBoYU/src/besseli.jl:181
+ [2] besseli(nu::Float64, x::Float64)
+   @ Bessels ~/.julia/packages/Bessels/OBoYU/src/besseli.jl:167
+ [3] top-level scope
+   @ REPL[62]:1
 ```
 #### Gamma
 We also provide an unexported gamma function for real arguments that can be called with `Bessels.gamma(x)`.
@@ -174,7 +176,7 @@ In general the largest relative errors are observed near the zeros of Bessel fun
 
 # Benchmarks
 
-We give brief performance comparisons to the implementations provided by [SpecialFunctions.jl](https://github.com/JuliaMath/SpecialFunctions.jl). In general, special functions are computed with separate algorithms in different domains leading to computational time being dependent on argument. For these comparisons we show the relative speed increase for computing random values between `0` and `100` for `x` and order `nu`. In some ranges, performance may be significantly better while others more similar.
+We give brief performance comparisons to the implementations provided by [SpecialFunctions.jl](https://github.com/JuliaMath/SpecialFunctions.jl). In general, special functions are computed with separate algorithms in different domains leading to computational time being dependent on argument. For these comparisons we show the relative speed increase for computing random values between `0` and `100` for `x` and order `nu`. In some ranges, performance may be significantly better while others will be more similar.
 
 | function | `Float64`
 | -------------  | ------------- |
