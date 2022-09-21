@@ -164,7 +164,7 @@ end
 
 Modified Bessel function of the second kind of order nu, ``I_{nu}(x)``.
 """
-besseli(nu::Real, x::Real) = _besseli(nu, float(x))
+besseli(nu::Real, x) = _besseli(nu, float(x))
 
 _besseli(nu, x::Float16) = Float16(_besseli(nu, Float32(x)))
 
@@ -394,3 +394,42 @@ function steed(n, x::T) where T
     return h
 end
 =#
+function _besseli(nu, x::Complex{T}) where T <: Union{Float32, Float64}
+    isinteger(nu) && return _besseli(Int(nu), x)
+    ~isfinite(x) && return x
+    abs_nu = abs(nu)
+    abs_x = abs(x)
+
+    if nu >= 0
+        if x >= 0
+            return besseli_positive_args(abs_nu, abs_x)
+        else
+            return cispi(abs_nu) * besseli_positive_args(abs_nu, abs_x)
+        end
+    else
+        return throw(DomainError(nu, "nu must be positive if x is complex"))
+        #=
+        if x >= 0
+            return besseli_positive_args(abs_nu, abs_x) + 2 / π * sinpi(abs_nu) * besselk_positive_args(abs_nu, abs_x)
+        else
+            Iv = besseli_positive_args(abs_nu, abs_x)
+            Kv = besselk_positive_args(abs_nu, abs_x)
+            return cispi(abs_nu) * Iv + 2 / π * sinpi(abs_nu) * (cispi(-abs_nu) * Kv - im * π * Iv)
+        end
+        =#
+    end
+end
+function _besseli(nu::Integer, x::Complex{T}) where T <: Union{Float32, Float64}
+    ~isfinite(x) && return x
+    abs_nu = abs(nu)
+    abs_x = abs(x)
+    sg = iseven(abs_nu) ? 1 : -1
+
+    if x >= 0
+        return besseli_positive_args(abs_nu, abs_x)
+    else
+        return sg * besseli_positive_args(abs_nu, abs_x)
+    end
+end
+
+Base.eps(::Type{Complex{T}}) where {T<:AbstractFloat} = eps(T)

@@ -105,3 +105,104 @@ function _airybiprime(x::T) where T <: Union{Float32, Float64}
         return T(0.4482883573538264)
     end
 end
+
+GAMMA_TWO_THIRDS(::Type{Float64}) = 1.3541179394264005
+GAMMA_ONE_THIRD(::Type{Float64}) = 2.6789385347077475
+GAMMA_ONE_THIRD(::Type{T}) where T <: AbstractFloat = T(big"2.678938534707747633655692940974677644128689377957301100950428327590417610167733")
+GAMMA_TWO_THIRDS(::Type{T}) where T <: AbstractFloat = T(big"1.354117939426400416945288028154513785519327266056793698394022467963782965401746")
+
+
+
+const ComplexOrReal{T} = Union{T,Complex{T}}
+# returns both (airyai, airyaiprime) using the power series definition for small arguments
+function airyai_prime_power_series(x::ComplexOrReal{T}) where T
+    S = eltype(x)
+    MaxIter = 3000
+    ai1 = zero(S)
+    ai2 = zero(S)
+    aip1 = zero(S)
+    aip2 = zero(S)
+    x2 = x*x
+    x3 = x2*x
+    t = one(S) / GAMMA_TWO_THIRDS(T)
+    t2 = 3*x / GAMMA_ONE_THIRD(T)
+    t3 = one(S) / GAMMA_ONE_THIRD(T)
+    t4 = 3*x2 / (2*GAMMA_TWO_THIRDS(T))
+
+    for i in 0:MaxIter
+        ai1 += t
+        ai2 += t2
+        aip1 += t3
+        aip2 += t4
+        @show ai1, ai2
+        abs(t2) < 1e-10*eps(T) * abs(ai2) && break
+        t *= x3 * inv(9*(i + one(T))*(i + T(2)/3))
+        t2 *= x3 * inv(9*(i + one(T))*(i + T(4)/3))
+        t3 *= x3 * inv(9*(i + one(T))*(i + T(1)/3))
+        t4 *= x3 * inv(9*(i + one(T))*(i + T(5)/3))
+    end
+    return (ai1*3^(-T(2)/3) - ai2*3^(-T(4)/3), -aip1*3^(-T(1)/3) + aip2*3^(-T(5)/3))
+end
+
+
+
+function d(x::ComplexOrReal{T}) where T
+    S = eltype(x)
+    MaxIter = 3000
+    ai = zero(S)
+    ai2 = zero(S)
+    
+    x2 = x*x
+    x3 = x2*x
+    t = one(S) / GAMMA_TWO_THIRDS(T)
+    t2 = 3*x / GAMMA_ONE_THIRD(T)
+    a = 1 / cbrt(T(9))
+
+    for i in 0:MaxIter
+        ai += a * muladd(a, -t2, t)
+        @show t, t2
+        abs(t) < eps(T) * abs(ai) && break
+        t *= x3 * inv(9*(i + one(T))*(i + T(2)/3))
+        t2 *= x3 * inv(9*(i + one(T))*(i + T(4)/3))
+    end
+    return ai
+end
+
+function d(x::ComplexOrReal{T}) where T
+    S = eltype(x)
+    MaxIter = 3000
+    ai1 = zero(S)
+    ai2 = zero(S)
+    
+    x2 = x*x
+    x3 = x2*x
+    t = one(S) / GAMMA_TWO_THIRDS(T)
+    t2 = 3*x / GAMMA_ONE_THIRD(T)
+    
+
+    for i in 0:MaxIter
+        ai1 += t
+        ai2 += t2
+        abs(t) < eps(T) * abs(ai1) && break
+        t *= x3 * inv(9*(i + one(T))*(i + T(2)/3))
+        t2 *= x3 * inv(9*(i + one(T))*(i + T(4)/3))
+    end
+    return (ai1*3^(-T(2)/3) - ai2*3^(-T(4)/3))
+end
+
+
+function airy_large_arg_a(x::T) where T
+    S = eltype(x)
+    MaxIter = 3000
+    xsqr = sqrt(x)
+
+    out = zero(S)
+    t = gamma(one(T) / 6) * gamma(T(5) / 6) / 4
+    a = 4*xsqr*x
+    for i in 0:MaxIter
+        out += t
+        abs(t) < eps(T) * abs(out) && break
+        t *= -3*(i + one(T)/6) * (i + T(5)/6) / (a*(i + one(T)))
+    end
+    return out * exp(-a / 6) / (pi^(3/2) * sqrt(xsqr))
+end
