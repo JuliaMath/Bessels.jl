@@ -9,24 +9,21 @@
 #    For negative arguments these definitions are prone to some cancellation leading to higher errors.
 #    In the future, these could be replaced with more custom routines as they depend on a single variable.
 #
-    
 
+"""
+    airyai(x)
+Airy function of the first kind ``\\operatorname{Ai}(x)``.
+"""
+airyai(z::Number) = _airyai(float(z))
 
-GAMMA_TWO_THIRDS(::Type{Float64}) = 1.3541179394264005
-GAMMA_ONE_THIRD(::Type{Float64}) = 2.6789385347077475
-GAMMA_ONE_THIRD(::Type{T}) where T <: AbstractFloat = T(big"2.678938534707747633655692940974677644128689377957301100950428327590417610167733")
-GAMMA_TWO_THIRDS(::Type{T}) where T <: AbstractFloat = T(big"1.354117939426400416945288028154513785519327266056793698394022467963782965401746")
+_airyai(x::Float16) = Float16(_airyai(Float32(x)))
+_airyai(z::ComplexF16) = ComplexF16(_airyai(ComplexF32(z)))
 
-
-
-const ComplexOrReal{T} = Union{T,Complex{T}}
-# returns both (airyai, airyaiprime) using the power series definition for small arguments
-
-airyai(z::Number) = _airyai(float(x))
-
-_airyai(x::T) where T <: ComplexOrReal{Float16} = T(_airyai(Float32(x)))
-
-function airyai2(z::ComplexOrReal{T}) where T
+function _airyai(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
+    if ~isfinite(z)
+        isnan(z) && return z
+        isinf(z) && return throw(DomainError(z, "airyai(z) not defined at infinity"))
+    end
     x, y = real(z), imag(z)
     zabs = abs(z)
 
@@ -43,17 +40,31 @@ function airyai2(z::ComplexOrReal{T}) where T
         # use computation for real numbers then convert to input type for stability
         # for imag(z) != 0 use rotation identity (http://dlmf.nist.gov/9.2.E14)
         if iszero(y)
-            xx = 2 * x^(T(3)/2) / 3
+            xabs = abs(x)
+            xx = 2 * xabs^(T(3)/2) / 3
             Jv, Yv = besseljy_positive_args(one(T)/3, xx)
             Jmv = (Jv - sqrt(T(3)) * Yv) / 2
-            return convert(eltype(z), sqrt(abs(x)) * (Jmv + Jv) / 3)
+            return convert(eltype(z), sqrt(xabs) * (Jmv + Jv) / 3)
         else
-            return exp(pi*im/3) * airyai2(-z*exp(pi*im/3))  + exp(-pi*im/3) * airyai2(-z*exp(-pi*im/3))
+            return exp(pi*im/3) * _airyai(-z*exp(pi*im/3))  + exp(-pi*im/3) * _airyai(-z*exp(-pi*im/3))
         end
     end
 end
 
-function airyaiprime2(z::ComplexOrReal{T}) where T
+"""
+    airyaiprime(x)
+Derivative of the Airy function of the first kind ``\\operatorname{Ai}'(x)``.
+"""
+airyaiprime(z::Number) = _airyaiprime(float(z))
+
+_airyaiprime(x::Float16) = Float16(_airyaiprime(Float32(x)))
+_airyaiprime(z::ComplexF16) = ComplexF16(_airyaiprime(ComplexF32(z)))
+
+function _airyaiprime(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
+    if ~isfinite(z)
+        isnan(z) && return z
+        isinf(z) && return throw(DomainError(z, "airyai(z) not defined at infinity"))
+    end
     x, y = real(z), imag(z)
     zabs = abs(z)
 
@@ -70,17 +81,31 @@ function airyaiprime2(z::ComplexOrReal{T}) where T
         # use computation for real numbers then convert to input type for stability
         # for imag(z) != 0 use rotation identity (http://dlmf.nist.gov/9.2.E14)
         if iszero(y)
-            xx = 2 * x^(T(3)/2) / 3
+            xabs = abs(x)
+            xx = 2 * xabs^(T(3)/2) / 3
             Jv, Yv = besseljy_positive_args(T(2)/3, xx)
             Jmv = -(Jv + sqrt(T(3))*Yv) / 2
-            return convert(eltype(z), abs(x) * (Jv - Jmv) / 3
+            return convert(eltype(z), xabs * (Jv - Jmv) / 3)
         else
-            return -(exp(2pi*im/3)*airyaiprime(-z*exp(pi*im/3)) + exp(-2pi*im/3)*airyaiprime(-z*exp(-pi*im/3)))
+            return -(exp(2pi*im/3)*_airyaiprime(-z*exp(pi*im/3)) + exp(-2pi*im/3)*_airyaiprime(-z*exp(-pi*im/3)))
         end
     end
 end
 
-function airybi2(z::ComplexOrReal{T}) where T
+"""
+    airybi(x)
+Airy function of the second kind ``\\operatorname{Bi}(x)``.
+"""
+airybi(z::Number) = _airybi(float(z))
+
+_airybi(x::Float16) = Float16(_airybi(Float32(x)))
+_airybi(z::ComplexF16) = ComplexF16(_airybi(ComplexF32(z)))
+
+function _airybi(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
+    if ~isfinite(z)
+        isnan(z) && return z
+        isinf(z) && return throw(DomainError(z, "airyai(z) not defined at infinity"))
+    end
     x, y = real(z), imag(z)
     zabs = abs(z)
 
@@ -100,16 +125,28 @@ function airybi2(z::ComplexOrReal{T}) where T
         return sqrt(z/3) * (inu + inu2)
     else
         if iszero(y)
-            xx = 2 * x^(T(3)/2) / 3
+            xabs = abs(x)
+            xx = 2 * xabs^(T(3)/2) / 3
             Jv, Yv = besseljy_positive_args(one(T)/3, xx)
             Jmv = (Jv - sqrt(T(3)) * Yv) / 2
-            return convert(eltype(z), sqrt(abs(x)/3) * (Jmv - Jv))
+            return convert(eltype(z), sqrt(xabs/3) * (Jmv - Jv))
         else
-            return exp(pi*im/3) * airybi2(-z*exp(pi*im/3))  + exp(-pi*im/3) * airybi2(-z*exp(-pi*im/3))
+            return exp(pi*im/3) * _airybi(-z*exp(pi*im/3))  + exp(-pi*im/3) * _airybi(-z*exp(-pi*im/3))
         end
+    end
 end
 
-function airybiprime2(z::ComplexOrReal{T}) where T
+"""
+    airybiprime(x)
+Derivative of the Airy function of the second kind ``\\operatorname{Bi}'(x)``.
+"""
+
+airybiprime(z::Number) = _airybiprime(float(z))
+
+_airybiprime(x::Float16) = Float16(_airybiprime(Float32(x)))
+_airybiprime(z::ComplexF16) = ComplexF16(_airybiprime(ComplexF32(z)))
+
+function _airybiprime(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
     x, y = real(z), imag(z)
     zabs = abs(z)
 
@@ -129,13 +166,15 @@ function airybiprime2(z::ComplexOrReal{T}) where T
         return z / sqrt(3) * (inu + inu2)
     else
         if iszero(y)
-            xx = 2 * x^(T(3)/2) / 3
+            xabs = abs(x)
+            xx = 2 * xabs^(T(3)/2) / 3
             Jv, Yv = besseljy_positive_args(T(2)/3, xx)
             Jmv = -(Jv + sqrt(T(3))*Yv) / 2
-            return convert(eltype(z), abs(x) * (Jv + Jmv) / sqrt(T(3)))
+            return convert(eltype(z), xabs * (Jv + Jmv) / sqrt(T(3)))
         else
-            return -(exp(2pi*im/3)*airybiprime(-z*exp(pi*im/3)) + exp(-2pi*im/3)*airybiprime(-z*exp(-pi*im/3)))
+            return -(exp(2pi*im/3)*_airybiprime(-z*exp(pi*im/3)) + exp(-2pi*im/3)*_airybiprime(-z*exp(-pi*im/3)))
         end
+    end
 end
 
 #####
@@ -148,6 +187,7 @@ airyai_power_series_cutoff(x::T, y::T) where T <: Float32 = x < 4.5f0 && abs(y) 
 
 function airyai_power_series(x::ComplexOrReal{T}) where T
     S = eltype(x)
+    iszero(x) && return S(0.3550280538878172)
     MaxIter = 3000
     ai1 = zero(S)
     ai2 = zero(S)
@@ -172,6 +212,7 @@ end
 
 function airyaiprime_power_series(x::ComplexOrReal{T}) where T
     S = eltype(x)
+    iszero(x) && return S(-0.2588194037928068)
     MaxIter = 3000
     ai1 = zero(S)
     ai2 = zero(S)
@@ -203,6 +244,7 @@ airybi_power_series_cutoff(x::T, y::T) where T <: Float32 = abs(complex(x, y)) <
 
 function airybi_power_series(x::ComplexOrReal{T}) where T
     S = eltype(x)
+    iszero(x) && return S(0.6149266274460007)
     MaxIter = 3000
     ai1 = zero(S)
     ai2 = zero(S)
@@ -222,6 +264,7 @@ function airybi_power_series(x::ComplexOrReal{T}) where T
 end
 function airybiprime_power_series(x::ComplexOrReal{T}) where T
     S = eltype(x)
+    iszero(x) && return S(0.4482883573538264)
     MaxIter = 3000
     ai1 = zero(S)
     ai2 = zero(S)
@@ -290,6 +333,7 @@ function airybi_large_argument(z::Complex{T}) where T
     check_conj = false
     if y < zero(T)
         z = conj(z)
+        b = conj(b)
         y = abs(y)
         check_conj = true
     end
@@ -320,6 +364,7 @@ function airybiprime_large_argument(z::Complex{T}) where T
     check_conj = false
     if y < zero(T)
         z = conj(z)
+        d = conj(d)
         y = abs(y)
         check_conj = true
     end

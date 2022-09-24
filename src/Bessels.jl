@@ -34,6 +34,8 @@ export airyaiprime
 export airybi
 export airybiprime
 
+const ComplexOrReal{T} = Union{T,Complex{T}}
+
 include("besseli.jl")
 include("besselj.jl")
 include("besselk.jl")
