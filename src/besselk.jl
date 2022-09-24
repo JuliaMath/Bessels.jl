@@ -362,10 +362,12 @@ end
 
 # computes K_{nu+1}/K_{nu} using continued fractions and the modified Lentz method
 # generally slow to converge for small x
+besselk_ratio_knu_knup1(v, x::Float32) = Float32(besselk_ratio_knu_knup1(v, Float64(x)))
+besselk_ratio_knu_knup1(v, x::ComplexF32) = ComplexF32(besselk_ratio_knu_knup1(v, ComplexF64(x)))
 function besselk_ratio_knu_knup1(v, x::ComplexOrReal{T}) where T
     MaxIter = 1000
     S = eltype(x)
-    (hn, Dn, Cn) = (S(1e-150), zero(S), S(1e-150))
+    (hn, Dn, Cn) = (S(1e-50), zero(S), S(1e-50))
 
     jf = one(S)
     vv = v * v
@@ -457,6 +459,8 @@ end
 
 besselk_large_argument_scaled(v, x::T) where T =  T(_besselk_large_argument(v, x) * sqrt(pi / 2x))
 
+_besselk_large_argument(v, x::Float32) = Float32(_besselk_large_argument(v, Float64(x)))
+_besselk_large_argument(v, x::ComplexF32) = ComplexF32(_besselk_large_argument(v, ComplexF64(x)))
 function _besselk_large_argument(v, x::ComplexOrReal{T}) where T
     MaxIter = 5000 
     S = eltype(x)

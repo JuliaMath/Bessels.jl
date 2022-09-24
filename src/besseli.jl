@@ -306,9 +306,9 @@ end
 
 besseli_large_argument_scaled(v, x::T) where T =  T(_besseli_large_argument(v, x) / sqrt(2 * (π * x)))
 
-function _besseli_large_argument(v, x::ComplexOrReal{T}) where T
+function _besseli_large_argument(v, x::T) where T
     MaxIter = 5000
-    S = eltype(x)
+    S = promote_type(T, Float64)
     v, x = S(v), S(x)
 
     fv2 = 4 * v^2
