@@ -306,9 +306,9 @@ end
 
 besseli_large_argument_scaled(v, x::T) where T =  T(_besseli_large_argument(v, x) / sqrt(2 * (π * x)))
 
-function _besseli_large_argument(v, x::T) where T
+function _besseli_large_argument(v, x::ComplexOrReal{T}) where T
     MaxIter = 5000
-    S = promote_type(T, Float64)
+    S = eltype(x)
     v, x = S(v), S(x)
 
     fv2 = 4 * v^2
@@ -339,9 +339,10 @@ besseli_large_argument_cutoff(nu, x::Float32) = x > 18.0f0 && x > nu^2 / 19.5f0 
 
 Computes ``I_{nu}(x)`` using the power series for any value of nu.
 """
-function besseli_power_series(v, x::T) where T
+function besseli_power_series(v, x::ComplexOrReal{T}) where T
     MaxIter = 3000
-    out = zero(T)
+    S = eltype(x)
+    out = zero(S)
     xs = (x/2)^v
     a = xs / gamma(v + one(T))
     t2 = (x/2)^2
