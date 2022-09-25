@@ -387,7 +387,7 @@ function airy_large_arg_a(x::ComplexOrReal{T}) where T
     xsqr = sqrt(x)
 
     out = zero(S)
-    t = gamma(one(T) / 6) * gamma(T(5) / 6) / 4
+    t = GAMMA_ONE_SIXTH(T) * GAMMA_FIVE_SIXTHS(T) / 4
     a = 4*xsqr*x
     for i in 0:MaxIter
         out += t
@@ -403,7 +403,7 @@ function airy_large_arg_b(x::ComplexOrReal{T}) where T
     xsqr = sqrt(x)
 
     out = zero(S)
-    t = gamma(one(T) / 6) * gamma(T(5) / 6) / 4
+    t = GAMMA_ONE_SIXTH(T) * GAMMA_FIVE_SIXTHS(T) / 4
     a = 4*xsqr*x
     for i in 0:MaxIter
         out += t
@@ -419,7 +419,9 @@ function airy_large_arg_c(x::ComplexOrReal{T}) where T
     xsqr = sqrt(x)
 
     out = zero(S)
-    t = gamma(-one(T) / 6) * gamma(T(7) / 6) / 4
+    # use identities of gamma to relate to defined constants
+    # t = gamma(-one(T) / 6) * gamma(T(7) / 6) / 4
+    t = -GAMMA_FIVE_SIXTHS(T) * GAMMA_ONE_SIXTH(T) / 4
     a = 4*xsqr*x
     for i in 0:MaxIter
         out += t
@@ -435,7 +437,9 @@ function airy_large_arg_d(x::ComplexOrReal{T}) where T
     xsqr = sqrt(x)
 
     out = zero(S)
-    t = gamma(-one(T) / 6) * gamma(T(7) / 6) / 4
+    # use identities of gamma to relate to defined constants
+    # t = gamma(-one(T) / 6) * gamma(T(7) / 6) / 4
+    t = -GAMMA_FIVE_SIXTHS(T) * GAMMA_ONE_SIXTH(T) / 4
     a = 4*xsqr*x
     for i in 0:MaxIter
         out += t

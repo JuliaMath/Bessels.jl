@@ -66,4 +66,3 @@ function small_gamma(x)
     q = evalpoly(x, Q)
     return z * p / q
 end
-
