@@ -1,14 +1,25 @@
 #                           Airy functions
 #
-#                       airyai(x), airybi(nu, x)
-#                       airyaiprime(x), airybiprime(nu, x)
+#                       airyai(z), airybi(nu, z)
+#                   airyaiprime(z), airybiprime(nu, z)
 #
-#    A numerical routine to compute the airy functions and their derivatives.
-#    These routines use their relations to other special functions using https://dlmf.nist.gov/9.6.
-#    Specifically see (NIST 9.6.E1 - 9.6.E9) for computation from the defined bessel functions.
-#    For negative arguments these definitions are prone to some cancellation leading to higher errors.
-#    In the future, these could be replaced with more custom routines as they depend on a single variable.
+#    A numerical routine to compute the airy functions and their derivatives in the entire complex plane.
+#    These routines are based on the methods reported in [1] which use a combination of the power series
+#    for small arguments and a large argument expansion for (x > ~10). The primary difference between [1]
+#    and what is used here is that the regions where the power series and large argument expansions
+#    do not provide good results they are filled by relation to other special functions (besselk and besseli)
+#    using https://dlmf.nist.gov/9.6 (NIST 9.6.E1 - 9.6.E9). In this case the power series of besseli is used and then besselk 
+#    is calculated using the continued fraction approach. This method is described in more detail in src/besselk.jl.
+#    However, care must be taken when computing besseli because when the imaginary component is much larger than the real part
+#    cancellation will occur. This can be overcome by shifting the order of besseli to be much larger and then using the power series
+#    and downward recurrence to get besseli(1/3, x). Another difficult region is when -10<x<-5 and the imaginary part is close to zero.
+#    In this region we use rotation (see connection formulas http://dlmf.nist.gov/9.2.v) to shift to different region of complex plane
+#    where algorithms show good convergence. If imag(z) == zero then we use the reflection identities to compute in terms of bessel functions.
+#    In general, the cutoff regions compared to [1] are different to provide full double precision accuracy and to prioritize using the power series
+#    and asymptotic expansion compared to other approaches.
 #
+# [1] Jentschura, Ulrich David, and E. Lötstedt. "Numerical calculation of Bessel, Hankel and Airy functions." 
+#     Computer Physics Communications 183.3 (2012): 506-519.
 
 """
     airyai(x)
@@ -318,6 +329,7 @@ function airyai_large_argument(x::Real)
     x < zero(x) && return real(airyai_large_argument(complex(x)))
     return airy_large_arg_a(abs(x))
 end
+
 function airyai_large_argument(z::Complex{T}) where T
     x, y = real(z), imag(z)
     a = airy_large_arg_a(z)
@@ -332,6 +344,7 @@ function airyaiprime_large_argument(x::Real)
     x < zero(x) && return real(airyaiprime_large_argument(complex(x)))
     return airy_large_arg_c(abs(x))
 end
+
 function airyaiprime_large_argument(z::Complex{T}) where T
     x, y = real(z), imag(z)
     c = airy_large_arg_c(z)
@@ -374,6 +387,7 @@ function airybi_large_argument(z::Complex{T}) where T
         return out
     end
 end
+
 function airybiprime_large_argument(x::Real)
     if x < zero(x)
         return 2*real(airy_large_arg_d(complex(x)))
@@ -381,6 +395,7 @@ function airybiprime_large_argument(x::Real)
         return 2*(airy_large_arg_d(x))
     end
 end
+
 function airybiprime_large_argument(z::Complex{T}) where T
     x, y = real(z), imag(z)
     d = airy_large_arg_d(z)
@@ -406,6 +421,7 @@ function airybiprime_large_argument(z::Complex{T}) where T
     end
 end
 
+# see equations 24 and relations using eq 25 and 26 in [1]
 function airy_large_arg_a(x::ComplexOrReal{T}) where T
     S = eltype(x)
     MaxIter = 3000

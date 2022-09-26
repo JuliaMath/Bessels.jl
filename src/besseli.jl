@@ -164,7 +164,7 @@ end
 
 Modified Bessel function of the second kind of order nu, ``I_{nu}(x)``.
 """
-besseli(nu::Real, x) = _besseli(nu, float(x))
+besseli(nu::Real, x::Real) = _besseli(nu, float(x))
 
 _besseli(nu, x::Float16) = Float16(_besseli(nu, Float32(x)))
 
