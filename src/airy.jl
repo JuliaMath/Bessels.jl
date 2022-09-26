@@ -22,7 +22,11 @@ _airyai(z::ComplexF16) = ComplexF16(_airyai(ComplexF32(z)))
 function _airyai(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
     if ~isfinite(z)
         isnan(z) && return z
-        isinf(z) && return throw(DomainError(z, "airyai(z) not defined at infinity"))
+        if abs(angle(z)) < 2π/3
+            return exp(-z)
+        else
+            return 1 / z
+        end
     end
     x, y = real(z), imag(z)
     zabs = abs(z)
@@ -63,7 +67,11 @@ _airyaiprime(z::ComplexF16) = ComplexF16(_airyaiprime(ComplexF32(z)))
 function _airyaiprime(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
     if ~isfinite(z)
         isnan(z) && return z
-        isinf(z) && return throw(DomainError(z, "airyai(z) not defined at infinity"))
+        if abs(angle(z)) < 2π/3
+            return -exp(-z)
+        else
+            return 1 / z
+        end
     end
     x, y = real(z), imag(z)
     zabs = abs(z)
@@ -104,7 +112,11 @@ _airybi(z::ComplexF16) = ComplexF16(_airybi(ComplexF32(z)))
 function _airybi(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
     if ~isfinite(z)
         isnan(z) && return z
-        isinf(z) && return throw(DomainError(z, "airyai(z) not defined at infinity"))
+        if abs(angle(z)) < 2π/3
+            return exp(z)
+        else
+            return 1 / z
+        end
     end
     x, y = real(z), imag(z)
     zabs = abs(z)
@@ -147,6 +159,14 @@ _airybiprime(x::Float16) = Float16(_airybiprime(Float32(x)))
 _airybiprime(z::ComplexF16) = ComplexF16(_airybiprime(ComplexF32(z)))
 
 function _airybiprime(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
+    if ~isfinite(z)
+        isnan(z) && return z
+        if abs(angle(z)) < 2π/3
+            return exp(z)
+        else
+            return -1 / z
+        end
+    end
     x, y = real(z), imag(z)
     zabs = abs(z)
 
@@ -262,6 +282,11 @@ function airybi_power_series(x::ComplexOrReal{T}) where T
     end
     return (ai1*3^(-T(1)/6) + ai2*3^(-T(5)/6))
 end
+
+#####
+##### Power series for airybiprime(x)
+#####
+
 function airybiprime_power_series(x::ComplexOrReal{T}) where T
     S = eltype(x)
     iszero(x) && return S(0.4482883573538264)

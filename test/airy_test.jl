@@ -25,13 +25,21 @@ for x in [0.0, 0.01, 0.5, 1.0, 2.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 50.0], a
 end
 
 # test Inf
-# no longer set up
-#=
+
 @test iszero(airyai(Inf))
 @test iszero(airyaiprime(Inf))
 @test isinf(airybi(Inf))
 @test isinf(airybiprime(Inf))
-=#
+
+@test airyai(Inf + 0.0im) === exp(-(Inf + 0.0im))
+@test airyaiprime(Inf + 0.0im) === -exp(-(Inf + 0.0im))
+@test airyai(-Inf + 0.0im) === 1 / (-Inf + 0.0im)
+@test airyaiprime(-Inf + 0.0im) === 1 / (-Inf + 0.0im)
+@test airybi(Inf + Inf*im) === exp((Inf + Inf*im))
+@test airybi(-Inf + 10.0*im) === 1 / (-Inf + 10.0*im)
+@test airybiprime(Inf + 0.0*im) === exp((Inf + 0.0*im))
+@test airybiprime(-Inf + 0.0*im) === -1 / (-Inf + 0.0*im)
+
 
 # test Float16 types
 @test airyai(Float16(1.2)) isa Float16
