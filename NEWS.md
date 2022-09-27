@@ -8,7 +8,12 @@ For pre-1.0.0 releases we will increment the minor version when we export any ne
 For bug fixes, performance enhancements, or fixes to unexported functions we will increment the patch version.
 **Note**: The exported API can be considered very stable and likely will not change without serious consideration.
 
-# Unreleased
+# Unrealeased
+
+# Version 0.2.2
+
+### Added
+ - Support for all airy functions and derivatives in entire complex plane ([PR #51](https://github.com/JuliaMath/Bessels.jl/pull/51)). These are specialized routines for airy functions instead of relying on connection to besselk. These are a couple digits more accurate and faster than previous versions.
 
 # Version 0.2.1
 
