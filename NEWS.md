@@ -8,7 +8,7 @@ For pre-1.0.0 releases we will increment the minor version when we export any ne
 For bug fixes, performance enhancements, or fixes to unexported functions we will increment the patch version.
 **Note**: The exported API can be considered very stable and likely will not change without serious consideration.
 
-# Unrealeased
+# Unreleased
 
 # Version 0.2.2
 
