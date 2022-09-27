@@ -216,7 +216,7 @@ end
 airyai_power_series_cutoff(x::T, y::T) where T <: Float64 = x < 2 && abs(y) > -1.4*(x + 5.5)
 airyai_power_series_cutoff(x::T, y::T) where T <: Float32 = x < 4.5f0 && abs(y) > -1.4f0*(x + 9.5f0)
 
-function airyai_power_series(x::ComplexOrReal{T}) where T
+function airyai_power_series(x::ComplexOrReal{T}; tol=eps(T)) where T
     S = eltype(x)
     iszero(x) && return S(0.3550280538878172)
     MaxIter = 3000
@@ -230,18 +230,20 @@ function airyai_power_series(x::ComplexOrReal{T}) where T
     for i in 0:MaxIter
         ai1 += t
         ai2 += t2
-        abs(t) < eps(T) * abs(ai1) && break
+        abs(t) < tol * abs(ai1) && break
         t *= x3 * inv(9*(i + one(T))*(i + T(2)/3))
         t2 *= x3 * inv(9*(i + one(T))*(i + T(4)/3))
     end
     return (ai1*3^(-T(2)/3) - ai2*3^(-T(4)/3))
 end
+airyai_power_series(x::Float32) = Float32(airyai_power_series(Float64(x), tol=eps(Float32)))
+airyai_power_series(x::ComplexF32) = ComplexF32(airyai_power_series(ComplexF64(x), tol=eps(Float32)))
 
 #####
 ##### Power series for airyaiprime(x)
 #####
 
-function airyaiprime_power_series(x::ComplexOrReal{T}) where T
+function airyaiprime_power_series(x::ComplexOrReal{T}; tol=eps(T)) where T
     S = eltype(x)
     iszero(x) && return S(-0.2588194037928068)
     MaxIter = 3000
@@ -255,12 +257,14 @@ function airyaiprime_power_series(x::ComplexOrReal{T}) where T
     for i in 0:MaxIter
         ai1 += t
         ai2 += t2
-        abs(t) < eps(T) * abs(ai1) && break
+        abs(t) < tol * abs(ai1) && break
         t *= x3 * inv(9*(i + one(T))*(i + T(1)/3))
         t2 *= x3 * inv(9*(i + one(T))*(i + T(5)/3))
     end
     return -ai1*3^(-T(1)/3) + ai2*3^(-T(5)/3)
 end
+airyaiprime_power_series(x::Float32) = Float32(airyaiprime_power_series(Float64(x), tol=eps(Float32)))
+airyaiprime_power_series(x::ComplexF32) = ComplexF32(airyaiprime_power_series(ComplexF64(x), tol=eps(Float32)))
 
 #####
 ##### Power series for airybi(x)
@@ -268,12 +272,12 @@ end
 
 # cutoffs for power series valid for both airybi and airybiprime
 # has a more complicated validity as it works well close to positive real line and for small negative arguments also works for angle(z) ~ 2pi/3
-# the statements are somewhat complicated but we absolutely want to hit this branch when we can as the other algorithms are 10x slower
+# the statements are somewhat complicated but we want to hit this branch when we can as the other algorithms are 10x slower
 # the Float32 cutoff can be simplified because it overlaps with the large argument expansion so there isn't a need for more complicated statements
 airybi_power_series_cutoff(x::T, y::T) where T <: Float64 = (abs(y) > -1.4*(x + 5.5) && abs(y) < -2.2*(x - 4)) || (x > zero(T) && abs(y) < 3)
 airybi_power_series_cutoff(x::T, y::T) where T <: Float32 = abs(complex(x, y)) < 9
 
-function airybi_power_series(x::ComplexOrReal{T}) where T
+function airybi_power_series(x::ComplexOrReal{T}; tol=eps(T)) where T
     S = eltype(x)
     iszero(x) && return S(0.6149266274460007)
     MaxIter = 3000
@@ -287,18 +291,20 @@ function airybi_power_series(x::ComplexOrReal{T}) where T
     for i in 0:MaxIter
         ai1 += t
         ai2 += t2
-        abs(t) < eps(T) * abs(ai1) && break
+        abs(t) < tol * abs(ai1) && break
         t *= x3 * inv(9*(i + one(T))*(i + T(2)/3))
         t2 *= x3 * inv(9*(i + one(T))*(i + T(4)/3))
     end
     return (ai1*3^(-T(1)/6) + ai2*3^(-T(5)/6))
 end
+airybi_power_series(x::Float32) = Float32(airybi_power_series(Float64(x), tol=eps(Float32)))
+airybi_power_series(x::ComplexF32) = ComplexF32(airybi_power_series(ComplexF64(x), tol=eps(Float32)))
 
 #####
 ##### Power series for airybiprime(x)
 #####
 
-function airybiprime_power_series(x::ComplexOrReal{T}) where T
+function airybiprime_power_series(x::ComplexOrReal{T}; tol=eps(T)) where T
     S = eltype(x)
     iszero(x) && return S(0.4482883573538264)
     MaxIter = 3000
@@ -312,12 +318,14 @@ function airybiprime_power_series(x::ComplexOrReal{T}) where T
     for i in 0:MaxIter
         ai1 += t
         ai2 += t2
-        abs(t) < eps(T) * abs(ai1) && break
+        abs(t) < tol * abs(ai1) && break
         t *= x3 * inv(9*(i + one(T))*(i + T(1)/3))
         t2 *= x3 * inv(9*(i + one(T))*(i + T(5)/3))
     end
     return (ai1*3^(T(1)/6) + ai2*3^(-T(7)/6))
 end
+airybiprime_power_series(x::Float32) = Float32(airybiprime_power_series(Float64(x), tol=eps(Float32)))
+airybiprime_power_series(x::ComplexF32) = ComplexF32(airybiprime_power_series(ComplexF64(x), tol=eps(Float32)))
 
 #####
 #####  Large argument expansion for airy functions
@@ -422,7 +430,7 @@ function airybiprime_large_argument(z::Complex{T}) where T
 end
 
 # see equations 24 and relations using eq 25 and 26 in [1]
-function airy_large_arg_a(x::ComplexOrReal{T}) where T
+function airy_large_arg_a(x::ComplexOrReal{T}; tol=eps(T)*40) where T
     S = eltype(x)
     MaxIter = 3000
     xsqr = sqrt(x)
@@ -432,13 +440,13 @@ function airy_large_arg_a(x::ComplexOrReal{T}) where T
     a = 4*xsqr*x
     for i in 0:MaxIter
         out += t
-        abs(t) < eps(T)*50 * abs(out) && break
+        abs(t) < tol*abs(out) && break
         t *= -3*(i + one(T)/6) * (i + T(5)/6) / (a*(i + one(T)))
     end
-    return out * exp(-a / 6) / (pi^(3/2) * sqrt(xsqr))
+    return out * exp(-a / 6) / (π^(T(3)/2) * sqrt(xsqr))
 end
 
-function airy_large_arg_b(x::ComplexOrReal{T}) where T
+function airy_large_arg_b(x::ComplexOrReal{T}; tol=eps(T)*40) where T
     S = eltype(x)
     MaxIter = 3000
     xsqr = sqrt(x)
@@ -448,13 +456,13 @@ function airy_large_arg_b(x::ComplexOrReal{T}) where T
     a = 4*xsqr*x
     for i in 0:MaxIter
         out += t
-        abs(t) < eps(T)*50 * abs(out) && break
+        abs(t) < tol*abs(out) && break
         t *= 3*(i + one(T)/6) * (i + T(5)/6) / (a*(i + one(T)))
     end
-    return out * exp(a / 6) / (pi^(3/2) * sqrt(xsqr))
+    return out * exp(a / 6) / (π^(T(3)/2) * sqrt(xsqr))
 end
 
-function airy_large_arg_c(x::ComplexOrReal{T}) where T
+function airy_large_arg_c(x::ComplexOrReal{T}; tol=eps(T)*40) where T
     S = eltype(x)
     MaxIter = 3000
     xsqr = sqrt(x)
@@ -466,13 +474,13 @@ function airy_large_arg_c(x::ComplexOrReal{T}) where T
     a = 4*xsqr*x
     for i in 0:MaxIter
         out += t
-        abs(t) < eps(T)*50* abs(out) && break
+        abs(t) < tol*abs(out) && break
         t *= -3*(i - one(T)/6) * (i + T(7)/6) / (a*(i + one(T)))
     end
-    return out * exp(-a / 6) * sqrt(xsqr) / pi^(3/2)
+    return out * exp(-a / 6) * sqrt(xsqr) / π^(T(3)/2)
 end
 
-function airy_large_arg_d(x::ComplexOrReal{T}) where T
+function airy_large_arg_d(x::ComplexOrReal{T}; tol=eps(T)*40) where T
     S = eltype(x)
     MaxIter = 3000
     xsqr = sqrt(x)
@@ -484,12 +492,25 @@ function airy_large_arg_d(x::ComplexOrReal{T}) where T
     a = 4*xsqr*x
     for i in 0:MaxIter
         out += t
-        abs(t) < eps(T)*50 * abs(out) && break
+        abs(t) < tol*abs(out) && break
         t *= 3*(i - one(T)/6) * (i + T(7)/6) / (a*(i + one(T)))
     end
-    return -out * exp(a / 6) * sqrt(xsqr) / pi^(3/2)
+    return -out * exp(a / 6) * sqrt(xsqr) / π^(T(3)/2)
 end
 
+# negative arguments of airy functions oscillate around zero so as x -> -Inf it is more prone to cancellation
+# to give best accuracy it is best to promote to Float64 numbers until the Float32 tolerance
+airy_large_arg_a(x::Float32) = (airy_large_arg_a(Float64(x), tol=eps(Float32)))
+airy_large_arg_a(x::ComplexF32) = (airy_large_arg_a(ComplexF64(x), tol=eps(Float32)))
+
+airy_large_arg_b(x::Float32) = Float32(airy_large_arg_b(Float64(x), tol=eps(Float32)))
+airy_large_arg_b(x::ComplexF32) = ComplexF32(airy_large_arg_b(ComplexF64(x), tol=eps(Float32)))
+
+airy_large_arg_c(x::Float32) = Float32(airy_large_arg_c(Float64(x), tol=eps(Float32)))
+airy_large_arg_c(x::ComplexF32) = ComplexF32(airy_large_arg_c(ComplexF64(x), tol=eps(Float32)))
+
+airy_large_arg_d(x::Float32) = Float32(airy_large_arg_d(Float64(x), tol=eps(Float32)))
+airy_large_arg_d(x::ComplexF32) = ComplexF32(airy_large_arg_d(ComplexF64(x), tol=eps(Float32)))
 # calculates besselk from the power series of besseli using the continued fraction and wronskian
 # this shift the order higher first to avoid cancellation in the power series of besseli along the imaginary axis
 # for real arguments this is not needed because besseli can be computed stably over the entire real axis

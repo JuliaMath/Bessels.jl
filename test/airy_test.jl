@@ -16,6 +16,21 @@ for x in [0.0; 1e-17:0.1:100.0]
     @test isapprox(airybiprime(-x), SpecialFunctions.airybiprime(-x), rtol=5e-12)
 end
 
+# Float32
+for x in [0.0; 0.5:0.5:30.0]
+    @test isapprox(airyai(x), SpecialFunctions.airyai(x), rtol=2e-13)
+    @test isapprox(airyai(-x), SpecialFunctions.airyai(-x), rtol=3e-12)
+
+    @test isapprox(airyaiprime(x), SpecialFunctions.airyaiprime(x), rtol=2e-13)
+    @test isapprox(airyaiprime(-x), SpecialFunctions.airyaiprime(-x), rtol=5e-12)
+
+    @test isapprox(airybi(x), SpecialFunctions.airybi(x), rtol=2e-13)
+    @test isapprox(airybi(-x), SpecialFunctions.airybi(-x), rtol=5e-12)
+
+    @test isapprox(airybiprime(x), SpecialFunctions.airybiprime(x), rtol=2e-13)
+    @test isapprox(airybiprime(-x), SpecialFunctions.airybiprime(-x), rtol=5e-12)
+end
+
 for x in [0.0, 0.01, 0.5, 1.0, 2.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 50.0], a in 0:pi/12:2pi
     z = x*exp(im*a)
     @test isapprox(airyai(z), SpecialFunctions.airyai(z), rtol=5e-10)
@@ -43,6 +58,10 @@ end
 
 # test Float16 types
 @test airyai(Float16(1.2)) isa Float16
+@test airyai(ComplexF16(1.2)) isa ComplexF16
 @test airyaiprime(Float16(1.9)) isa Float16
+@test airyaiprime(ComplexF16(1.2)) isa ComplexF16
 @test airybi(Float16(1.2)) isa Float16
+@test airybi(ComplexF16(1.2)) isa ComplexF16
 @test airybiprime(Float16(1.9)) isa Float16
+@test airybiprime(ComplexF16(1.2)) isa ComplexF16
