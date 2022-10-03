@@ -94,6 +94,12 @@ for v in nu, xx in x
     @test isapprox(bessely(Float32(v), Float32(xx)), Float32(sf))
 end
 
+# test nu_range
+@test bessely(0:50, 2.0) ≈ SpecialFunctions.bessely.(0:50, 2.0) rtol=1e-11
+@test bessely(0:50, 100.0) ≈ SpecialFunctions.bessely.(0:50, 100.0) rtol=1e-11
+@test bessely(0.5:1:10.5, 2.0) ≈ SpecialFunctions.bessely.(0.5:1:10.5, 2.0) rtol=1e-11
+@test bessely(0.5:1:10.5, 40.0) ≈ SpecialFunctions.bessely.(0.5:1:10.5, 40.0) rtol=1e-11
+
 # test Float16
 @test bessely(10, Float16(1.0)) isa Float16
 @test bessely(10.2f0, 1.0f0) isa Float32

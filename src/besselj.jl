@@ -206,11 +206,11 @@ end
 Bessel function of the first kind of order nu, ``J_{nu}(x)``.
 nu and x must be real where nu and x can be positive or negative.
 """
-besselj(nu::Real, x::Real) = _besselj(nu, float(x))
+besselj(nu, x::Real) = _besselj(nu, float(x))
 
 _besselj(nu, x::Float16) = Float16(_besselj(nu, Float32(x)))
 
-function _besselj(nu, x::T) where T <: Union{Float32, Float64}
+function _besselj(nu::T, x::T) where T <: Union{Float32, Float64}
     isinteger(nu) && return _besselj(Int(nu), x)
     abs_nu = abs(nu)
     abs_x = abs(x)
@@ -252,6 +252,18 @@ function _besselj(nu::Integer, x::T) where T <: Union{Float32, Float64}
             spi, cpi = sincospi(abs_nu)
             return T((cpi*Jnu - spi*Ynu) * sg)
         end
+    end
+end
+
+function _besselj(nu::AbstractRange, x::T) where T
+    (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
+    out = Vector{T}(undef, length(nu))
+    if nu[end] < x
+        out[1], out[2] = _besselj(nu[1], x), _besselj(nu[2], x)
+        return besselj_up_recurrence!(out, x, nu)
+    else
+        out[end-1], out[end] = _besselj(nu[end-1], x), _besselj(nu[end], x)
+        return besselj_down_recurrence!(out, x, nu)
     end
 end
 

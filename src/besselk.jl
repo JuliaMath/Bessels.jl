@@ -187,11 +187,11 @@ end
 
 Modified Bessel function of the second kind of order nu, ``K_{nu}(x)``.
 """
-besselk(nu::Real, x::Real) = _besselk(nu, float(x))
+besselk(nu, x::Real) = _besselk(nu, float(x))
 
 _besselk(nu, x::Float16) = Float16(_besselk(nu, Float32(x)))
 
-function _besselk(nu, x::T) where T <: Union{Float32, Float64}
+function _besselk(nu::T, x::T) where T <: Union{Float32, Float64}
     isinteger(nu) && return _besselk(Int(nu), x)
     abs_nu = abs(nu)
     abs_x = abs(x)
@@ -214,6 +214,13 @@ function _besselk(nu::Integer, x::T) where T <: Union{Float32, Float64}
         return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
         #return sg * besselk_positive_args(abs_nu, abs_x) - im * π * besseli_positive_args(abs_nu, abs_x)
     end
+end
+
+function _besselk(nu::AbstractRange, x::T) where T
+    (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
+    out = Vector{T}(undef, length(nu))
+    out[1], out[2] = _besselk(nu[1], x), _besselk(nu[2], x)
+    return besselk_up_recurrence!(out, x, nu)
 end
 
 """

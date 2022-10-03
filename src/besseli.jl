@@ -164,11 +164,11 @@ end
 
 Modified Bessel function of the second kind of order nu, ``I_{nu}(x)``.
 """
-besseli(nu::Real, x::Real) = _besseli(nu, float(x))
+besseli(nu, x::Real) = _besseli(nu, float(x))
 
 _besseli(nu, x::Float16) = Float16(_besseli(nu, Float32(x)))
 
-function _besseli(nu, x::T) where T <: Union{Float32, Float64}
+function _besseli(nu::T, x::T) where T <: Union{Float32, Float64}
     isinteger(nu) && return _besseli(Int(nu), x)
     ~isfinite(x) && return x
     abs_nu = abs(nu)
@@ -203,6 +203,13 @@ function _besseli(nu::Integer, x::T) where T <: Union{Float32, Float64}
     else
         return sg * besseli_positive_args(abs_nu, abs_x)
     end
+end
+
+function _besseli(nu::AbstractRange, x::T) where T
+    (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
+    out = Vector{T}(undef, length(nu))
+    out[end-1], out[end] = _besseli(nu[end-1], x), _besseli(nu[end], x)
+    return besselk_down_recurrence!(out, x, nu) 
 end
 
 """

@@ -94,7 +94,7 @@ t = [besselix(m, x) for m in m, x in x]
 @test t ≈ [SpecialFunctions.besselix(m, x) for m in m, x in x]
 @test besselix(10, Float16(1.0)) isa Float16
 
-## Tests for besselk
+## Tests for besseli
 
 ## test all numbers and orders for 0<nu<100
 x = [0.01, 0.05, 0.1, 0.2, 0.4, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.91, 0.92, 0.93, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995, 0.999, 1.0, 1.001, 1.01, 1.05, 1.1, 1.2, 1.4, 1.6, 1.8, 1.9, 2.5, 3.0, 3.5, 4.0]
@@ -105,6 +105,12 @@ for v in nu, xx in x
     @test isapprox(besseli(v, xx), Float64(sf), rtol=2e-13)
     @test isapprox(besseli(Float32(v), Float32(xx)), Float32(sf))
 end
+
+# test nu_range
+@test besseli(0:50, 2.0) ≈ SpecialFunctions.besseli.(0:50, 2.0) rtol=1e-13
+@test besseli(0.5:1:10.5, 2.0) ≈ SpecialFunctions.besseli.(0.5:1:10.5, 2.0) rtol=1e-13
+
+### need to fix method ambiguities for other functions ###### 
 
 # test Inf
 @test isinf(besseli(2, Inf))

@@ -243,11 +243,11 @@ end
 Bessel function of the second kind of order nu, ``Y_{nu}(x)``.
 nu and x must be real where nu and x can be positive or negative.
 """
-bessely(nu::Real, x::Real) = _bessely(nu, float(x))
+bessely(nu, x::Real) = _bessely(nu, float(x))
 
 _bessely(nu, x::Float16) = Float16(_bessely(nu, Float32(x)))
 
-function _bessely(nu, x::T) where T <: Union{Float32, Float64}
+function _bessely(nu::T, x::T) where T <: Union{Float32, Float64}
     isnan(nu) || isnan(x) && return NaN
     isinteger(nu) && return _bessely(Int(nu), x)
     abs_nu = abs(nu)
@@ -294,6 +294,13 @@ function _bessely(nu::Integer, x::T) where T <: Union{Float32, Float64}
             #return Ynu + 2im * besselj_positive_args(abs_nu, abs_x)
         end
     end
+end
+
+function _bessely(nu::AbstractRange, x::T) where T
+    (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
+    out = Vector{T}(undef, length(nu))
+    out[1], out[2] = _bessely(nu[1], x), _bessely(nu[2], x)
+    return besselj_up_recurrence!(out, x, nu)
 end
 
 #####
