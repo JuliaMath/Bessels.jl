@@ -131,8 +131,8 @@ end
 @test besselk(0.5:1:10.5, 12.0) ≈ SpecialFunctions.besselk.(0.5:1:10.5, 12.0) rtol=1e-13
 
 # test Float16
-@test besselk(10, Float16(1.0)) isa Float16
-@test besselkx(10, Float16(1.0)) isa Float16
+@test besselk(Int16(10), Float16(1.0)) isa Float16
+@test besselkx(Int16(10), Float16(1.0)) isa Float16
 
 # test Inf
 @test iszero(besselk(2, Inf))

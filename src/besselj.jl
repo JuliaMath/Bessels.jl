@@ -208,7 +208,7 @@ nu and x must be real where nu and x can be positive or negative.
 """
 besselj(nu, x::Real) = _besselj(nu, float(x))
 
-_besselj(nu, x::Float16) = Float16(_besselj(nu, Float32(x)))
+_besselj(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_besselj(Float32(nu), Float32(x)))
 
 function _besselj(nu::T, x::T) where T <: Union{Float32, Float64}
     isinteger(nu) && return _besselj(Int(nu), x)

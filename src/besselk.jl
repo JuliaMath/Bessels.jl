@@ -189,7 +189,7 @@ Modified Bessel function of the second kind of order nu, ``K_{nu}(x)``.
 """
 besselk(nu, x::Real) = _besselk(nu, float(x))
 
-_besselk(nu, x::Float16) = Float16(_besselk(nu, Float32(x)))
+_besselk(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_besselk(Float32(nu), Float32(x)))
 
 function _besselk(nu::T, x::T) where T <: Union{Float32, Float64}
     isinteger(nu) && return _besselk(Int(nu), x)

@@ -121,7 +121,7 @@ end
 @test besselj(0.5:1:10.5, 40.0) ≈ SpecialFunctions.besselj.(0.5:1:10.5, 40.0) rtol=1e-11
 
 # test Float16 and Float32
-@test besselj(10, Float16(1.0)) isa Float16
+@test besselj(Int16(10), Float16(1.0)) isa Float16
 @test besselj(10.2f0, 1.0f0) isa Float32
 
 ## test large arguments

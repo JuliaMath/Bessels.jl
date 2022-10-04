@@ -245,7 +245,7 @@ nu and x must be real where nu and x can be positive or negative.
 """
 bessely(nu, x::Real) = _bessely(nu, float(x))
 
-_bessely(nu, x::Float16) = Float16(_bessely(nu, Float32(x)))
+_bessely(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_bessely(Float32(nu), Float32(x)))
 
 function _bessely(nu::T, x::T) where T <: Union{Float32, Float64}
     isnan(nu) || isnan(x) && return NaN

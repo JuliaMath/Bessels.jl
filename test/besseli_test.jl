@@ -80,7 +80,7 @@ end
 #Float 64
 m = 0:1:200; x = 0.1:0.5:150.0
 @test besseli(10, 1.0) isa Float64
-@test besseli(10, Float16(1.0)) isa Float16
+@test besseli(Int16(10), Float16(1.0)) isa Float16
 
 @test besseli(2, 80.0) isa Float64
 @test besseli(112, 80.0) isa Float64
@@ -92,7 +92,7 @@ t = [besseli(m, x) for m in m, x in x]
 t = [besselix(m, x) for m in m, x in x]
 @test t[10] isa Float64
 @test t ≈ [SpecialFunctions.besselix(m, x) for m in m, x in x]
-@test besselix(10, Float16(1.0)) isa Float16
+@test besselix(Int16(10), Float16(1.0)) isa Float16
 
 ## Tests for besseli
 

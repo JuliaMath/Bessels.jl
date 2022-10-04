@@ -86,8 +86,8 @@ x = NaN
 @test Bessels.sphericalbesselk(Float16(1.4), Float16(1.2)) isa Float16
 @test Bessels.sphericalbesselk(1.0f0, 1.2f0) isa Float32
 
-@test Bessels.sphericalbesseli(1, Float16(1.2)) isa Float16
-@test Bessels.sphericalbesseli(2, 1.2f0) isa Float32
+@test Bessels.sphericalbesseli(Float16(1.4), Float16(1.2)) isa Float16
+@test Bessels.sphericalbesseli(1.0f0, 1.2f0) isa Float32
 
 for x in 0.5:1.5:100.0, v in [0, 1, 2, 3, 4, 5.5, 8.2, 10]
     @test isapprox(Bessels.sphericalbesselj(v, x), SpecialFunctions.sphericalbesselj(v, x), rtol=1e-12)
