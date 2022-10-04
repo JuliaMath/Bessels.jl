@@ -26,3 +26,8 @@ v, x = 14.3, 29.4
 @test isapprox(hankelh2(v, x), SpecialFunctions.hankelh2(v, x), rtol=2e-13)
 @test isapprox(besselh(v, 1, x), SpecialFunctions.besselh(v, 1, x), rtol=2e-13)
 @test isapprox(besselh(v, 2, x), SpecialFunctions.besselh(v, 2, x), rtol=2e-13)
+
+@test isapprox(hankelh1(1:50, 10.0), SpecialFunctions.hankelh1.(1:50, 10.0), rtol=2e-13)
+@test isapprox(hankelh1(0.5:1:25.5, 15.0), SpecialFunctions.hankelh1.(0.5:1:25.5, 15.0), rtol=2e-13)
+@test isapprox(hankelh1(1:50, 100.0), SpecialFunctions.hankelh1.(1:50, 100.0), rtol=2e-13)
+@test isapprox(hankelh2(1:50, 10.0), SpecialFunctions.hankelh2.(1:50, 10.0), rtol=2e-13)
