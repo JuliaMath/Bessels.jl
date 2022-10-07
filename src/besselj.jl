@@ -257,15 +257,37 @@ end
 
 function _besselj(nu::AbstractRange, x::T) where T
     (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
-    out = Vector{T}(undef, length(nu))
+    len = length(nu)
+    isone(len) && return [besselj(nu[1], x)]
+
+    out = zeros(T, len)
     if nu[end] < x
         out[1], out[2] = _besselj(nu[1], x), _besselj(nu[2], x)
         return besselj_up_recurrence!(out, x, nu)
     else
-        out[end-1], out[end] = _besselj(nu[end-1], x), _besselj(nu[end], x)
-        return besselj_down_recurrence!(out, x, nu)
+        k = len
+        jn = zero(T)
+        while abs(jn) < floatmin(T)
+            if besselj_underflow_check(nu[k], x)
+                jn = zero(T)
+            else
+                jn = _besselj(nu[k], x)
+            end
+            out[k] = jn
+            k -= 1
+            k < 1 && break
+        end
+        if k > 1
+            out[k] = _besselj(nu[k], x)
+            out[1:k+1] = besselj_down_recurrence!(out[1:k+1], x, nu[1:k+1])
+            return out
+        else
+            return out
+        end
     end
 end
+
+besselj_underflow_check(nu, x::T) where T = nu > 100 + T(1.01)*x + 85*Base.Math._approx_cbrt(x)
 
 """
     besselj_positive_args(nu, x::T) where T <: Float64

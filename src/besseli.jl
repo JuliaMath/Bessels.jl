@@ -213,6 +213,34 @@ function _besseli(nu::AbstractRange, x::T) where T
     return besselk_down_recurrence!(out, x, nu) 
 end
 
+function _besseli(nu::AbstractRange, x::T) where T
+    (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
+    len = length(nu)
+    isone(len) && return [besseli(nu[1], x)]
+    out = zeros(T, len)
+    k = len
+    inu = zero(T)
+    while abs(inu) < floatmin(T)
+        if besseli_underflow_check(nu[k], x)
+            inu = zero(T)
+        else
+            inu = _besseli(nu[k], x)
+        end
+        out[k] = inu
+        k -= 1
+        k < 1 && break
+    end
+    if k > 1
+        out[k] = _besseli(nu[k], x)
+        out[1:k+1] = besselk_down_recurrence!(out[1:k+1], x, nu[1:k+1])
+        return out
+    else
+        return out
+    end
+end
+
+besseli_underflow_check(nu, x::T) where T = nu > 140 + T(1.45)*x + 53*Base.Math._approx_cbrt(x)
+
 """
     besseli_positive_args(nu, x::T) where T <: Union{Float32, Float64}
 

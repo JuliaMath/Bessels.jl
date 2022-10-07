@@ -107,7 +107,7 @@ for v in nu, xx in x
 end
 
 # test nu_range
-@test besseli(0:50, 2.0) ≈ SpecialFunctions.besseli.(0:50, 2.0) rtol=1e-13
+@test besseli(0:250, 2.0) ≈ SpecialFunctions.besseli.(0:250, 2.0) rtol=1e-13
 @test besseli(0.5:1:10.5, 2.0) ≈ SpecialFunctions.besseli.(0.5:1:10.5, 2.0) rtol=1e-13
 
 ### need to fix method ambiguities for other functions ###### 
