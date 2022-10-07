@@ -218,10 +218,31 @@ end
 
 function _besselk(nu::AbstractRange, x::T) where T
     (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
-    out = Vector{T}(undef, length(nu))
-    out[1], out[2] = _besselk(nu[1], x), _besselk(nu[2], x)
-    return besselk_up_recurrence!(out, x, nu)
+    len = length(nu)
+    isone(len) && return [besselk(nu[1], x)]
+    out = zeros(T, len)
+    k = 1
+    knu = zero(T)
+    while abs(knu) < floatmin(T)
+        if besselk_underflow_check(nu[k], x)
+            knu = zero(T)
+        else
+            knu = _besselk(nu[k], x)
+        end
+        out[k] = knu
+        k += 1
+        k == len && break
+    end
+    if k < len
+        out[k] = _besselk(nu[k], x)
+        out[k-1:end] = besselk_up_recurrence!(out[k-1:end], x, nu[k-1:end])
+        return out
+    else
+        return out
+    end
 end
+
+besselk_underflow_check(nu, x::T) where T = nu < T(1.45)*(x - 780) + 45*Base.Math._approx_cbrt(x - 780)
 
 """
     besselk_positive_args(x::T) where T <: Union{Float32, Float64}
