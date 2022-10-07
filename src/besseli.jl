@@ -208,13 +208,6 @@ end
 
 function _besseli(nu::AbstractRange, x::T) where T
     (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
-    out = Vector{T}(undef, length(nu))
-    out[end-1], out[end] = _besseli(nu[end-1], x), _besseli(nu[end], x)
-    return besselk_down_recurrence!(out, x, nu) 
-end
-
-function _besseli(nu::AbstractRange, x::T) where T
-    (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
     len = length(nu)
     isone(len) && return [besseli(nu[1], x)]
     out = zeros(T, len)
