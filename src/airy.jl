@@ -47,7 +47,7 @@ function _airyai(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
 
     if x > zero(T)
         # use relation to besselk (http://dlmf.nist.gov/9.6.E1)
-        zz = 2 * z^(T(3)/2) / 3
+        zz = 2 * z * sqrt(z) / 3
         return sqrt(z / 3) * besselk_continued_fraction_shift(one(T)/3, zz) / π
     else
         # z is close to the negative real axis
@@ -56,12 +56,12 @@ function _airyai(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
         # for imag(z) != 0 use rotation identity (http://dlmf.nist.gov/9.2.E14)
         if iszero(y)
             xabs = abs(x)
-            xx = 2 * xabs^(T(3)/2) / 3
+            xx = 2 * xabs * sqrt(xabs) / 3
             Jv, Yv = besseljy_positive_args(one(T)/3, xx)
             Jmv = (Jv - sqrt(T(3)) * Yv) / 2
             return convert(eltype(z), sqrt(xabs) * (Jmv + Jv) / 3)
         else
-            return exp(pi*im/3) * _airyai(-z*exp(pi*im/3))  + exp(-pi*im/3) * _airyai(-z*exp(-pi*im/3))
+            return cispi(one(T)/3) * _airyai(-z*cispi(one(T)/3))  + cispi(-one(T)/3) * _airyai(-z*cispi(-one(T)/3))
         end
     end
 end
@@ -92,7 +92,7 @@ function _airyaiprime(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
 
     if x > zero(T)
         # use relation to besselk (http://dlmf.nist.gov/9.6.E2)
-        zz = 2 * z^(T(3)/2) / 3
+        zz = 2 * z * sqrt(z) / 3
         return -z * besselk_continued_fraction_shift(T(2)/3, zz) / (π * sqrt(T(3)))
     else
         # z is close to the negative real axis
@@ -101,12 +101,12 @@ function _airyaiprime(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
         # for imag(z) != 0 use rotation identity (http://dlmf.nist.gov/9.2.E14)
         if iszero(y)
             xabs = abs(x)
-            xx = 2 * xabs^(T(3)/2) / 3
+            xx = 2 * xabs * sqrt(xabs) / 3
             Jv, Yv = besseljy_positive_args(T(2)/3, xx)
             Jmv = -(Jv + sqrt(T(3))*Yv) / 2
             return convert(eltype(z), xabs * (Jv - Jmv) / 3)
         else
-            return -(exp(2pi*im/3)*_airyaiprime(-z*exp(pi*im/3)) + exp(-2pi*im/3)*_airyaiprime(-z*exp(-pi*im/3)))
+            return -(cispi(T(2)/3) * _airyaiprime(-z * cispi(one(T)/3)) + cispi(-T(2)/3) * _airyaiprime(-z * cispi(-one(T)/3)))
         end
     end
 end
@@ -137,7 +137,7 @@ function _airybi(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
     airybi_power_series_cutoff(x, y) && return airybi_power_series(z)
 
     if x > zero(T)
-        zz = 2 * z^(T(3)/2) / 3
+        zz = 2 * z * sqrt(z) / 3
         shift = 20
         order = one(T)/3
         inu, inum1 = besseli_power_series_inu_inum1(order + shift, zz)
@@ -149,12 +149,12 @@ function _airybi(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
     else
         if iszero(y)
             xabs = abs(x)
-            xx = 2 * xabs^(T(3)/2) / 3
+            xx = 2 * xabs * sqrt(xabs) / 3
             Jv, Yv = besseljy_positive_args(one(T)/3, xx)
             Jmv = (Jv - sqrt(T(3)) * Yv) / 2
             return convert(eltype(z), sqrt(xabs/3) * (Jmv - Jv))
         else
-            return exp(pi*im/3) * _airybi(-z*exp(pi*im/3))  + exp(-pi*im/3) * _airybi(-z*exp(-pi*im/3))
+            return cispi(one(T)/3) * _airybi(-z * cispi(one(T)/3))  + cispi(-one(T)/3) * _airybi(-z*cispi(-one(T)/3))
         end
     end
 end
@@ -186,7 +186,7 @@ function _airybiprime(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
     airybi_power_series_cutoff(x, y) && return airybiprime_power_series(z)
 
     if x > zero(T)
-        zz = 2 * z^(T(3)/2) / 3
+        zz = 2 * z * sqrt(z) / 3
         shift = 20
         order = T(2)/3
         inu, inum1 = besseli_power_series_inu_inum1(order + shift, zz)
@@ -198,12 +198,12 @@ function _airybiprime(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
     else
         if iszero(y)
             xabs = abs(x)
-            xx = 2 * xabs^(T(3)/2) / 3
+            xx = 2 * xabs * sqrt(xabs) / 3
             Jv, Yv = besseljy_positive_args(T(2)/3, xx)
             Jmv = -(Jv + sqrt(T(3))*Yv) / 2
             return convert(eltype(z), xabs * (Jv + Jmv) / sqrt(T(3)))
         else
-            return -(exp(2pi*im/3)*_airybiprime(-z*exp(pi*im/3)) + exp(-2pi*im/3)*_airybiprime(-z*exp(-pi*im/3)))
+            return -(cispi(T(2)/3) * _airybiprime(-z*cispi(one(T)/3)) + cispi(-T(2)/3) * _airybiprime(-z*cispi(-one(T)/3)))
         end
     end
 end
@@ -443,7 +443,7 @@ function airy_large_arg_a(x::ComplexOrReal{T}; tol=eps(T)*40) where T
         abs(t) < tol*abs(out) && break
         t *= -3*(i + one(T)/6) * (i + T(5)/6) / (a*(i + one(T)))
     end
-    return out * exp(-a / 6) / (π^(T(3)/2) * sqrt(xsqr))
+    return out * exp(-a / 6) / (sqrt(T(π)^3) * sqrt(xsqr))
 end
 
 function airy_large_arg_b(x::ComplexOrReal{T}; tol=eps(T)*40) where T
@@ -459,7 +459,7 @@ function airy_large_arg_b(x::ComplexOrReal{T}; tol=eps(T)*40) where T
         abs(t) < tol*abs(out) && break
         t *= 3*(i + one(T)/6) * (i + T(5)/6) / (a*(i + one(T)))
     end
-    return out * exp(a / 6) / (π^(T(3)/2) * sqrt(xsqr))
+    return out * exp(a / 6) / (sqrt(T(π)^3) * sqrt(xsqr))
 end
 
 function airy_large_arg_c(x::ComplexOrReal{T}; tol=eps(T)*40) where T
@@ -477,7 +477,7 @@ function airy_large_arg_c(x::ComplexOrReal{T}; tol=eps(T)*40) where T
         abs(t) < tol*abs(out) && break
         t *= -3*(i - one(T)/6) * (i + T(7)/6) / (a*(i + one(T)))
     end
-    return out * exp(-a / 6) * sqrt(xsqr) / π^(T(3)/2)
+    return out * exp(-a / 6) * sqrt(xsqr) / sqrt(T(π)^3)
 end
 
 function airy_large_arg_d(x::ComplexOrReal{T}; tol=eps(T)*40) where T
@@ -495,7 +495,7 @@ function airy_large_arg_d(x::ComplexOrReal{T}; tol=eps(T)*40) where T
         abs(t) < tol*abs(out) && break
         t *= 3*(i - one(T)/6) * (i + T(7)/6) / (a*(i + one(T)))
     end
-    return -out * exp(a / 6) * sqrt(xsqr) / π^(T(3)/2)
+    return -out * exp(a / 6) * sqrt(xsqr) / sqrt(T(π)^3)
 end
 
 # negative arguments of airy functions oscillate around zero so as x -> -Inf it is more prone to cancellation
