@@ -339,9 +339,10 @@ besseli_large_argument_cutoff(nu, x::Float32) = x > 18.0f0 && x > nu^2 / 19.5f0 
 
 Computes ``I_{nu}(x)`` using the power series for any value of nu.
 """
-function besseli_power_series(v, x::T) where T
+function besseli_power_series(v, x::ComplexOrReal{T}) where T
     MaxIter = 3000
-    out = zero(T)
+    S = eltype(x)
+    out = zero(S)
     xs = (x/2)^v
     a = xs / gamma(v + one(T))
     t2 = (x/2)^2

@@ -1,16 +1,18 @@
 # Adapted from Cephes Mathematical Library (MIT license https://en.smath.com/view/CephesMathLibrary/license) by Stephen L. Moshier
-function gamma(x)
+gamma(z::Number) = _gamma(float(z))
+_gamma(x::Float32) = Float32(_gamma(Float64(x)))
+
+function _gamma(x::Float64)
     if x < 0
         isinteger(x) && throw(DomainError(x, "NaN result for non-NaN input."))
         xp1 = abs(x) + 1.0
-        return π / sinpi(xp1) / _gamma(xp1)
+        return π / sinpi(xp1) / _gammax(xp1)
     else
-        return _gamma(x)
+        return _gammax(x)
     end
 end
 # only have a Float64 implementations
-gamma(x::Float32) = Float32(gamma(Float64(x)))
-function _gamma(x)
+function _gammax(x)
     if x > 11.5
         return large_gamma(x)
     elseif x <= 11.5
