@@ -32,23 +32,20 @@ _airyai(z::ComplexF16) = ComplexF16(_airyai(ComplexF32(z)))
 
 function _airyai(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
     if ~isfinite(z)
-        isnan(z) && return z
-        if abs(angle(z)) < 2π/3
+        if abs(angle(z)) < 2*T(π)/3
             return exp(-z)
         else
             return 1 / z
         end
     end
     x, y = real(z), imag(z)
-    zabs = abs(z)
-
     airy_large_argument_cutoff(z) && return airyai_large_argument(z)
     airyai_power_series_cutoff(x, y) && return airyai_power_series(z)
 
     if x > zero(T)
         # use relation to besselk (http://dlmf.nist.gov/9.6.E1)
         zz = 2 * z * sqrt(z) / 3
-        return sqrt(z / 3) * besselk_continued_fraction_shift(one(T)/3, zz) / π
+        return sqrt(z / 3) * besselk_continued_fraction_shift(one(T)/3, zz) / T(π)
     else
         # z is close to the negative real axis
         # for imag(z) == 0 use reflection to compute in terms of bessel functions of first kind (http://dlmf.nist.gov/9.6.E5)
@@ -77,23 +74,20 @@ _airyaiprime(z::ComplexF16) = ComplexF16(_airyaiprime(ComplexF32(z)))
 
 function _airyaiprime(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
     if ~isfinite(z)
-        isnan(z) && return z
-        if abs(angle(z)) < 2π/3
+        if abs(angle(z)) < 2*T(π)/3
             return -exp(-z)
         else
             return 1 / z
         end
     end
     x, y = real(z), imag(z)
-    zabs = abs(z)
-
     airy_large_argument_cutoff(z) && return airyaiprime_large_argument(z)
     airyai_power_series_cutoff(x, y) && return airyaiprime_power_series(z)
 
     if x > zero(T)
         # use relation to besselk (http://dlmf.nist.gov/9.6.E2)
         zz = 2 * z * sqrt(z) / 3
-        return -z * besselk_continued_fraction_shift(T(2)/3, zz) / (π * sqrt(T(3)))
+        return -z * besselk_continued_fraction_shift(T(2)/3, zz) / (T(π) * sqrt(T(3)))
     else
         # z is close to the negative real axis
         # for imag(z) == 0 use reflection to compute in terms of bessel functions of first kind (http://dlmf.nist.gov/9.6.E5)
@@ -122,7 +116,6 @@ _airybi(z::ComplexF16) = ComplexF16(_airybi(ComplexF32(z)))
 
 function _airybi(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
     if ~isfinite(z)
-        isnan(z) && return z
         if abs(angle(z)) < 2π/3
             return exp(z)
         else
@@ -130,10 +123,7 @@ function _airybi(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
         end
     end
     x, y = real(z), imag(z)
-    zabs = abs(z)
-
     airy_large_argument_cutoff(z) && return airybi_large_argument(z)
-
     airybi_power_series_cutoff(x, y) && return airybi_power_series(z)
 
     if x > zero(T)
@@ -171,18 +161,14 @@ _airybiprime(z::ComplexF16) = ComplexF16(_airybiprime(ComplexF32(z)))
 
 function _airybiprime(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
     if ~isfinite(z)
-        isnan(z) && return z
-        if abs(angle(z)) < 2π/3
+        if abs(angle(z)) < 2*T(π)/3
             return exp(z)
         else
             return -1 / z
         end
     end
     x, y = real(z), imag(z)
-    zabs = abs(z)
-
     airy_large_argument_cutoff(z) && return airybiprime_large_argument(z)
-
     airybi_power_series_cutoff(x, y) && return airybiprime_power_series(z)
 
     if x > zero(T)
