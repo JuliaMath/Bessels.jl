@@ -13,7 +13,7 @@ end
 function besselk_up_recurrence!(out, x::T, nu_range) where T
     x2 = 2 / x
     k = 3
-    for nu in nu_range[2:end-1]
+    for nu in nu_range[begin+1:end-1]
         out[k] = muladd(nu*x2, out[k-1], out[k-2])
         k += 1
     end
@@ -39,7 +39,7 @@ end
 function besselj_up_recurrence!(out, x::T, nu_range) where T
     x2 = 2 / x
     k = 3
-    for nu in nu_range[2:end-1]
+    for nu in nu_range[begin+1:end-1]
         out[k] = muladd(nu*x2, out[k-1], -out[k-2])
         k += 1
     end
@@ -62,15 +62,13 @@ end
 function besselj_down_recurrence!(out, x::T, nu_range) where T
     x2 = 2 / x
     k = length(nu_range) - 2
-    for nu in nu_range[end-1:-1:2]
+    for nu in nu_range[end-1:-1:begin+1]
         out[k] = muladd(nu*x2, out[k+1], -out[k+2])
         k -= 1
     end
     return out
 end
 
-#=
-# currently not used
 # backward recurrence relation for besselk and besseli
 # outputs both (bessel(x, nu_end), bessel(x, nu_end-1)
 # x = 0.1; k0 = besseli(10,x); k1 = besseli(11,x);
@@ -83,11 +81,11 @@ end
     end
     return jnup1, jnu
 end
-=#
+
 function besselk_down_recurrence!(out, x::T, nu_range) where T
     x2 = 2 / x
     k = length(nu_range) - 2
-    for nu in nu_range[end-1:-1:2]
+    for nu in nu_range[end-1:-1:begin+1]
         out[k] = muladd(nu*x2, out[k+1], out[k+2])
         k -= 1
     end
