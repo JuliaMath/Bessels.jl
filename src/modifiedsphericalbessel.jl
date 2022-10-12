@@ -19,7 +19,7 @@ Computes `k_{ν}(x)`, the modified second-kind spherical Bessel function, and of
 """
 sphericalbesselk(nu::Real, x::Real) = _sphericalbesselk(nu, float(x))
 
-_sphericalbesselk(nu, x::Float16) = Float16(_sphericalbesselk(nu, Float32(x)))
+_sphericalbesselk(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_sphericalbesselk(Float32(nu), Float32(x)))
 
 function _sphericalbesselk(nu, x::T) where T <: Union{Float32, Float64}
     if ~isfinite(x)
@@ -39,7 +39,7 @@ function _sphericalbesselk(nu, x::T) where T <: Union{Float32, Float64}
         _nu = ifelse(nu<zero(nu), -one(nu)-nu, nu)
         return sphericalbesselk_int(Int(_nu), x)
     else
-        return inv(SQPIO2(T)*sqrt(x))*besselk(nu+1/2, x)
+        return inv(SQPIO2(T)*sqrt(x))*besselk(nu+T(1)/2, x)
     end
 end
 sphericalbesselk_cutoff(nu) = nu < 41.5
@@ -65,7 +65,7 @@ Computes `i_{ν}(x)`, the modified first-kind spherical Bessel function.
 """
 sphericalbesseli(nu::Real, x::Real) = _sphericalbesseli(nu, float(x))
 
-_sphericalbesseli(nu, x::Float16) = Float16(_sphericalbesseli(nu, Float32(x)))
+_sphericalbesseli(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_sphericalbesseli(Float32(nu), Float32(x)))
 
 function _sphericalbesseli(nu, x::T) where T <: Union{Float32, Float64}
     isinf(x) && return x
@@ -73,7 +73,7 @@ function _sphericalbesseli(nu, x::T) where T <: Union{Float32, Float64}
    
     sphericalbesselj_small_args_cutoff(nu, x::T) && return sphericalbesseli_small_args(nu, x)
     isinteger(nu) && return _sphericalbesseli_small_orders(Int(nu), x)
-    return SQPIO2(T)*besseli(nu+1/2, x) / sqrt(x)
+    return SQPIO2(T)*besseli(nu+T(1)/2, x) / sqrt(x)
 end
 
 function _sphericalbesseli_small_orders(nu::Integer, x::T) where T
@@ -86,7 +86,7 @@ function _sphericalbesseli_small_orders(nu::Integer, x::T) where T
     nu_abs == 0 && return sinhx / x
     nu_abs == 1 && return (x*coshx - sinhx) / x2
     nu_abs == 2 && return (x2*sinhx + 3*(sinhx - x*coshx)) / (x2*x)
-    return SQPIO2(T)*besseli(nu+1/2, x) / sqrt(x)
+    return SQPIO2(T)*besseli(nu+T(1)/2, x) / sqrt(x)
 end
 
 function sphericalbesseli_small_args(nu, x::T) where T

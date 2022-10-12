@@ -194,6 +194,25 @@ function besselh(nu::Real, k::Integer, x)
     end
 end
 
+function besselh(nu::AbstractRange, k::Integer, x::T) where T
+    (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
+    if nu[end] < x
+        out = Vector{Complex{T}}(undef, length(nu))
+        out[1], out[2] = besselh(nu[1], k, x), besselh(nu[2], k, x)
+        return besselj_up_recurrence!(out, x, nu)
+    else
+        Jn = besselj(nu, x)
+        Yn = bessely(nu, x)
+        if k == 1
+            return complex.(Jn, Yn)
+        elseif k == 2
+            return complex.(Jn, -Yn)
+        else
+            throw(ArgumentError("k must be 1 or 2"))
+        end
+    end
+end
+
 """
     hankelh1(nu, x)
 Bessel function of the third kind of order `nu`, ``H^{(1)}_\\nu(x)``.

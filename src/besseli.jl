@@ -164,11 +164,12 @@ end
 
 Modified Bessel function of the second kind of order nu, ``I_{nu}(x)``.
 """
-besseli(nu::Real, x::Real) = _besseli(nu, float(x))
+# perhaps have two besseli(nu::Real, x::Real) and besseli(nu::AbstractRange, x::Real)
+besseli(nu, x::Real) = _besseli(nu, float(x))
 
-_besseli(nu, x::Float16) = Float16(_besseli(nu, Float32(x)))
+_besseli(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_besseli(Float32(nu), Float32(x)))
 
-function _besseli(nu, x::T) where T <: Union{Float32, Float64}
+function _besseli(nu::T, x::T) where T <: Union{Float32, Float64}
     isinteger(nu) && return _besseli(Int(nu), x)
     ~isfinite(x) && return x
     abs_nu = abs(nu)
@@ -205,6 +206,35 @@ function _besseli(nu::Integer, x::T) where T <: Union{Float32, Float64}
     end
 end
 
+function _besseli(nu::AbstractRange, x::T) where T
+    (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
+    len = length(nu)
+    isone(len) && return [besseli(nu[1], x)]
+    out = zeros(T, len)
+    k = len
+    inu = zero(T)
+    while abs(inu) < floatmin(T)
+        if besseli_underflow_check(nu[k], x)
+            inu = zero(T)
+        else
+            inu = _besseli(nu[k], x)
+        end
+        out[k] = inu
+        k -= 1
+        k < 1 && break
+    end
+    if k > 1
+        out[k] = _besseli(nu[k], x)
+        tmp = @view out[1:k+1]
+        out[1:k+1] = besselk_down_recurrence!(tmp, x, nu[1:k+1])
+        return out
+    else
+        return out
+    end
+end
+
+besseli_underflow_check(nu, x::T) where T = nu > 140 + T(1.45)*x + 53*Base.Math._approx_cbrt(x)
+
 """
     besseli_positive_args(nu, x::T) where T <: Union{Float32, Float64}
 
@@ -232,7 +262,7 @@ Nu must be real.
 """
 besselix(nu::Real, x::Real) = _besselix(nu, float(x))
 
-_besselix(nu, x::Float16) = Float16(_besselix(nu, Float32(x)))
+_besselix(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_besselix(Float32(nu), Float32(x)))
 
 function _besselix(nu, x::T) where T <: Union{Float32, Float64}
     iszero(nu) && return besseli0x(x)

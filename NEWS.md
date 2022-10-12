@@ -10,6 +10,11 @@ For bug fixes, performance enhancements, or fixes to unexported functions we wil
 
 # Unreleased
 
+# Version 0.2.3
+
+### Added
+- Add support for nu isa AbstractRange (i.e., `besselj(0:10, 1.0)`) to allow for fast computation of Bessel functions at many orders ([PR #53](https://github.com/JuliaMath/Bessels.jl/pull/53)).
+
 # Version 0.2.2
 
 ### Added

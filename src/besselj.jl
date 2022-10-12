@@ -206,11 +206,11 @@ end
 Bessel function of the first kind of order nu, ``J_{nu}(x)``.
 nu and x must be real where nu and x can be positive or negative.
 """
-besselj(nu::Real, x::Real) = _besselj(nu, float(x))
+besselj(nu, x::Real) = _besselj(nu, float(x))
 
-_besselj(nu, x::Float16) = Float16(_besselj(nu, Float32(x)))
+_besselj(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_besselj(Float32(nu), Float32(x)))
 
-function _besselj(nu, x::T) where T <: Union{Float32, Float64}
+function _besselj(nu::T, x::T) where T <: Union{Float32, Float64}
     isinteger(nu) && return _besselj(Int(nu), x)
     abs_nu = abs(nu)
     abs_x = abs(x)
@@ -254,6 +254,41 @@ function _besselj(nu::Integer, x::T) where T <: Union{Float32, Float64}
         end
     end
 end
+
+function _besselj(nu::AbstractRange, x::T) where T
+    (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
+    len = length(nu)
+    isone(len) && return [besselj(nu[1], x)]
+
+    out = zeros(T, len)
+    if nu[end] < x
+        out[1], out[2] = _besselj(nu[1], x), _besselj(nu[2], x)
+        return besselj_up_recurrence!(out, x, nu)
+    else
+        k = len
+        jn = zero(T)
+        while abs(jn) < floatmin(T)
+            if besselj_underflow_check(nu[k], x)
+                jn = zero(T)
+            else
+                jn = _besselj(nu[k], x)
+            end
+            out[k] = jn
+            k -= 1
+            k < 1 && break
+        end
+        if k > 1
+            out[k] = _besselj(nu[k], x)
+            tmp = @view out[1:k+1]
+            besselj_down_recurrence!(tmp, x, nu[1:k+1])
+            return out
+        else
+            return out
+        end
+    end
+end
+
+besselj_underflow_check(nu, x::T) where T = nu > 100 + T(1.01)*x + 85*Base.Math._approx_cbrt(x)
 
 """
     besselj_positive_args(nu, x::T) where T <: Float64

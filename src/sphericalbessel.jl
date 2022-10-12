@@ -26,8 +26,8 @@ sphericalbesselj(nu::Real, x::Real) = _sphericalbesselj(nu, float(x))
 
 _sphericalbesselj(nu, x::Float32) = Float32(_sphericalbesselj(nu, Float64(x)))
 
-_sphericalbesselj(nu, x::Float16) = Float16(_sphericalbesselj(nu, Float32(x)))
-    
+_sphericalbesselj(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_sphericalbesselj(Float32(nu), Float32(x)))
+
 function _sphericalbesselj(nu::Real, x::T) where T <: Float64
     x < zero(T) && return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
     if ~isfinite(x)
@@ -114,7 +114,7 @@ sphericalbessely(nu::Real, x::Real) = _sphericalbessely(nu, float(x))
 
 _sphericalbessely(nu, x::Float32) = Float32(_sphericalbessely(nu, Float64(x)))
 
-_sphericalbessely(nu, x::Float16) = Float16(_sphericalbessely(nu, Float32(x)))
+_sphericalbessely(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_sphericalbessely(Float32(nu), Float32(x)))
 
 function _sphericalbessely(nu::Real, x::T) where T <: Float64
     x < zero(T) && return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))

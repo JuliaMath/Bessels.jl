@@ -187,11 +187,11 @@ end
 
 Modified Bessel function of the second kind of order nu, ``K_{nu}(x)``.
 """
-besselk(nu::Real, x::Real) = _besselk(nu, float(x))
+besselk(nu, x::Real) = _besselk(nu, float(x))
 
-_besselk(nu, x::Float16) = Float16(_besselk(nu, Float32(x)))
+_besselk(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_besselk(Float32(nu), Float32(x)))
 
-function _besselk(nu, x::T) where T <: Union{Float32, Float64}
+function _besselk(nu::T, x::T) where T <: Union{Float32, Float64}
     isinteger(nu) && return _besselk(Int(nu), x)
     abs_nu = abs(nu)
     abs_x = abs(x)
@@ -215,6 +215,35 @@ function _besselk(nu::Integer, x::T) where T <: Union{Float32, Float64}
         #return sg * besselk_positive_args(abs_nu, abs_x) - im * π * besseli_positive_args(abs_nu, abs_x)
     end
 end
+
+function _besselk(nu::AbstractRange, x::T) where T
+    (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
+    len = length(nu)
+    isone(len) && return [besselk(nu[1], x)]
+    out = zeros(T, len)
+    k = 1
+    knu = zero(T)
+    while abs(knu) < floatmin(T)
+        if besselk_underflow_check(nu[k], x)
+            knu = zero(T)
+        else
+            knu = _besselk(nu[k], x)
+        end
+        out[k] = knu
+        k += 1
+        k == len && break
+    end
+    if k < len
+        out[k] = _besselk(nu[k], x)
+        tmp = @view out[k-1:end]
+        out[k-1:end] = besselk_up_recurrence!(tmp, x, nu[k-1:end])
+        return out
+    else
+        return out
+    end
+end
+
+besselk_underflow_check(nu, x::T) where T = nu < T(1.45)*(x - 780) + 45*Base.Math._approx_cbrt(x - 780)
 
 """
     besselk_positive_args(x::T) where T <: Union{Float32, Float64}
