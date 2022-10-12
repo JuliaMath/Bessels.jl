@@ -143,7 +143,7 @@ julia> besselj(0:10, 1.0)
 In general, this provides a fast way to generate a sequence of Bessel functions for many orders.
 ```julia
 julia> @btime besselj(0:100, 50.0)
-  443.328 ns (2 allocations: 1.75 KiB)
+  398.095 ns (1 allocation: 896 bytes)
 ```
 This function will allocate so it is recommended that you calculate the Bessel functions at the top level of your function outside any hot loop.
 
