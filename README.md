@@ -120,6 +120,46 @@ julia> besselk0(x)
 julia> besselk1(x)
 1.6750295538365835e-6
 ```
+## Support for sequence of orders
+
+We also provide support for `besselj(nu::M, x::T)`, `bessely(nu::M, x::T)`, `besseli(nu::M, x::T)`, `besselk(nu::M, x::T)`, `besseli(nu::M, x::T)`, `besselh(nu::M, k, x::T)` when `M` is some `AbstractRange` and `T` is some float.
+
+```julia
+julia> besselj(0:10, 1.0)
+11-element Vector{Float64}:
+ 0.7651976865579666
+ 0.44005058574493355
+ 0.11490348493190049
+ 0.019563353982668407
+ 0.0024766389641099553
+ 0.00024975773021123444
+ 2.0938338002389273e-5
+ 1.5023258174368085e-6
+ 9.422344172604502e-8
+ 5.249250179911876e-9
+ 2.630615123687453e-10
+```
+
+In general, this provides a fast way to generate a sequence of Bessel functions for many orders.
+```julia
+julia> @btime besselj(0:100, 50.0)
+  443.328 ns (2 allocations: 1.75 KiB)
+```
+This function will allocate so it is recommended that you calculate the Bessel functions at the top level of your function outside any hot loop. For example,
+
+```julia
+function bessel_sequence(x, orders)
+    J_nu = besselj(orders, x)
+    out = zero(x)
+    for i in eachindex(J_nu)
+        out += sin(x*i)*J_nu[i]
+    end
+    return out
+end
+
+julia> bessel_sequence(10.2, 1:400)
+0.11404996570230919
+```
 
 ### Support for negative arguments
 
