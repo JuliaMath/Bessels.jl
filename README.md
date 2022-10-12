@@ -145,21 +145,7 @@ In general, this provides a fast way to generate a sequence of Bessel functions 
 julia> @btime besselj(0:100, 50.0)
   443.328 ns (2 allocations: 1.75 KiB)
 ```
-This function will allocate so it is recommended that you calculate the Bessel functions at the top level of your function outside any hot loop. For example,
-
-```julia
-function bessel_sequence(x, orders)
-    J_nu = besselj(orders, x)
-    out = zero(x)
-    for i in eachindex(J_nu)
-        out += sin(x*i)*J_nu[i]
-    end
-    return out
-end
-
-julia> bessel_sequence(10.2, 1:400)
-0.11404996570230919
-```
+This function will allocate so it is recommended that you calculate the Bessel functions at the top level of your function outside any hot loop.
 
 ### Support for negative arguments
 

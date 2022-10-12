@@ -225,7 +225,8 @@ function _besseli(nu::AbstractRange, x::T) where T
     end
     if k > 1
         out[k] = _besseli(nu[k], x)
-        out[1:k+1] = besselk_down_recurrence!(out[1:k+1], x, nu[1:k+1])
+        tmp = @view out[1:k+1]
+        out[1:k+1] = besselk_down_recurrence!(tmp, x, nu[1:k+1])
         return out
     else
         return out
