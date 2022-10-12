@@ -367,10 +367,11 @@ end
 
 # a modified version of the I_{nu} power series to compute both I_{nu} and I_{nu-1}
 # use this along with the continued fractions for besselk
-function besseli_power_series_inu_inum1(v, x::T) where T
+function besseli_power_series_inu_inum1(v, x::ComplexOrReal{T}) where T
     MaxIter = 3000
-    out = zero(T)
-    out2 = zero(T)
+    S = eltype(x)
+    out = zero(S)
+    out2 = zero(S)
     x2 = x / 2
     xs = x2^v
     gmx = xs / gamma(v)
@@ -389,11 +390,14 @@ end
 
 # computes K_{nu+1}/K_{nu} using continued fractions and the modified Lentz method
 # generally slow to converge for small x
-function besselk_ratio_knu_knup1(v, x::T) where T
+besselk_ratio_knu_knup1(v, x::Float32) = Float32(besselk_ratio_knu_knup1(v, Float64(x)))
+besselk_ratio_knu_knup1(v, x::ComplexF32) = ComplexF32(besselk_ratio_knu_knup1(v, ComplexF64(x)))
+function besselk_ratio_knu_knup1(v, x::ComplexOrReal{T}) where T
     MaxIter = 1000
-    (hn, Dn, Cn) = (1e-50, zero(v), 1e-50)
+    S = eltype(x)
+    (hn, Dn, Cn) = (S(1e-50), zero(S), S(1e-50))
 
-    jf = one(T)
+    jf = one(S)
     vv = v * v
     for _ in 1:MaxIter
         an = (vv - ((2*jf - 1)^2) * T(0.25))
@@ -426,9 +430,12 @@ Computes ``K_{nu}(x)`` using the power series when nu is not an integer.
 In general, this is most accurate for small arguments and when nu > x.
 No checks are performed on nu so this is not accurate when nu is an integer.
 """
-function besselk_power_series(v, x::T) where T
+besselk_power_series(v, x::Float32) = Float32(besselk_power_series(v, Float64(x)))
+besselk_power_series(v, x::ComplexF32) = ComplexF32(besselk_power_series(v, ComplexF64(x)))
+
+function besselk_power_series(v, x::ComplexOrReal{T}) where T
     MaxIter = 1000
-    S = promote_type(T, Float64)
+    S = eltype(x)
     v, x = S(v), S(x)
 
     z  = x / 2
@@ -459,7 +466,7 @@ function besselk_power_series(v, x::T) where T
         xd2_pow *= zz
         fact_k *= k + one(S)
     end
-    return T(out)
+    return out
 end
 besselk_power_series_cutoff(nu, x::Float64) = x < 2.0 || nu > 1.6x - 1.0
 besselk_power_series_cutoff(nu, x::Float32) = x < 10.0f0 || nu > 1.65f0*x - 8.0f0
@@ -480,9 +487,11 @@ end
 
 besselk_large_argument_scaled(v, x::T) where T =  T(_besselk_large_argument(v, x) * sqrt(pi / 2x))
 
-function _besselk_large_argument(v, x::T) where T
+_besselk_large_argument(v, x::Float32) = Float32(_besselk_large_argument(v, Float64(x)))
+_besselk_large_argument(v, x::ComplexF32) = ComplexF32(_besselk_large_argument(v, ComplexF64(x)))
+function _besselk_large_argument(v, x::ComplexOrReal{T}) where T
     MaxIter = 5000 
-    S = promote_type(T, Float64) 
+    S = eltype(x)
     v, x = S(v), S(x) 
  
     fv2 = 4 * v^2 
