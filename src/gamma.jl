@@ -67,14 +67,17 @@ function small_gamma(x)
     return z * p / q
 end
 
-function loggamma(x::Float64)
+function loggamma2(x::Float64)
     if x > 13
         return large_loggamma(x)
+    elseif x >= 2
+        return medium_loggamma(x)
     else
         return small_loggamma(x)
     end
 end
-function small_loggamma(x::T) where T
+
+function medium_loggamma(x::T) where T
     sign = 1
     z = one(T)
     p = 0
@@ -84,6 +87,42 @@ function small_loggamma(x::T) where T
         u = x + p
         z *= u
     end
+    if z < zero(T)
+        sign = -1
+        z = -z
+    end
+    u == 2 && return log(z)
+    p -= 2
+    x += p
+    P = evalpoly(x, (-8.53555664245765465627e5, -1.72173700820839662146e6, -1.16237097492762307383e6, -3.31612992738871184744e5, -3.88016315134637840924e4, -1.37825152569120859100e3))
+    Q = evalpoly(x, (-2.01889141433532773231e6, -2.53252307177582951285e6, -1.13933444367982507207e6, -2.20528590553854454839e5, -1.70642106651881159223e4, -3.51815701436523470549e2, 1.0))
+    p = x * P / Q
+    return log(z) + p
+end
+
+function small_loggamma(x::T) where T
+    fpart, _ = modf(x)
+    if minimum((fpart, abs(1 - fpart))) < 0.12 && x > 0.5
+        Poly = (
+            -5.7721566490153286060651188e-01, 8.2246703342411321823620794e-01, -4.0068563438653142846657956e-01, 2.705808084277845478790009e-01,
+            -2.0738555102867398526627303e-01, 1.6955717699740818995241986e-01, -1.4404989676884611811997107e-01, 1.2550966952474304242233559e-01,
+            -1.1133426586956469049087244e-01, 1.000994575127818085337147e-01, -9.0954017145829042232609344e-02, 8.3353840546109004024886499e-02,
+            -7.6932516411352191472827157e-02, 7.1432946295361336059232779e-02, -6.6668705882420468032903454e-02
+            )
+        if x > 1.5
+            w = x - 2
+            p = w * evalpoly(w, Poly)
+            return p + log(x - 1)
+        else
+            w = x - 1
+            p = w * evalpoly(w, Poly)
+            return p
+        end
+    end
+    sign = 1
+    z = one(T)
+    p = 0
+    u = x
     while u < 2.0
         z /= u
         p += 1
