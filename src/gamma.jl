@@ -66,3 +66,45 @@ function small_gamma(x)
     q = evalpoly(x, Q)
     return z * p / q
 end
+
+function loggamma(x::Float64)
+    if x > 13
+        return large_loggamma(x)
+    else
+        return small_loggamma(x)
+    end
+end
+function small_loggamma(x::T) where T
+    sign = 1
+    z = one(T)
+    p = 0
+    u = x
+    while u >= 3.0
+        p -= 1
+        u = x + p
+        z *= u
+    end
+    while u < 2.0
+        z /= u
+        p += 1
+        u = x + p
+    end
+    if z < zero(T)
+        sign = -1
+        z = -z
+    end
+    u == 2 && return log(z)
+    p -= 2
+    x += p
+    P = evalpoly(x, (-8.53555664245765465627e5, -1.72173700820839662146e6, -1.16237097492762307383e6, -3.31612992738871184744e5, -3.88016315134637840924e4, -1.37825152569120859100e3))
+    Q = evalpoly(x, (-2.01889141433532773231e6, -2.53252307177582951285e6, -1.13933444367982507207e6, -2.20528590553854454839e5, -1.70642106651881159223e4, -3.51815701436523470549e2, 1.0))
+    p = x * P / Q
+    return log(z) + p
+end
+function large_loggamma(x)
+    q = (x - 0.5) * log(x) - x + log(sqrt(2*pi))
+    xinv = inv(x)
+    p = xinv*xinv
+    q += xinv * evalpoly(p, (8.33333333333331927722e-2, -2.77777777730099687205e-3, 7.93650340457716943945e-4, -5.95061904284301438324e-4, 8.11614167470508450300e-4))
+    return q
+end
