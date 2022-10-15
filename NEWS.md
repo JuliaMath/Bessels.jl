@@ -10,6 +10,11 @@ For bug fixes, performance enhancements, or fixes to unexported functions we wil
 
 # Unreleased
 
+# Version 0.2.4
+
+### Added
+- Enable auto-vectorization of asymptotic expansions to improve performance. This reduces computation time around ~20% in some domains ([PR #45](https://github.com/JuliaMath/Bessels.jl/pull/45)).
+
 # Version 0.2.3
 
 ### Added
