@@ -10,6 +10,12 @@ For bug fixes, performance enhancements, or fixes to unexported functions we wil
 
 # Unreleased
 
+# Version 0.2.5
+
+### Fixed
+- Fix bug for very large inputs (x>1e16) in besselj0 and friends routines. A particularly thank you to @jwscook for reporting the bug in ([Issue #53](https://github.com/JuliaMath/Bessels.jl/pull/56)) and providing a very detailed analysis.
+
+
 # Version 0.2.4
 
 ### Added
