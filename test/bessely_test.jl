@@ -68,6 +68,11 @@ y1_32 = bessely1.(Float32.(x))
 @test bessely1(Inf32) == zero(Float32)
 @test bessely1(Inf64) == zero(Float64)
 
+# tests for very large inputs
+x = [1e12, 5e12, 1e13, 5e13, 1e14, 5e14, 1e15, 5e15, 1e16, 5e16, 1e17, 5e17, 1e18, 5e18, 1e19, 5e19, 1e20, 1e22, 1e25, 1e30, 1e40]
+@test bessely0.(x) ≈ SpecialFunctions.bessely0.(x)
+@test bessely1.(x) ≈ SpecialFunctions.bessely1.(x)
+
 ## Tests for bessely
 
 ## test all numbers and orders for 0<nu<100

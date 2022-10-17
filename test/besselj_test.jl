@@ -72,6 +72,11 @@ j1_32 = besselj1.(Float32.(x))
 @test besselj1(-80.0f0) ≈ SpecialFunctions.besselj1(-80.0f0)
 @test besselj1(-80.0) ≈ SpecialFunctions.besselj1(-80.0)
 
+# tests for very large inputs
+x = [1e12, 5e12, 1e13, 5e13, 1e14, 5e14, 1e15, 5e15, 1e16, 5e16, 1e17, 5e17, 1e18, 5e18, 1e19, 5e19, 1e20, 1e22, 1e25, 1e30, 1e40]
+@test besselj0.(x) ≈ SpecialFunctions.besselj0.(x)
+@test besselj1.(x) ≈ SpecialFunctions.besselj1.(x)
+
 ## Tests for besselj 
 
 #=

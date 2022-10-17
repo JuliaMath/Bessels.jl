@@ -79,10 +79,17 @@ function _bessely0_compute(x::Float64)
             q2 = (-1/8, 25/384, -1073/5120, 375733/229376)
             p = evalpoly(x2, p2)
             q = evalpoly(x2, q2)
+            if x > 1e15
+                a = SQ2OPI(T) * sqrt(xinv) * p
+                xn = muladd(xinv, q, -PIO4(T))
+                s_x, c_x = sincos(x)
+                s_xn, c_xn = sincos(xn)
+                return a * (s_x * c_xn + c_x * s_xn)
+            end
         end
 
         a = SQ2OPI(T) * sqrt(xinv) * p
-        xn = muladd(xinv, q, - PIO4(T))
+        xn = muladd(xinv, q, -PIO4(T))
 
         # the following computes b = sin(x + xn) more accurately
         # see src/misc.jl
@@ -159,6 +166,13 @@ function _bessely1_compute(x::Float64)
             q2 = (3/8, -21/128, 1899/5120, -543483/229376)
             p = evalpoly(x2, p2)
             q = evalpoly(x2, q2)
+            if x > 1e15
+                a = SQ2OPI(T) * sqrt(xinv) * p
+                xn = muladd(xinv, q, - 3 * PIO4(T))
+                s_x, c_x = sincos(x)
+                s_xn, c_xn = sincos(xn)
+                return a * (s_x * c_xn + c_x * s_xn)
+            end
         end
 
         a = SQ2OPI(T) * sqrt(xinv) * p
