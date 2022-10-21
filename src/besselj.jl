@@ -224,6 +224,8 @@ besselj(nu, x::Real) = _besselj(nu, float(x))
 
 _besselj(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_besselj(Float32(nu), Float32(x)))
 
+_besselj(nu::AbstractRange, x::T) where T = besselj!(zeros(T, length(nu)), nu, x)
+
 function _besselj(nu::T, x::T) where T <: Union{Float32, Float64}
     isinteger(nu) && return _besselj(Int(nu), x)
     abs_nu = abs(nu)
@@ -269,12 +271,15 @@ function _besselj(nu::Integer, x::T) where T <: Union{Float32, Float64}
     end
 end
 
-function _besselj(nu::AbstractRange, x::T) where T
+besselj!(out::DenseVector, nu::AbstractRange, x) = _besselj!(out, nu, float(x))
+
+function _besselj!(out::DenseVector{T}, nu::AbstractVector, x::T) where T <: Union{Float32, Float64}
     (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
-    len = length(nu)
+    len = length(out)
+    !isequal(len, length(nu)) && throw(ArgumentError("out and nu must have the same length"))
+
     isone(len) && return [besselj(nu[1], x)]
 
-    out = zeros(T, len)
     if nu[end] < x
         out[1], out[2] = _besselj(nu[1], x), _besselj(nu[2], x)
         return besselj_up_recurrence!(out, x, nu)
