@@ -10,6 +10,9 @@ For bug fixes, performance enhancements, or fixes to unexported functions we wil
 
 # Unreleased
 
+### Fixed
+- Improved inference in `sphericalbesselj`. ([PR #61](https://github.com/JuliaMath/Bessels.jl/pull/61)). Contributed by **@Samuel3008**.
+
 # Version 0.2.5
 
 ### Fixed
