@@ -91,7 +91,7 @@ function sphericalbesselj_recurrence(nu::Integer, x::T) where T
             nu_start += 1
         end
         return sJ0
-    elseif x < nu
+    else
         # compute sphericalbessely with forward recurrence and use continued fraction
         sYnm1, sYn = sphericalbessely_forward_recurrence(nu, x)
         H = besselj_ratio_jnu_jnum1(nu + T(3)/2, x)
