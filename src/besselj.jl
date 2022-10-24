@@ -274,14 +274,14 @@ end
 besselj!(out::DenseVector, nu::AbstractRange, x) = _besselj!(out, nu, float(x))
 
 function _besselj!(out::DenseVector{T}, nu::AbstractVector, x::T) where T <: Union{Float32, Float64}
-    (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
+    (nu[begin] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
     len = length(out)
     !isequal(len, length(nu)) && throw(ArgumentError("out and nu must have the same length"))
 
-    isone(len) && return [besselj(nu[1], x)]
+    isone(len) && return [besselj(nu[begin], x)]
 
     if nu[end] < x
-        out[1], out[2] = _besselj(nu[1], x), _besselj(nu[2], x)
+        out[begin], out[begin + 1] = _besselj(nu[begin], x), _besselj(nu[begin + 1], x)
         return besselj_up_recurrence!(out, x, nu)
     else
         k = len
@@ -298,8 +298,8 @@ function _besselj!(out::DenseVector{T}, nu::AbstractVector, x::T) where T <: Uni
         end
         if k > 1
             out[k] = _besselj(nu[k], x)
-            tmp = @view out[1:k+1]
-            besselj_down_recurrence!(tmp, x, nu[1:k+1])
+            tmp = @view out[begin:k+1]
+            besselj_down_recurrence!(tmp, x, nu[begin:k+1])
             return out
         else
             return out

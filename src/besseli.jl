@@ -169,6 +169,8 @@ besseli(nu, x::Real) = _besseli(nu, float(x))
 
 _besseli(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_besseli(Float32(nu), Float32(x)))
 
+_besseli(nu::AbstractRange, x::T) where T = besseli!(zeros(T, length(nu)), nu, x)
+
 function _besseli(nu::T, x::T) where T <: Union{Float32, Float64}
     isinteger(nu) && return _besseli(Int(nu), x)
     ~isfinite(x) && return x
@@ -206,11 +208,13 @@ function _besseli(nu::Integer, x::T) where T <: Union{Float32, Float64}
     end
 end
 
-function _besseli(nu::AbstractRange, x::T) where T
+besseli!(out::DenseVector, nu::AbstractRange, x) = _besseli!(out, nu, float(x))
+
+function _besseli!(out::DenseVector{T}, nu::AbstractRange, x::T) where T
     (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
-    len = length(nu)
-    isone(len) && return [besseli(nu[1], x)]
-    out = zeros(T, len)
+    len = length(out)
+    !isequal(len, length(nu)) && throw(ArgumentError("out and nu must have the same length"))
+
     k = len
     inu = zero(T)
     while abs(inu) < floatmin(T)

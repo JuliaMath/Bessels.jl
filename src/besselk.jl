@@ -191,6 +191,8 @@ besselk(nu, x::Real) = _besselk(nu, float(x))
 
 _besselk(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_besselk(Float32(nu), Float32(x)))
 
+_besselk(nu::AbstractRange, x::T) where T = besselk!(zeros(T, length(nu)), nu, x)
+
 function _besselk(nu::T, x::T) where T <: Union{Float32, Float64}
     isinteger(nu) && return _besselk(Int(nu), x)
     abs_nu = abs(nu)
@@ -216,11 +218,14 @@ function _besselk(nu::Integer, x::T) where T <: Union{Float32, Float64}
     end
 end
 
-function _besselk(nu::AbstractRange, x::T) where T
+besselk!(out::DenseVector, nu::AbstractRange, x) = _besselk!(out, nu, float(x))
+
+function _besselk!(out::DenseVector{T}, nu::AbstractRange, x::T) where T
     (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
-    len = length(nu)
+    len = length(out)
+    !isequal(len, length(nu)) && throw(ArgumentError("out and nu must have the same length"))
     isone(len) && return [besselk(nu[1], x)]
-    out = zeros(T, len)
+
     k = 1
     knu = zero(T)
     while abs(knu) < floatmin(T)
