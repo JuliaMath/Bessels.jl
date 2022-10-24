@@ -229,8 +229,8 @@ function _besseli!(out::DenseVector{T}, nu::AbstractRange, x::T) where T
     end
     if k > 1
         out[k] = _besseli(nu[k], x)
-        tmp = @view out[1:k+1]
-        out[1:k+1] = besselk_down_recurrence!(tmp, x, nu[1:k+1])
+        tmp = @view out[begin:k+1]
+        besselk_down_recurrence!(tmp, x, nu[begin:k+1])
         return out
     else
         return out

@@ -241,7 +241,7 @@ function _besselk!(out::DenseVector{T}, nu::AbstractRange, x::T) where T
     if k < len
         out[k] = _besselk(nu[k], x)
         tmp = @view out[k-1:end]
-        out[k-1:end] = besselk_up_recurrence!(tmp, x, nu[k-1:end])
+        besselk_up_recurrence!(tmp, x, nu[k-1:end])
         return out
     else
         return out
