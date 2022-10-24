@@ -1,23 +1,23 @@
 # test very small inputs
 x = 1e-15
-@test Bessels.sphericalbesselj(0, x) ≈ SpecialFunctions.sphericalbesselj(0, x)
-@test Bessels.sphericalbesselj(1, x) ≈ SpecialFunctions.sphericalbesselj(1, x)
-@test Bessels.sphericalbesselj(5.5, x) ≈ SpecialFunctions.sphericalbesselj(5.5, x)
-@test Bessels.sphericalbesselj(10, x) ≈ SpecialFunctions.sphericalbesselj(10, x)
-@test Bessels.sphericalbessely(0, x) ≈ SpecialFunctions.sphericalbessely(0, x)
-@test Bessels.sphericalbessely(1, x) ≈ SpecialFunctions.sphericalbessely(1, x)
-@test Bessels.sphericalbessely(5.5, x) ≈ SpecialFunctions.sphericalbessely(5.5, x)
-@test Bessels.sphericalbessely(10, x) ≈ SpecialFunctions.sphericalbessely(10, x)
-@test Bessels.sphericalbesselk(5.5, x) ≈ SpecialFunctions.besselk(5.5 + 1/2, x) * sqrt( 2 / (x*pi))
-@test Bessels.sphericalbesselk(10, x) ≈ SpecialFunctions.besselk(10 + 1/2, x) * sqrt( 2 / (x*pi))
+@test @inferred(Bessels.sphericalbesselj(0, x)) ≈ SpecialFunctions.sphericalbesselj(0, x)
+@test @inferred(Bessels.sphericalbesselj(1, x)) ≈ SpecialFunctions.sphericalbesselj(1, x)
+@test @inferred(Bessels.sphericalbesselj(5.5, x)) ≈ SpecialFunctions.sphericalbesselj(5.5, x)
+@test @inferred(Bessels.sphericalbesselj(10, x)) ≈ SpecialFunctions.sphericalbesselj(10, x)
+@test @inferred(Bessels.sphericalbessely(0, x)) ≈ SpecialFunctions.sphericalbessely(0, x)
+@test @inferred(Bessels.sphericalbessely(1, x)) ≈ SpecialFunctions.sphericalbessely(1, x)
+@test @inferred(Bessels.sphericalbessely(5.5, x)) ≈ SpecialFunctions.sphericalbessely(5.5, x)
+@test @inferred(Bessels.sphericalbessely(10, x)) ≈ SpecialFunctions.sphericalbessely(10, x)
+@test @inferred(Bessels.sphericalbesselk(5.5, x)) ≈ SpecialFunctions.besselk(5.5 + 1/2, x) * sqrt( 2 / (x*pi))
+@test @inferred(Bessels.sphericalbesselk(10, x)) ≈ SpecialFunctions.besselk(10 + 1/2, x) * sqrt( 2 / (x*pi))
 
 x = 1e-20
-@test Bessels.sphericalbesseli(0, x) ≈ SpecialFunctions.besseli(0 + 1/2, x) * sqrt( pi / (x*2))
-@test Bessels.sphericalbesseli(1, x) ≈ SpecialFunctions.besseli(1 + 1/2, x) * sqrt( pi / (x*2))
-@test Bessels.sphericalbesseli(2, x) ≈ SpecialFunctions.besseli(2 + 1/2, x) * sqrt( pi / (x*2))
-@test Bessels.sphericalbesseli(3, x) ≈ SpecialFunctions.besseli(3 + 1/2, x) * sqrt( pi / (x*2))
-@test Bessels.sphericalbesseli(4, x) ≈ SpecialFunctions.besseli(4 + 1/2, x) * sqrt( pi / (x*2))
-@test Bessels.sphericalbesseli(6.5, x) ≈ SpecialFunctions.besseli(6.5 + 1/2, x) * sqrt( pi / (x*2))
+@test @inferred(Bessels.sphericalbesseli(0, x)) ≈ SpecialFunctions.besseli(0 + 1/2, x) * sqrt( pi / (x*2))
+@test @inferred(Bessels.sphericalbesseli(1, x)) ≈ SpecialFunctions.besseli(1 + 1/2, x) * sqrt( pi / (x*2))
+@test @inferred(Bessels.sphericalbesseli(2, x)) ≈ SpecialFunctions.besseli(2 + 1/2, x) * sqrt( pi / (x*2))
+@test @inferred(Bessels.sphericalbesseli(3, x)) ≈ SpecialFunctions.besseli(3 + 1/2, x) * sqrt( pi / (x*2))
+@test @inferred(Bessels.sphericalbesseli(4, x)) ≈ SpecialFunctions.besseli(4 + 1/2, x) * sqrt( pi / (x*2))
+@test @inferred(Bessels.sphericalbesseli(6.5, x)) ≈ SpecialFunctions.besseli(6.5 + 1/2, x) * sqrt( pi / (x*2))
 
 # test zero
 @test isone(Bessels.sphericalbesselj(0, 0.0))
@@ -78,10 +78,10 @@ x = NaN
 @test isnan(Bessels.sphericalbesseli(6.4, x))
 
 # test Float16, Float32 types
-@test Bessels.sphericalbesselj(Float16(1.4), Float16(1.2)) isa Float16
-@test Bessels.sphericalbessely(Float16(1.4), Float16(1.2)) isa Float16
-@test Bessels.sphericalbesselj(1.4f0, 1.2f0) isa Float32
-@test Bessels.sphericalbessely(1.4f0, 1.2f0) isa Float32
+@test @inferred(Bessels.sphericalbesselj(Float16(1.4), Float16(1.2))) isa Float16
+@test @inferred(Bessels.sphericalbessely(Float16(1.4), Float16(1.2))) isa Float16
+@test @inferred(Bessels.sphericalbesselj(1.4f0, 1.2f0)) isa Float32
+@test @inferred(Bessels.sphericalbessely(1.4f0, 1.2f0)) isa Float32
 
 @test Bessels.sphericalbesselk(Float16(1.4), Float16(1.2)) isa Float16
 @test Bessels.sphericalbesselk(1.0f0, 1.2f0) isa Float32
