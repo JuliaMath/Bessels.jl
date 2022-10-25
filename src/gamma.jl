@@ -49,3 +49,11 @@ function _gamma(x::Float64)
     q = evalpoly(x, Q)
     return z * p / q
 end
+
+
+function gamma(n::Integer)
+    n < 0 && throw(DomainError(n, "`n` must not be negative."))
+    n == 0 && return Inf*float(n)
+    n > 20 && return gamma(float(n))
+    @inbounds return Float64(factorial(n-1))
+end
