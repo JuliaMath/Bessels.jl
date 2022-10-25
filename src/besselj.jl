@@ -348,10 +348,10 @@ In general, this is most accurate for small arguments and when nu > x.
 function besselj_power_series(v, x::T) where T
     MaxIter = 3000
     S = promote_type(T, Float64)
-    v, x = S(v), S(x)
+    x = S(x)
 
     out = zero(S)
-    a = (x/2)^v / gamma(v + one(S))
+    a = (x/2)^v / gamma(v + 1)
     t2 = (x/2)^2
     for i in 0:MaxIter
         out += a

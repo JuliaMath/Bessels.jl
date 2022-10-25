@@ -1,5 +1,5 @@
 # Adapted from Cephes Mathematical Library (MIT license https://en.smath.com/view/CephesMathLibrary/license) by Stephen L. Moshier
-gamma(z::Number) = _gamma(float(z))
+gamma(x::Float64) = _gamma(x)
 _gamma(x::Float32) = Float32(_gamma(Float64(x)))
 
 function _gamma(x::Float64)
@@ -49,7 +49,6 @@ function _gamma(x::Float64)
     q = evalpoly(x, Q)
     return z * p / q
 end
-
 
 function gamma(n::Integer)
     n < 0 && throw(DomainError(n, "`n` must not be negative."))
