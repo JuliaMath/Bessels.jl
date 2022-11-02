@@ -10,7 +10,13 @@ For bug fixes, performance enhancements, or fixes to unexported functions we wil
 
 # Unreleased
 
+# Version 0.2.6
+
+### Added
+- Add methods to preallocate sequences `Bessels.besselj!(out, nu, x)`, `Bessels.bessely!(out, nu, x)`, `Bessels.besseli!(out, nu, x)`, `Bessels.besselk!(out, nu, x)` ([PR #60](https://github.com/JuliaMath/Bessels.jl/pull/60)).
+
 ### Fixed
+- Clean up `gamma` implementation ([PR #62](https://github.com/JuliaMath/Bessels.jl/pull/62)) contributed by **@oscardssmith**. Small fixes for x = 0 added in ([PR #63](https://github.com/JuliaMath/Bessels.jl/pull/63)
 - Improved inference in `sphericalbesselj`. ([PR #61](https://github.com/JuliaMath/Bessels.jl/pull/61)). Contributed by **@Samuel3008**.
 
 # Version 0.2.5
