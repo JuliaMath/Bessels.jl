@@ -145,7 +145,11 @@ In general, this provides a fast way to generate a sequence of Bessel functions 
 julia> @btime besselj(0:100, 50.0)
   398.095 ns (1 allocation: 896 bytes)
 ```
-This function will allocate so it is recommended that you calculate the Bessel functions at the top level of your function outside any hot loop.
+This function will allocate so it is recommended that you calculate the Bessel functions at the top level of your function outside any hot loop. You can also call the mutating function on your preallocated vector `Bessels.besselj!(out, nu, x)`
+```julia
+a = zeros(10)
+out = Bessels.besselj!(a, 1:10, 1.0)
+```
 
 ### Support for negative arguments
 
