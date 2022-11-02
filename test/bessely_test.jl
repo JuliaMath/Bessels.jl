@@ -88,7 +88,7 @@ end
 
 # test decimal orders
 # SpecialFunctions.jl can give errors over 1e-12 so need to soften tolerance to match
-# need to switch tests over to ArbNumerics.jl for better precision tests 
+# need to switch tests over to ArbNumerics.jl for better precision tests
 x = [0.05, 0.1, 0.2, 0.25, 0.3, 0.4, 0.5,0.55,  0.6,0.65,  0.7, 0.75, 0.8, 0.85, 0.9, 0.92, 0.95, 0.97, 0.99, 1.0, 1.01, 1.05, 1.08, 1.1, 1.2, 1.4, 1.5, 1.6, 1.8, 2.0, 2.5, 3.0, 4.0, 4.5, 4.99, 5.1]
 nu = [0.1, 0.4567, 0.8123, 1.5, 2.5, 4.1234, 6.8, 12.3, 18.9, 28.2345, 38.1235, 51.23, 72.23435, 80.5, 98.5, 104.2]
 for v in nu, xx in x
@@ -104,6 +104,7 @@ end
 @test bessely(0:50, 100.0) ≈ SpecialFunctions.bessely.(0:50, 100.0) rtol=1e-11
 @test bessely(0.5:1:10.5, 2.0) ≈ SpecialFunctions.bessely.(0.5:1:10.5, 2.0) rtol=1e-11
 @test bessely(0.5:1:10.5, 40.0) ≈ SpecialFunctions.bessely.(0.5:1:10.5, 40.0) rtol=1e-11
+@test Bessels.bessely!(zeros(Float64, 10), 1:10, 1.0) ≈ bessely(1:10, 1.0)
 
 # test Float16
 @test bessely(Int16(10), Float16(1.0)) isa Float16

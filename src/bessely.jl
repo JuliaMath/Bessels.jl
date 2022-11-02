@@ -261,6 +261,8 @@ bessely(nu, x::Real) = _bessely(nu, float(x))
 
 _bessely(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_bessely(Float32(nu), Float32(x)))
 
+_bessely(nu::AbstractRange, x::T) where T = bessely!(zeros(T, length(nu)), nu, x)
+
 function _bessely(nu::T, x::T) where T <: Union{Float32, Float64}
     isnan(nu) || isnan(x) && return NaN
     isinteger(nu) && return _bessely(Int(nu), x)
@@ -310,10 +312,12 @@ function _bessely(nu::Integer, x::T) where T <: Union{Float32, Float64}
     end
 end
 
-function _bessely(nu::AbstractRange, x::T) where T
-    (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
-    out = Vector{T}(undef, length(nu))
-    out[1], out[2] = _bessely(nu[1], x), _bessely(nu[2], x)
+bessely!(out::DenseVector, nu::AbstractRange, x) = _bessely!(out, nu, float(x))
+
+function _bessely!(out::DenseVector{T}, nu::AbstractRange, x::T) where T
+    (nu[begin] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
+    !isequal(length(out), length(nu)) && throw(ArgumentError("out and nu must have the same length"))
+    out[begin], out[begin + 1] = _bessely(nu[begin], x), _bessely(nu[begin + 1], x)
     return besselj_up_recurrence!(out, x, nu)
 end
 

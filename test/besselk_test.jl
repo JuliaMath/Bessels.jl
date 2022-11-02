@@ -130,6 +130,7 @@ end
 @test besselk(0:50, 2.0) ≈ SpecialFunctions.besselk.(0:50, 2.0) rtol=1e-13
 @test besselk(0.5:1:10.5, 12.0) ≈ SpecialFunctions.besselk.(0.5:1:10.5, 12.0) rtol=1e-13
 @test besselk(1:700, 800.0) ≈ SpecialFunctions.besselk.(1:700, 800.0)
+@test Bessels.besselk!(zeros(Float64, 10), 1:10, 1.0) ≈ besselk(1:10, 1.0)
 
 # test Float16
 @test besselk(Int16(10), Float16(1.0)) isa Float16
