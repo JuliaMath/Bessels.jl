@@ -1,6 +1,5 @@
 # Adapted from Cephes Mathematical Library (MIT license https://en.smath.com/view/CephesMathLibrary/license) by Stephen L. Moshier
-gamma(x::Float64) = _gamma(x)
-gamma(x::Float32) = Float32(_gamma(Float64(x)))
+gamma(x::Union{Float32, Float64}) = _gamma(x)
 
 function _gamma(x::Float64)
     T = Float64
@@ -48,6 +47,31 @@ function _gamma(x::Float64)
     p = evalpoly(x, P)
     q = evalpoly(x, Q)
     return z * p / q
+end
+
+function _gamma(_x::Float32)
+    isfinite(_x) || return _x
+    x = Float64(_x)
+    if _x < 0
+        s = sinpi(x)
+        s == 0 && throw(DomainError(_x, "NaN result for non-NaN input."))
+        x = 1 - x
+    end
+    if x < 5
+        z = 1.
+        while x>1
+            x -= 1
+            z *= x
+        end
+        num = evalpoly(x, (1.0, 0.41702538904450015, 0.24081703455575904, 0.04071509011391178, 0.015839573267537377))
+        den = x*evalpoly(x, (1.0, 0.9942411061082665, -0.17434932941689474, -0.13577921102050783, 0.03028452206514555))
+        res = z*num/den
+    else
+        x -= 1
+        w = evalpoly(inv(x), (2.506628299028453, 0.20888413086840676, 0.008736513049552962, -0.007022997182153692, 0.0006787969600290756))
+        res = @fastmath sqrt(x) * exp(log(x*1/ℯ) * x) * w
+    end
+    return Float32(_x<0 ? π / (s * res) : res)
 end
 
 function gamma(n::Integer)
