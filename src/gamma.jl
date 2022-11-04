@@ -89,6 +89,7 @@ function gamma(_x::Float16)
     return Float16(_x<0 ? Float32(π)*den/(s*z*num) : z*num/den)
 end
 
+_gamma(x) = gamma(x) #easier than fixing this in other places.
 function gamma(n::Integer)
     n < 0 && throw(DomainError(n, "`n` must not be negative."))
     n == 0 && return Inf*one(n)
