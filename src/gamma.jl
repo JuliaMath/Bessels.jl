@@ -1,7 +1,5 @@
-# Adapted from Cephes Mathematical Library (MIT license https://en.smath.com/view/CephesMathLibrary/license) by Stephen L. Moshier
-gamma(x::Union{Float32, Float64}) = _gamma(x)
-
-function _gamma(x::Float64)
+# Float64 version adapted from Cephes Mathematical Library (MIT license https://en.smath.com/view/CephesMathLibrary/license) by Stephen L. Moshier
+function gamma(x::Float64)
     T = Float64
     if x < 0
         (isinteger(x) || x==-Inf) && throw(DomainError(x, "NaN result for non-NaN input."))
@@ -49,8 +47,7 @@ function _gamma(x::Float64)
     return z * p / q
 end
 
-function _gamma(_x::Float32)
-    isfinite(_x) || return _x
+function gamma(_x::Float32)
     x = Float64(_x)
     if _x < 0
         s = sinpi(x)
@@ -72,6 +69,24 @@ function _gamma(_x::Float32)
         res = @fastmath sqrt(x) * exp(log(x*1/ℯ) * x) * w
     end
     return Float32(_x<0 ? π / (s * res) : res)
+end
+
+function gamma(_x::Float16)
+    x = Float32(_x)
+    if _x < 0
+        s = sinpi(x)
+        s == 0 && throw(DomainError(_x, "NaN result for non-NaN input."))
+        x = 1 - x
+    end
+    x>13 && return Float16(ifelse(_x>0, Inf32, 0f0))
+	z = 1f0
+	while x>1
+		x -= 1
+		z *= x
+	end
+	num = evalpoly(x, (1.0f0, 0.4170254f0, 0.24081704f0, 0.04071509f0, 0.015839573f0))
+	den = x*evalpoly(x, (1.0f0, 0.9942411f0, -0.17434932f0, -0.13577922f0, 0.030284522f0))
+    return Float16(_x<0 ? Float32(π)*den/(s*z*num) : z*num/den)
 end
 
 function gamma(n::Integer)
