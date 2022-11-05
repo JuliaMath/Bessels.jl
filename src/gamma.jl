@@ -78,7 +78,7 @@ function gamma(_x::Float16)
         s == 0 && throw(DomainError(_x, "NaN result for non-NaN input."))
         x = 1 - x
     end
-    x>13 && return Float16(ifelse(_x>0, Inf32, 0f0))
+    x > 13 && return Float16(ifelse(_x > 0, Inf32, 0f0))
 	z = 1f0
 	while x>1
 		x -= 1
