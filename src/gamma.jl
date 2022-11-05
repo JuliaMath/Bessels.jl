@@ -86,7 +86,7 @@ function gamma(_x::Float16)
 	end
 	num = evalpoly(x, (1.0f0, 0.4170254f0, 0.24081704f0, 0.04071509f0, 0.015839573f0))
 	den = x*evalpoly(x, (1.0f0, 0.9942411f0, -0.17434932f0, -0.13577922f0, 0.030284522f0))
-    return Float16(_x<0 ? Float32(π)*den/(s*z*num) : z*num/den)
+    return Float16(_x < 0 ? Float32(π)*den / (s*z*num) : z * num / den)
 end
 
 _gamma(x) = gamma(x) #easier than fixing this in other places.
