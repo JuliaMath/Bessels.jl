@@ -80,7 +80,7 @@ function gamma(_x::Float16)
     end
     x > 13 && return Float16(ifelse(_x > 0, Inf32, 0f0))
 	z = 1f0
-	while x>1
+	while x > 1
 		x -= 1
 		z *= x
 	end
