@@ -68,7 +68,7 @@ function gamma(_x::Float32)
         w = evalpoly(inv(x), (2.506628299028453, 0.20888413086840676, 0.008736513049552962, -0.007022997182153692, 0.0006787969600290756))
         res = @fastmath sqrt(x) * exp(log(x*1/ℯ) * x) * w
     end
-    return Float32(_x<0 ? π / (s * res) : res)
+    return Float32(_x < 0 ? π / (s * res) : res)
 end
 
 function gamma(_x::Float16)
