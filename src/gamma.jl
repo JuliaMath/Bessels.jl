@@ -2,7 +2,7 @@
 function gamma(x::Float64)
     T = Float64
     if x < 0
-        (isinteger(x) || x==-Inf) && throw(DomainError(x, "NaN result for non-NaN input."))
+        (isinteger(x) || x == -Inf) && throw(DomainError(x, "NaN result for non-NaN input."))
         xp1 = abs(x) + 1.0
         return π / (sinpi(xp1) * _gamma(xp1))
     end
