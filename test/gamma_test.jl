@@ -5,7 +5,7 @@ for (T, max) in ((Float16, 13), (Float32, 43), (Float64, 170))
         if isinteger(x)
             @test_throws DomainError Bessels.gamma(-x)
         else
-            @test T(SpecialFunctions.gamma(widen(-x))) ≈ Bessels.gamma(-x)
+            @test isapprox(T(SpecialFunctions.gamma(widen(-x))), Bessels.gamma(-x), atol=nextfloat(Float16(0.),2))
         end
     end
     @test isnan(Bessels.gamma(T(NaN)))
