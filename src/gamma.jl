@@ -55,8 +55,8 @@ function gamma(_x::Float32)
         x = 1 - x
     end
     if x < 5
-        z = 1.
-        while x>1
+        z = 1.0
+        while x > 1
             x -= 1
             z *= x
         end
