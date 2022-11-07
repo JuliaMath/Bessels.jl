@@ -2,7 +2,7 @@ for (T, max, rtol) in ((Float16, 13, 1.0), (Float32, 43, 1.0), (Float64, 170, 7)
     v = rand(T, 10000)*max
     for x in v
         @test isapprox(T(SpecialFunctions.gamma(widen(x))), Bessels.gamma(x), rtol=rtol*eps(T))
-        if isinteger(x)
+        if isinteger(x) && x != 0
             @test_throws DomainError Bessels.gamma(-x)
         else
             @test isapprox(T(SpecialFunctions.gamma(widen(-x))), Bessels.gamma(-x), atol=nextfloat(T(0.),2), rtol=rtol*eps(T))
