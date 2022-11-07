@@ -5,7 +5,8 @@ function gamma(_x::Float64)
     if x < 0
         s = sinpi(_x)
         s == 0 && throw(DomainError(x, "NaN result for non-NaN input."))
-        x = 1.0 - x
+        x = -x # Use this rather than the traditional x = 1-x to avoid roundoff.
+	s *= x
     end
     if x > 11.5
         w = inv(x)
