@@ -8,6 +8,7 @@ function gamma(_x::Float64)
         x = -x # Use this rather than the traditional x = 1-x to avoid roundoff.
 	s *= x
     end
+    isfinite(x) || return x
     if x > 11.5
         w = inv(x)
         coefs = (1.0, 
