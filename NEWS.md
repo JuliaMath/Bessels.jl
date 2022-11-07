@@ -10,6 +10,15 @@ For bug fixes, performance enhancements, or fixes to unexported functions we wil
 
 # Unreleased
 
+# Version 0.2.7
+
+### Added
+- Add `Float16` and `Float32` gamma implementations ([PR #65](https://github.com/JuliaMath/Bessels.jl/pull/65)) contributed by **@oscardssmith**.
+
+### Fixed
+- Improve accuracy of `Float64` gamma implementation for negative values ([PR #65](https://github.com/JuliaMath/Bessels.jl/pull/65)) by **@oscardssmith**
+- Improve accuracy of `besselk` power series ([PR #66](https://github.com/JuliaMath/Bessels.jl/pull/66)) by **@oscardssmith**
+
 # Version 0.2.6
 
 ### Added
