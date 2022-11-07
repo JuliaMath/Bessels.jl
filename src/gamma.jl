@@ -84,14 +84,14 @@ function gamma(_x::Float16)
         s == 0 && throw(DomainError(_x, "NaN result for non-NaN input."))
         x = 1 - x
     end
-    x > 13 && return Float16(ifelse(_x > 0, Inf32, 0f0))
-	z = 1f0
-	while x > 1
-		x -= 1
-		z *= x
-	end
-	num = evalpoly(x, (1.0f0, 0.4170254f0, 0.24081704f0, 0.04071509f0, 0.015839573f0))
-	den = x*evalpoly(x, (1.0f0, 0.9942411f0, -0.17434932f0, -0.13577922f0, 0.030284522f0))
+    x > 14 && return Float16(ifelse(_x > 0, Inf32, 0f0))
+    z = 1f0
+    while x > 1
+        x -= 1
+        z *= x
+    end
+    num = evalpoly(x, (1.0f0, 0.4170254f0, 0.24081704f0, 0.04071509f0, 0.015839573f0))
+    den = x*evalpoly(x, (1.0f0, 0.9942411f0, -0.17434932f0, -0.13577922f0, 0.030284522f0))
     return Float16(_x < 0 ? Float32(π)*den / (s*z*num) : z * num / den)
 end
 
