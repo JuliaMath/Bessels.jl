@@ -24,7 +24,7 @@
 #
 
 """
-    besselj0(x::T) where T <: Union{Float32, Float64}
+    besselj0(x::T) where T <: Union{Float32, Float64, ComplexF32, ComplexF64}
 
 Bessel function of the first kind of order zero, ``J_0(x)``.
 """
@@ -172,6 +172,12 @@ function _besselj1(x::Float32)
         return p * s
     end
 end
+
+#####
+#####  Implementation for complex arguments
+#####
+
+besselj0(z::T) where T <: Union{ComplexF32, ComplexF64} = besseli0(z/im) 
 
 #                  Bessel functions of the first kind of order nu
 #                               besselj(nu, x)
