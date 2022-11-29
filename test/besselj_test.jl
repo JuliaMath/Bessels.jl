@@ -79,7 +79,7 @@ x = [1e12, 5e12, 1e13, 5e13, 1e14, 5e14, 1e15, 5e15, 1e16, 5e16, 1e17, 5e17, 1e1
 
 # test complex implementation
 
-for x in [0.0, 0.01, 0.5, 1.0, 2.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0, 15.0, 17.0, 18.0, 20.0, 25.0, 50.0, 15.0], a in 0:pi/12:2pi
+for x in [0.0, 0.01, 0.5, 1.0, 2.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0, 15.0, 17.0, 18.0, 20.0, 25.0, 50.0, 150.0], a in 0:pi/12:2pi
     z = x*exp(im*a)
     @test isapprox(besselj0(z), SpecialFunctions.besselj(0, z), rtol=2e-14)
     @test isapprox(besselj0(ComplexF32(z)), ComplexF32(SpecialFunctions.besselj(0, ComplexF32(z))), rtol=1e-7)
