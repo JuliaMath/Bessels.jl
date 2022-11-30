@@ -83,6 +83,8 @@ for x in [0.0, 0.01, 0.5, 1.0, 2.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14
     z = x*exp(im*a)
     @test isapprox(besselj0(z), SpecialFunctions.besselj(0, z), rtol=2e-14)
     @test isapprox(besselj0(ComplexF32(z)), ComplexF32(SpecialFunctions.besselj(0, ComplexF32(z))), rtol=1e-7)
+    @test isapprox(besselj1(z), SpecialFunctions.besselj(1, z), rtol=2e-14)
+    @test isapprox(besselj1(ComplexF32(z)), ComplexF32(SpecialFunctions.besselj(1, ComplexF32(z))), rtol=1e-7)
 end
 
 ## Tests for besselj 

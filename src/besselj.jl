@@ -177,7 +177,9 @@ end
 #####  Implementation for complex arguments
 #####
 
-besselj0(z::T) where T <: Union{ComplexF32, ComplexF64} = besseli0(z/im) 
+besselj0(z::T) where T <: Union{ComplexF32, ComplexF64} = besseli0(z/im)
+besselj1(z::T) where T <: Union{ComplexF32, ComplexF64} = besseli1(z/im) * im 
+
 
 #                  Bessel functions of the first kind of order nu
 #                               besselj(nu, x)
