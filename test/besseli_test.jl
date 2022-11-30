@@ -68,7 +68,7 @@ i1x_32 = besseli1x.(Float32.(x32))
 # test complex implementation
 
 for x in [0.0, 0.01, 0.5, 1.0, 2.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 12.0, 14.0, 15.0, 17.0, 18.0, 20.0, 25.0, 50.0, 150.0], a in 0:pi/12:2pi
-    z = x*exp(im*a)
+    z = x*cis(a)
     @test isapprox(besseli0(z), SpecialFunctions.besseli(0, z), rtol=2e-14)
     @test isapprox(besseli0(ComplexF32(z)), ComplexF32(SpecialFunctions.besseli(0, ComplexF32(z))), rtol=1e-7)
     @test isapprox(besseli1(z), SpecialFunctions.besseli(1, z), rtol=2e-14)
