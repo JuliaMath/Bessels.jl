@@ -195,7 +195,7 @@ function besseli0(z::ComplexF64)
                 s1 += C*f[ind]
                 s2 += C*w[ind]
             end
-            r = s1 / (s2 * sqrt(z) * exp(-z))
+            r = @fastmath s1 / (s2 * sqrt(z) * exp(-z))
         end
     end
     isconj && (r = conj(r))
@@ -295,7 +295,7 @@ function besseli1(z::ComplexF64)
                 s2 += C*w[ind]
             end
 
-        r = s1 / (s2 * sqrt(z) * exp(-z))
+        r = @fastmath s1 / (s2 * sqrt(z) * exp(-z))
         end
     end
     isconj && (r = conj(r))
