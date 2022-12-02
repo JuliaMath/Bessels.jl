@@ -8,6 +8,7 @@ makedocs(
                 "Home" => "index.md",
                 "Getting started" => "install.md",
                 "Roadmap" => "roadmap.md",
+                "Contributing" => "contribute.md",
                 "API" => "API.md",
                 "Function list" => "functions.md",
                ]
