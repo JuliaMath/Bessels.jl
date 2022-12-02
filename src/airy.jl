@@ -153,7 +153,6 @@ end
     airybiprime(x)
 Derivative of the Airy function of the second kind ``\\operatorname{Bi}'(x)``.
 """
-
 airybiprime(z::Number) = _airybiprime(float(z))
 
 _airybiprime(x::Float16) = Float16(_airybiprime(Float32(x)))
