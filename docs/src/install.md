@@ -30,3 +30,17 @@ Status `~/.julia/environments/v1.8/Project.toml`
 # update to latest release
 (@v1.8) pkg> update Bessels
 ```
+
+### Running
+
+At this point you are ready to start using Bessels.jl!
+
+```julia
+julia> using Bessels
+
+julia> besselj0(1.2)
+0.6711327442643626
+
+julia> besselj(1.8, 10.1)
+0.2374319718222891
+```

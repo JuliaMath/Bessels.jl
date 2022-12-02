@@ -7,6 +7,7 @@ makedocs(
          pages=[
                 "Home" => "index.md",
                 "Getting started" => "install.md",
+                "Roadmap" => "roadmap.md",
                 "API" => "API.md",
                 "Function list" => "functions.md",
                ]
