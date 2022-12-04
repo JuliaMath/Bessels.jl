@@ -17,10 +17,30 @@
 #####
 
 """
-    sphericalbesselj(nu, x)
+    sphericalbesselj(ν, x)
 
-Spherical bessel function of the first kind of order `nu`, ``j_ν(x)``. This is the non-singular
+Spherical bessel function of the first kind of order `ν`, ``j_ν(x)``. This is the non-singular
 solution to the radial part of the Helmholz equation in spherical coordinates.
+
+```math
+j_{\\nu}(x) = \\sqrt(\\frac{\\pi}{2x}) J_{\\nu + 1/2}(x)
+```
+
+where ``J_{\\nu}`` is the Bessel function of the first kind. Routine supports single and double precision (e.g., `Float32`,  `Float64`) for real arguments.
+
+# Examples
+
+```
+julia> sphericalbesselj(1, 1.2)
+0.34528456985779027
+
+julia> sphericalbesselj(1.5, 1.2)
+0.18231344932382995
+```
+
+External links: [DLMF](https://dlmf.nist.gov/10.47.3), [Wikipedia](https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions)
+
+See also: [`besselj`](@ref), [`sphericalbessely`](@ref)
 """
 sphericalbesselj(nu::Real, x::Real) = _sphericalbesselj(nu, float(x))
 
@@ -104,11 +124,31 @@ end
 #####
 
 """
-    sphericalbessely(nu, x)
+    sphericalbessely(ν, x)
 
-Spherical bessel function of the second kind at order `nu`, ``y_ν(x)``. This is the singular
+Spherical bessel function of the second kind of order `ν`, ``y_ν(x)``. This is the non-singular
 solution to the radial part of the Helmholz equation in spherical coordinates. Sometimes
 known as a spherical Neumann function.
+
+```math
+y_{\\nu}(x) = \\sqrt(\\frac{\\pi}{2x}) Y_{\\nu + 1/2}(x)
+```
+
+where ``Y_{\\nu}`` is the Bessel function of the second kind. Routine supports single and double precision (e.g., `Float32`,  `Float64`) for real arguments.
+
+# Examples
+
+```
+julia> sphericalbessely(1, 1.2)
+-1.028336567803712
+
+julia> sphericalbessely(1.5, 1.2)
+-1.4453716277410136
+```
+
+External links: [DLMF](https://dlmf.nist.gov/10.47.4), [Wikipedia](https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions)
+
+See also: [`bessely`](@ref), [`sphericalbesselj`](@ref)
 """
 sphericalbessely(nu::Real, x::Real) = _sphericalbessely(nu, float(x))
 

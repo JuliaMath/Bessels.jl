@@ -22,8 +22,29 @@
 #     Computer Physics Communications 183.3 (2012): 506-519.
 
 """
-    airyai(x)
-Airy function of the first kind ``\\operatorname{Ai}(x)``.
+    airyai(z)
+
+Returns the Airy function of the first kind, ``\\operatorname{Ai}(z)``, which is the solution to the Airy differential equation ``f''(z) - z f(z) = 0``.
+
+```math
+\\operatorname{Ai}(z) = \\frac{\\sqrt{3}}{2 \\pi} \\int_{0}^^{\\infty} \\exp{-\\frac{t^3}{3} - \\frac{z^3}{3t^3}} dt
+```
+
+Routine supports single and double precision (e.g., `Float32`,  `Float64`, `ComplexF64`) for real and complex arguments.
+
+# Examples
+
+```
+julia> airyai(1.2)
+0.10612576226331255
+
+julia> airyai(1.2 + 1.4im)
+-0.03254458873613304 - 0.14708163733976673im
+```
+
+External links: [DLMF](https://dlmf.nist.gov/9.2.2), [Wikipedia](https://en.wikipedia.org/wiki/Airy_function)
+
+See also: [`airyaiprime`](@ref), [`airybi`](@ref)
 """
 airyai(z::Number) = _airyai(float(z))
 
@@ -64,8 +85,24 @@ function _airyai(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
 end
 
 """
-    airyaiprime(x)
-Derivative of the Airy function of the first kind ``\\operatorname{Ai}'(x)``.
+    airyaiprime(z)
+
+Returns the derivative of the Airy function of the first kind, ``\\operatorname{Ai}'(z)``.
+Routine supports single and double precision (e.g., `Float32`,  `Float64`, `ComplexF64`) for real and complex arguments.
+
+# Examples
+
+```
+julia> airyaiprime(1.2)
+-0.13278537855722622
+
+julia> airyaiprime(1.2 + 1.4im)
+-0.02884977394212135 + 0.21117856532576215im
+```
+
+External links: [DLMF](https://dlmf.nist.gov/9.2), [Wikipedia](https://en.wikipedia.org/wiki/Airy_function)
+
+See also: [`airyai`](@ref), [`airybi`](@ref)
 """
 airyaiprime(z::Number) = _airyaiprime(float(z))
 
@@ -106,8 +143,24 @@ function _airyaiprime(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
 end
 
 """
-    airybi(x)
-Airy function of the second kind ``\\operatorname{Bi}(x)``.
+    airybi(z)
+
+Returns the Airy function of the second kind, ``\\operatorname{Bi}(z)``, which is the second solution to the Airy differential equation ``f''(z) - z f(z) = 0``.
+Routine supports single and double precision (e.g., `Float32`,  `Float64`, `ComplexF64`) for real and complex arguments.
+
+# Examples
+
+```
+julia> airybi(1.2)
+1.4211336756103483
+
+julia> airybi(1.2 + 1.4im)
+0.3150484065220768 + 0.7138432162853446im
+```
+
+External links: [DLMF](https://dlmf.nist.gov/9.2.2), [Wikipedia](https://en.wikipedia.org/wiki/Airy_function)
+
+See also: [`airybiprime`](@ref), [`airyai`](@ref)
 """
 airybi(z::Number) = _airybi(float(z))
 
@@ -150,10 +203,25 @@ function _airybi(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
 end
 
 """
-    airybiprime(x)
-Derivative of the Airy function of the second kind ``\\operatorname{Bi}'(x)``.
-"""
+    airybiprime(z)
 
+Returns the derivative of the Airy function of the second kind, ``\\operatorname{Bi}'(z)``.
+Routine supports single and double precision (e.g., `Float32`,  `Float64`, `ComplexF64`) for real and complex arguments.
+
+# Examples
+
+```
+julia> airybiprime(1.2)
+1.221231398704895
+
+julia> airybiprime(1.2 + 1.4im)
+-0.5250248310153249 + 0.9612736841097036im
+```
+
+External links: [DLMF](https://dlmf.nist.gov/9.2), [Wikipedia](https://en.wikipedia.org/wiki/Airy_function)
+
+See also: [`airybi`](@ref), [`airyai`](@ref)
+"""
 airybiprime(z::Number) = _airybiprime(float(z))
 
 _airybiprime(x::Float16) = Float16(_airybiprime(Float32(x)))

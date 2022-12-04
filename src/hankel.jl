@@ -19,13 +19,21 @@
 #####
 
 """
-    besseljy(nu, x::T) where T <: Float64
+    Bessels.besseljy(ν, x::T) where T <: Float64
 
-Return both Bessel functions of the first ``J_{nu}(x)`` and
-second ``Y_{nu}(x)`` kind. This method will be faster than calling (besselj(nu, x), bessely(nu, x)) separately,
-unless nu is slightly larger than x.
+Returns the Bessel function of the first ``J_{ν}(x)`` and second ``Y_{ν}(x)`` kind for order ν.
 
-Results may be slightly different than individual functions in some domains due to using different algorithms.
+This method may be faster than calling `besselj(ν, x)` and `bessely(ν, x)` separately depending on argument range.
+Results may be slightly different than calling individual functions in some domains due to using different algorithms.
+
+# Examples
+
+```
+julia> jn, yn = Bessels.besseljy(1.8, 1.2)
+(0.2086667754797278, -1.0931173556626879)
+```
+
+See also: [`besselh`](@ref Bessels.besselh(nu, [k=1,] x)), [`besselj(nu,x)`](@ref Bessels.besselj)), [`bessely(nu,x)`](@ref Bessels.bessely))
 """
 function besseljy(nu::Real, x::T) where T
     isinteger(nu) && return besseljy(Int(nu), x)
@@ -180,8 +188,23 @@ end
 """
     besselh(nu, [k=1,] x)
 
-Bessel function of the third kind of order `nu` (the Hankel function). `k` is either 1 or 2,
-selecting [`hankelh1`](@ref) or [`hankelh2`](@ref), respectively.
+Returns the Bessel function of the third kind of order `nu` (the Hankel function).
+
+```math
+H^{(1)}_{\\nu}(x) = J_{\\nu}(x) + i Y_{\\nu}(x)
+H^{(2)}_{\\nu}(x) = J_{\\nu}(x) - i Y_{\\nu}(x)
+```
+
+`k` must be 1 or 2, selecting [`hankelh1`](@ref) or [`hankelh2`](@ref), respectively.
+
+# Examples
+
+```
+julia> besselh(1.2, 1, 9.2)
+0.2513215427211038 + 0.08073652619125624im
+```
+
+See also: [`Bessels.besseljy`](@ref Bessels.besseljy(nu, x)), [`besselj(nu,x)`](@ref Bessels.besselj)), [`bessely(nu,x)`](@ref Bessels.bessely))
 """
 function besselh(nu::Real, k::Integer, x)
     Jn, Yn = besseljy(nu, x)

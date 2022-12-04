@@ -1,4 +1,16 @@
 # Float64 version adapted from Cephes Mathematical Library (MIT license https://en.smath.com/view/CephesMathLibrary/license) by Stephen L. Moshier
+
+"""
+    gamma(x::T) where T <: Union{Float16, Float32, Float64}
+
+Returns the gamma function, ``Γ(x)``, for real `x`.
+
+```math
+\\Gamma(x) = \\int_x^\\infty e^{-t} t^{x-1} dt \\,
+```
+
+External links: [DLMF](https://dlmf.nist.gov/5.2.1), [Wikipedia](https://en.wikipedia.org/wiki/Gamma_function)
+"""
 function gamma(_x::Float64)
     T = Float64
     x = _x
@@ -52,7 +64,6 @@ function gamma(_x::Float64)
     q = evalpoly(x, Q)
     return _x < 0 ? π * q / (s * z * p) : z * p / q
 end
-
 
 function gamma(_x::Float32)
     x = Float64(_x)

@@ -54,6 +54,8 @@
     besseli0(x::T) where T <: Union{Float32, Float64}
 
 Modified Bessel function of the first kind of order zero, ``I_0(x)``.
+
+See also: [`besseli0x(x)`](@ref Bessels.besseli0x), [`besseli1(x)`](@ref Bessels.besseli1), [`besseli(nu,x)`](@ref Bessels.besseli))
 """
 function besseli0(x::T) where T <: Union{Float32, Float64}
     x = abs(x)
@@ -71,6 +73,8 @@ end
     besseli0x(x::T) where T <: Union{Float32, Float64}
 
 Scaled modified Bessel function of the first kind of order zero, ``I_0(x)*e^{-x}``.
+
+See also: [`besseli0(x)`](@ref Bessels.besseli0), [`besseli1x(x)`](@ref Bessels.besseli1x), [`besseli(nu,x)`](@ref Bessels.besseli))
 """
 function besseli0x(x::T) where T <: Union{Float32, Float64}
     T == Float32 ? branch = 50 : branch = 500
@@ -89,6 +93,8 @@ end
     besseli1(x::T) where T <: Union{Float32, Float64}
 
 Modified Bessel function of the first kind of order one, ``I_1(x)``.
+
+See also: [`besseli0(x)`](@ref Bessels.besseli0), [`besseli1x(x)`](@ref Bessels.besseli1x), [`besseli(nu,x)`](@ref Bessels.besseli))
 """
 function besseli1(x::T) where T <: Union{Float32, Float64}
     z = abs(x)
@@ -111,6 +117,8 @@ end
     besseli1x(x::T) where T <: Union{Float32, Float64}
 
 Scaled modified Bessel function of the first kind of order one, ``I_1(x)*e^{-x}``.
+
+See also: [`besseli1(x)`](@ref Bessels.besseli1), [`besseli(nu,x)`](@ref Bessels.besseli))
 """
 function besseli1x(x::T) where T <: Union{Float32, Float64}
     T == Float32 ? branch = 50 : branch = 500
@@ -160,11 +168,41 @@ end
 #
 
 """
-    besseli(x::T) where T <: Union{Float32, Float64}
+    besseli(ν::Real, x::Real)
+    besseli(ν::AbstractRange, x::Real)
 
-Modified Bessel function of the second kind of order nu, ``I_{nu}(x)``.
+Returns the modified Bessel function, ``I_ν(x)``, of the first kind and order `ν`.
+
+```math
+I_{\\nu}(x) = \\sum_{m=0}^{\\infty} \\frac{1}{m!\\Gamma(m+\\nu+1)}(\\frac{x}{2})^{2m+\\nu}
+```
+
+Routine supports single and double precision (e.g., `Float32` or `Float64`) real arguments.
+
+For `ν` isa `AbstractRange`, returns a vector of type `float(x)` using recurrence to compute ``I_ν(x)`` at many orders
+as long as the conditions `ν[1] >= 0` and `step(ν) == 1` are met. Consider the in-place version [`besseli!`](@ref Bessels.besseli!)
+to avoid allocation.
+
+# Examples
+
+```
+julia> besseli(2, 1.5)
+0.3378346183356807
+
+julia> besseli(3.2, 2.5)
+0.3772632469352918
+
+julia> besseli(1:3, 2.5)
+3-element Vector{Float64}:
+ 2.5167162452886984
+ 1.2764661478191641
+ 0.47437040877803555
+```
+
+External links: [DLMF](https://dlmf.nist.gov/10.25.2), [Wikipedia](https://en.wikipedia.org/wiki/Bessel_function#Modified_Bessel_functions:_I%CE%B1,_K%CE%B1)
+
+See also: [`besseli!`](@ref Bessels.besseli!(out, ν, x)), [`besseli0(x)`](@ref Bessels.besseli0), [`besseli1(x)`](@ref Bessels.besseli1), [`besselix(nu,x)`](@ref Bessels.besselix))
 """
-# perhaps have two besseli(nu::Real, x::Real) and besseli(nu::AbstractRange, x::Real)
 besseli(nu, x::Real) = _besseli(nu, float(x))
 
 _besseli(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_besseli(Float32(nu), Float32(x)))
@@ -208,6 +246,26 @@ function _besseli(nu::Integer, x::T) where T <: Union{Float32, Float64}
     end
 end
 
+"""
+    Bessels.besseli!(out::DenseVector{T}, ν::AbstractRange, x::T)
+
+Computes the modified Bessel function, ``I_ν(x)``, of the first kind at many orders `ν` in-place using recurrence.
+The conditions `ν[1] >= 0` and `step(ν) == 1` must be met.
+
+# Examples
+
+```
+julia> nu = 1:3; x = 1.5; out = zeros(typeof(x), length(nu));
+
+julia> Bessels.besseli!(out, nu, x)
+3-element Vector{Float64}:
+ 0.9816664285779074
+ 0.3378346183356807
+ 0.0807741130160923
+```
+
+See also: [`besseli(ν, x)`](@ref Bessels.besseli(ν, x))
+"""
 besseli!(out::DenseVector, nu::AbstractRange, x) = _besseli!(out, nu, float(x))
 
 function _besseli!(out::DenseVector{T}, nu::AbstractRange, x::T) where T

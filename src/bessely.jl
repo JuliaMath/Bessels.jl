@@ -33,6 +33,8 @@
     bessely0(x::T) where T <: Union{Float32, Float64}
 
 Bessel function of the second kind of order zero, ``Y_0(x)``.
+
+See also: [`bessely1(x)`](@ref Bessels.bessely1), [`bessely(nu,x)`](@ref Bessels.bessely))
 """
 bessely0(x::Real) = _bessely0(float(x))
 
@@ -120,6 +122,8 @@ end
     bessely1(x::T) where T <: Union{Float32, Float64}
 
 Bessel function of the second kind of order one, ``Y_1(x)``.
+
+See also: [`bessely0(x)`](@ref Bessels.bessely0), [`bessely(nu,x)`](@ref Bessels.bessely))
 """
 bessely1(x::Real) = _bessely1(float(x))
 
@@ -252,10 +256,40 @@ end
 #####
 
 """
-    bessely(nu, x::T) where T <: Float64
+    bessely(ν::Real, x::Real)
+    bessely(ν::AbstractRange, x::Real)
 
-Bessel function of the second kind of order nu, ``Y_{nu}(x)``.
-nu and x must be real where nu and x can be positive or negative.
+Returns the Bessel function, ``Y_ν(x)``, of the second kind and order `ν`.
+
+```math
+Y_{\\nu}(x) = \\frac{J_{\\nu}(x) \\cos(\\nu \\pi) - J_{-\\nu}(x)}{\\sin(\\nu \\pi)}
+```
+
+Routine supports single and double precision (e.g., `Float32` or `Float64`) real arguments.
+
+For `ν` isa `AbstractRange`, returns a vector of type `float(x)` using recurrence to compute ``Y_ν(x)`` at many orders
+as long as the conditions `ν[1] >= 0` and `step(ν) == 1` are met. Consider the in-place version [`besselj!`](@ref Bessels.bessely!)
+to avoid allocation.
+
+# Examples
+
+```
+julia> bessely(2, 1.5)
+-0.9321937597629739
+
+julia> bessely(3.2, 2.5)
+-0.8425784476035085
+
+julia> bessely(1:3, 2.5)
+3-element Vector{Float64}:
+  0.1459181379667858
+ -0.38133584924180347
+ -0.7560554967536713
+```
+
+External links: [DLMF](https://dlmf.nist.gov/10.2.3), [Wikipedia](https://en.wikipedia.org/wiki/Bessel_function#Bessel_functions_of_the_second_kind)
+
+See also: [`bessely!`](@ref Bessels.bessely!(out, ν, x)), [`bessely0(x)`](@ref Bessels.bessely0), [`bessely1(x)`](@ref Bessels.bessely1)
 """
 bessely(nu, x::Real) = _bessely(nu, float(x))
 
@@ -312,6 +346,26 @@ function _bessely(nu::Integer, x::T) where T <: Union{Float32, Float64}
     end
 end
 
+"""
+    Bessels.bessely!(out::DenseVector{T}, ν::AbstractRange, x::T)
+
+Computes the Bessel function, ``Y_ν(x)``, of the second kind at many orders `ν` in-place using recurrence.
+The conditions `ν[1] >= 0` and `step(ν) == 1` must be met.
+
+# Examples
+
+```
+julia> nu = 1:3; x = 1.5; out = zeros(typeof(x), length(nu));
+
+julia> Bessels.bessely!(out, nu, x)
+3-element Vector{Float64}:
+ -0.41230862697391135
+ -0.9321937597629739
+ -2.0735413990606855
+```
+
+See also: [`bessely(ν, x)`](@ref Bessels.bessely(ν, x))
+"""
 bessely!(out::DenseVector, nu::AbstractRange, x) = _bessely!(out, nu, float(x))
 
 function _bessely!(out::DenseVector{T}, nu::AbstractRange, x::T) where T
