@@ -80,11 +80,6 @@ function sphericalbesselk_int(v::Int, x)
 end
 
 """
-    sphericalbesseli(nu, x::T) where T <: {Float32, Float64}
-
-Computes `i_{ν}(x)`, the modified first-kind spherical Bessel function.
-"""
-"""
     Bessels.sphericalbesseli(ν, x)
 
 Returns the modified spherical bessel function of the first kind of order `ν`, ``i_ν(x)``.
