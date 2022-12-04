@@ -262,7 +262,7 @@ end
 Returns the Bessel function, ``Y_ν(x)``, of the second kind and order `ν`.
 
 ```math
-Y_{\nu}(x) = \frac{J_{\nu}(x) \cos(\nu \pi) - J_{-\nu}(x)}{\sin(\nu \pi)}
+Y_{\\nu}(x) = \\frac{J_{\\nu}(x) \\cos(\\nu \\pi) - J_{-\\nu}(x)}{\\sin(\\nu \\pi)}
 ```
 
 Routine supports single and double precision (e.g., `Float32` or `Float64`) real arguments.
