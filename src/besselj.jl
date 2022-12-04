@@ -225,7 +225,7 @@ end
 Returns the Bessel function, ``J_ν(x)``, of the first kind and order `ν`.
 
 ```math
-J_{\\nu}(x) = \\sum_{m=0}^{\infty} \\frac{(-1)^m}{m!\\Gamma(m+\\nu+1)}(\\frac{x}{2})^{2m+\\nu}
+J_{\\nu}(x) = \\sum_{m=0}^{\\infty} \\frac{(-1)^m}{m!\\Gamma(m+\\nu+1)}(\\frac{x}{2})^{2m+\\nu}
 ```
 
 Routine supports single and double precision (e.g., `Float32` or `Float64`) real arguments.
