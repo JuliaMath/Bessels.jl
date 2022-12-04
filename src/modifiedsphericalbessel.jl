@@ -12,10 +12,31 @@
 # [1] https://mathworld.wolfram.com/ModifiedBesselFunctionoftheFirstKind.html 
 # [2] https://mathworld.wolfram.com/ModifiedSphericalBesselFunctionoftheSecondKind.html
 #
-"""
-    sphericalbesselk(nu, x::T) where T <: {Float32, Float64}
 
-Computes `k_{ν}(x)`, the modified second-kind spherical Bessel function, and offers special branches for integer orders.
+"""
+    Bessels.sphericalbesselk(ν, x)
+
+Returns the modified spherical bessel function of the second kind of order `ν`, ``k_ν(x)``.
+
+```math
+k_{\\nu}(x) = \\sqrt(\\frac{\\pi}{2x}) K_{\\nu + 1/2}(x)
+```
+
+where ``K_{\\nu}`` is the modified Bessel function of the second kind. Routine supports single and double precision (e.g., `Float32`,  `Float64`) for real arguments.
+
+# Examples
+
+```
+julia> Bessels.sphericalbesselk(1, 1.2)
+0.46015782375475334
+
+julia> Bessels.sphericalbesselk(1.5, 1.2)
+0.7595606983594666
+```
+
+External links: [DLMF](https://dlmf.nist.gov/10.47.9), [Wikipedia](https://en.wikipedia.org/wiki/Bessel_function#Modified_Bessel_functions:_I%CE%B1,_K%CE%B1)
+
+See also: [`besselk`](@ref), [`Bessels.sphericalbesseli`](@ref)
 """
 sphericalbesselk(nu::Real, x::Real) = _sphericalbesselk(nu, float(x))
 
@@ -62,6 +83,31 @@ end
     sphericalbesseli(nu, x::T) where T <: {Float32, Float64}
 
 Computes `i_{ν}(x)`, the modified first-kind spherical Bessel function.
+"""
+"""
+    Bessels.sphericalbesseli(ν, x)
+
+Returns the modified spherical bessel function of the first kind of order `ν`, ``i_ν(x)``.
+
+```math
+i_{\\nu}(x) = \\sqrt(\\frac{\\pi}{2x}) I_{\\nu + 1/2}(x)
+```
+
+where ``I_{\\nu}`` is the modified Bessel function of the first kind. Routine supports single and double precision (e.g., `Float32`,  `Float64`) for real arguments.
+
+# Examples
+
+```
+julia> Bessels.sphericalbesseli(1, 1.2)
+0.4606425870674146
+
+julia> Bessels.sphericalbesseli(1.5, 1.2)
+0.23179256391926525
+```
+
+External links: [DLMF](https://dlmf.nist.gov/10.47.7), [Wikipedia](https://en.wikipedia.org/wiki/Bessel_function#Modified_Bessel_functions:_I%CE%B1,_K%CE%B1)
+
+See also: [`besseli`](@ref), [`Bessels.sphericalbesselk`](@ref)
 """
 sphericalbesseli(nu::Real, x::Real) = _sphericalbesseli(nu, float(x))
 
