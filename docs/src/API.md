@@ -2,9 +2,11 @@
 
 ```@docs
 besselj
+Bessels.besselj!
 besselj0
 besselj1
 bessely
+Bessels.bessely!
 bessely0
 bessely1
 Bessels.besseljy
@@ -14,12 +16,14 @@ Bessels.besseljy
 
 ```@docs
 besseli
+Bessels.besseli!
 besseli0
 besseli0x
 besseli1
 besseli1x
 besselix
 besselk
+Bessels.besselk!
 besselk0
 besselk0x
 besselk1
