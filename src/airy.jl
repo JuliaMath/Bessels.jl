@@ -203,10 +203,6 @@ function _airybi(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
 end
 
 """
-    airybiprime(x)
-Derivative of the Airy function of the second kind ``\\operatorname{Bi}'(x)``.
-"""
-"""
     airybiprime(z)
 
 Returns the derivative of the Airy function of the second kind, ``\\operatorname{Bi}'(z)``.
