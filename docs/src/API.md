@@ -1,29 +1,29 @@
 ## Bessel functions
 
 ```@docs
+besselj
 besselj0
 besselj1
-besselj
+bessely
 bessely0
 bessely1
-bessely
 Bessels.besseljy
 ```
 
 ## Modified Bessel functions
 
 ```@docs
+besseli
 besseli0
 besseli0x
 besseli1
 besseli1x
-besseli
 besselix
+besselk
 besselk0
 besselk0x
 besselk1
 besselk1x
-besselk
 besselkx
 ```
 

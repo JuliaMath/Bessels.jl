@@ -75,6 +75,8 @@
     besselk0(x::T) where T <: Union{Float32, Float64}
 
 Modified Bessel function of the second kind of order zero, ``K_0(x)``.
+
+See also: [`besselk0x(x)`](@ref Bessels.besselk0x), [`besselk1(x)`](@ref Bessels.besselk1), [`besselk(nu,x)`](@ref Bessels.besselk))
 """
 function besselk0(x::T) where T <: Union{Float32, Float64}
     x <= zero(T) && return throw(DomainError(x, "`x` must be nonnegative."))
@@ -93,6 +95,8 @@ end
     besselk0x(x::T) where T <: Union{Float32, Float64}
 
 Scaled modified Bessel function of the second kind of order zero, ``K_0(x)*e^{x}``.
+
+See also: [`besselk0(x)`](@ref Bessels.besselk0), [`besselk1x(x)`](@ref Bessels.besselk1x), [`besselk(nu,x)`](@ref Bessels.besselk))
 """
 function besselk0x(x::T) where T <: Union{Float32, Float64}
     x <= zero(T) && return throw(DomainError(x, "`x` must be nonnegative."))
@@ -109,6 +113,8 @@ end
     besselk1(x::T) where T <: Union{Float32, Float64}
 
 Modified Bessel function of the second kind of order one, ``K_1(x)``.
+
+See also: [`besselk0(x)`](@ref Bessels.besselk0), [`besselk1x(x)`](@ref Bessels.besselk1x), [`besselk(nu,x)`](@ref Bessels.besselk))
 """
 function besselk1(x::T) where T <: Union{Float32, Float64}
     x <= zero(T) && return throw(DomainError(x, "`x` must be nonnegative."))
@@ -130,6 +136,8 @@ end
     besselk1x(x::T) where T <: Union{Float32, Float64}
 
 Scaled modified Bessel function of the second kind of order one, ``K_1(x)*e^{x}``.
+
+See also: [`besselk1(x)`](@ref Bessels.besselk1), [`besselk(nu,x)`](@ref Bessels.besselk))
 """
 function besselk1x(x::T) where T <: Union{Float32, Float64}
     x <= zero(T) && return throw(DomainError(x, "`x` must be nonnegative."))
@@ -183,9 +191,40 @@ end
 #
 
 """
-    besselk(x::T) where T <: Union{Float32, Float64}
+    besselk(ν::Real, x::Real)
+    besselk(ν::AbstractRange, x::Real)
 
-Modified Bessel function of the second kind of order nu, ``K_{nu}(x)``.
+Returns the modified Bessel function, ``K_ν(x)``, of the second kind and order `ν`.
+
+```math
+K_{\\nu}(x) = \\frac{\\pi}{2} \\frac{I_{-\\nu}(x) - I_{\\nu}(x)}{\\sin(\\nu \\pi)}
+```
+
+Routine supports single and double precision (e.g., `Float32` or `Float64`) real arguments.
+
+For `ν` isa `AbstractRange`, returns a vector of type `float(x)` using recurrence to compute ``K_ν(x)`` at many orders
+as long as the conditions `ν[1] >= 0` and `step(ν) == 1` are met. Consider the in-place version [`besselk!`](@ref Bessels.besselk!)
+to avoid allocation.
+
+# Examples
+
+```
+julia> besselk(2, 1.5)
+0.5836559632566508
+
+julia> besselk(3.2, 2.5)
+0.3244950563641161
+
+julia> besselk(1:3, 2.5)
+3-element Vector{Float64}:
+ 0.07389081634774707
+ 0.12146020627856384
+ 0.26822714639344925
+```
+
+External links: [DLMF](https://dlmf.nist.gov/10.27.4), [Wikipedia](https://en.wikipedia.org/wiki/Bessel_function#Modified_Bessel_functions:_I%CE%B1,_K%CE%B1)
+
+See also: [`besselk!`](@ref Bessels.besselk!(out, ν, x)), [`besselk0(x)`](@ref Bessels.besselk0), [`besselk1(x)`](@ref Bessels.besselk1), [`besselkx(nu,x)`](@ref Bessels.besselkx))
 """
 besselk(nu, x::Real) = _besselk(nu, float(x))
 
@@ -218,6 +257,26 @@ function _besselk(nu::Integer, x::T) where T <: Union{Float32, Float64}
     end
 end
 
+"""
+    Bessels.besselk!(out::DenseVector{T}, ν::AbstractRange, x::T)
+
+Computes the modified Bessel function, ``K_ν(x)``, of the second kind at many orders `ν` in-place using recurrence.
+The conditions `ν[1] >= 0` and `step(ν) == 1` must be met.
+
+# Examples
+
+```
+julia> nu = 1:3; x = 1.5; out = zeros(typeof(x), length(nu));
+
+julia> Bessels.besselk!(out, nu, x)
+3-element Vector{Float64}:
+ 0.2773878004568438
+ 0.5836559632566508
+ 1.8338037024745792
+```
+
+See also: [`besselk(ν, x)`](@ref Bessels.besselk(ν, x))
+"""
 besselk!(out::DenseVector, nu::AbstractRange, x) = _besselk!(out, nu, float(x))
 
 function _besselk!(out::DenseVector{T}, nu::AbstractRange, x::T) where T

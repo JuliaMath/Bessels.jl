@@ -27,6 +27,8 @@
     besselj0(x::T) where T <: Union{Float32, Float64}
 
 Bessel function of the first kind of order zero, ``J_0(x)``.
+
+See also: [`besselj1(x)`](@ref Bessels.besselj1), [`besselj(nu,x)`](@ref Bessels.besselj))
 """
 besselj0(x::Real) = _besselj0(float(x))
 
@@ -103,6 +105,8 @@ end
     besselj1(x::T) where T <: Union{Float32, Float64}
 
 Bessel function of the first kind of order one, ``J_1(x)``.
+
+See also: [`besselj0(x)`](@ref Bessels.besselj0), [`besselj(nu,x)`](@ref Bessels.besselj))
 """
 besselj1(x::Real) = _besselj1(float(x))
 
@@ -215,10 +219,40 @@ end
 #####
 
 """
-    besselj(nu, x::T) where T <: Union{Float32, Float64}
+    besselj(ν::Real, x::Real)
+    besselj(ν::AbstractRange, x::Real)
 
-Bessel function of the first kind of order nu, ``J_{nu}(x)``.
-nu and x must be real where nu and x can be positive or negative.
+Returns the Bessel function, ``J_ν(x)``, of the first kind and order `ν`.
+
+```math
+J_{\\nu}(x) = \\sum_{m=0}^{\infty} \\frac{(-1)^m}{m!\\Gamma(m+\\nu+1)}(\\frac{x}{2})^{2m+\\nu}
+```
+
+Routine supports single and double precision (e.g., `Float32` or `Float64`) real arguments.
+
+For `ν` isa `AbstractRange`, returns a vector of type `float(x)` using recurrence to compute ``J_ν(x)`` at many orders
+as long as the conditions `ν[1] >= 0` and `step(ν) == 1` are met. Consider the in-place version [`besselj!`](@ref Bessels.besselj!)
+to avoid allocation.
+
+# Examples
+
+```
+julia> besselj(2, 1.5)
+0.2320876721442147
+
+julia> besselj(3.2, 2.5)
+0.17888479721039752
+
+julia> besselj(1:3, 2.5)
+3-element Vector{Float64}:
+ 0.4970941024642743
+ 0.44605905843961735
+ 0.2166003910391135
+```
+
+External links: [DLMF](https://dlmf.nist.gov/10.2.2), [Wikipedia](https://en.wikipedia.org/wiki/Bessel_function#Bessel_functions_of_the_first_kind)
+
+See also: [`besselj!`](@ref Bessels.besselj!(out, ν, x)), [`besselj0(x)`](@ref Bessels.besselj0), [`besselj1(x)`](@ref Bessels.besselj1)
 """
 besselj(nu, x::Real) = _besselj(nu, float(x))
 
@@ -271,6 +305,26 @@ function _besselj(nu::Integer, x::T) where T <: Union{Float32, Float64}
     end
 end
 
+"""
+    Bessels.besselj!(out::DenseVector{T}, ν::AbstractRange, x::T)
+
+Computes the Bessel function, ``j_ν(x)``, of the first kind at many orders `ν` in-place using recurrence.
+The conditions `ν[1] >= 0` and `step(ν) == 1` must be met.
+
+# Examples
+
+```
+julia> nu = 1:3; x = 1.5; out = zeros(typeof(x), length(nu));
+
+julia> Bessels.besselj!(out, nu, x)
+3-element Vector{Float64}:
+ 0.5579365079100995
+ 0.2320876721442147
+ 0.06096395114113963
+```
+
+See also: [`besselj(ν, x)`](@ref Bessels.besselj(ν, x))
+"""
 besselj!(out::DenseVector, nu::AbstractRange, x) = _besselj!(out, nu, float(x))
 
 function _besselj!(out::DenseVector{T}, nu::AbstractVector, x::T) where T <: Union{Float32, Float64}
