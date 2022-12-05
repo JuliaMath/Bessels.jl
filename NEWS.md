@@ -10,6 +10,9 @@ For bug fixes, performance enhancements, or fixes to unexported functions we wil
 
 # Unreleased
 
+### Added
+- Add support for complex numbers in `besseli0`, `besseli1`, `besselj0`, `besselj1` ([PR #68](https://github.com/JuliaMath/Bessels.jl/pull/68))
+
 # Version 0.2.7
 
 ### Added
