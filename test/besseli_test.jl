@@ -118,6 +118,7 @@ end
 # test nu_range
 @test besseli(0:250, 2.0) ≈ SpecialFunctions.besseli.(0:250, 2.0) rtol=1e-13
 @test besseli(0.5:1:10.5, 2.0) ≈ SpecialFunctions.besseli.(0.5:1:10.5, 2.0) rtol=1e-13
+@test besseli(3:4, 1.2) ≈ SpecialFunctions.besseli.(3:4, 1.2)
 @test Bessels.besseli!(zeros(Float64, 10), 1:10, 1.0) ≈ besseli(1:10, 1.0)
 
 ### need to fix method ambiguities for other functions ###### 

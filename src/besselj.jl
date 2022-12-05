@@ -102,7 +102,7 @@ function _besselj0(x::Float32)
 end
 
 """
-    besselj1(x::T) where T <: Union{Float32, Float64}
+    besselj1(x::T) where T <: Union{Float32, Float64, ComplexF32, ComplexF64}
 
 Bessel function of the first kind of order one, ``J_1(x)``.
 
@@ -358,7 +358,7 @@ function _besselj!(out::DenseVector{T}, nu::AbstractVector, x::T) where T <: Uni
             k -= 1
             k < 1 && break
         end
-        if k > 1
+        if k >= 1
             out[k] = _besselj(nu[k], x)
             tmp = @view out[begin:k+1]
             besselj_down_recurrence!(tmp, x, nu[begin:k+1])

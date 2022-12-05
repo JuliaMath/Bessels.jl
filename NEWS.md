@@ -10,8 +10,14 @@ For bug fixes, performance enhancements, or fixes to unexported functions we wil
 
 # Unreleased
 
+# Version 0.2.8
+
 ### Added
 - Add support for complex numbers in `besseli0`, `besseli1`, `besselj0`, `besselj1` ([PR #68](https://github.com/JuliaMath/Bessels.jl/pull/68))
+- Add separate documentation page with API ([PR #69](https://github.com/JuliaMath/Bessels.jl/pull/69)). This currently fails to build see ([Issue #70](https://github.com/JuliaMath/Bessels.jl/issues/70))
+
+### Fixed
+- Fixed wrong return when iterating over a range of `nu` values when `length(nu) == 2` ([PR #71](https://github.com/JuliaMath/Bessels.jl/pull/71))
 
 # Version 0.2.7
 
@@ -34,7 +40,7 @@ For bug fixes, performance enhancements, or fixes to unexported functions we wil
 # Version 0.2.5
 
 ### Fixed
-- Fix bug for very large inputs (x>1e16) in besselj0 and friends routines. A particularly thank you to @jwscook for reporting the bug in ([Issue #53](https://github.com/JuliaMath/Bessels.jl/pull/56)) and providing a very detailed analysis.
+- Fix bug for very large inputs (x>1e16) in besselj0 and friends routines. A particularly thank you to @jwscook for reporting the bug in ([Issue #56](https://github.com/JuliaMath/Bessels.jl/issues/56)) and providing a very detailed analysis.
 
 
 # Version 0.2.4

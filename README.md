@@ -11,7 +11,7 @@ Numerical routines for computing Bessel, Airy, and Hankel functions for real arg
 
 The goal of the library is to provide high quality numerical implementations of Bessel functions with high accuracy without comprimising on computational time. In general, we try to match (and often exceed) the accuracy of other open source routines such as those provided by [SpecialFunctions.jl](https://github.com/JuliaMath/SpecialFunctions.jl). There are instances where we don't quite match that desired accuracy (within a digit or two) but in general will provide implementations that are 5-10x faster (see [benchmarks](https://github.com/JuliaMath/Bessels.jl#benchmarks)).
 
-The library currently supports Bessel functions, modified Bessel functions, Hankel functions, spherical Bessel functions, and Airy functions of the first and second kind for positive real arguments and integer and noninteger orders. Negative arguments are also supported only if the return value is real. We plan to support complex arguments in the future. An unexported gamma function is also provided.
+The library currently supports Bessel functions, modified Bessel functions, Hankel functions, spherical Bessel functions, and Airy functions of the first and second kind for positive real arguments and integer and noninteger orders. Negative arguments are also supported only if the return value is real. [Limited support](https://github.com/JuliaMath/Bessels.jl#complex-numbers) is provided for complex arguments. An unexported gamma function is also provided.
 
 # Quick start
 
@@ -151,6 +151,10 @@ This function will allocate so it is recommended that you calculate the Bessel f
 a = zeros(10)
 out = Bessels.besselj!(a, 1:10, 1.0)
 ```
+
+### Complex numbers
+
+Support for complex numbers is only provided for the Airy functions (`airyai`, `airyaiprime`, `airybi`, `airybiprime`) and the Bessel functions of the first kind with orders 0 and 1 (`besselj0`, `besselj1`, `besseli0`, `besseli1`).
 
 ### Support for negative arguments
 
