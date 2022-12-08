@@ -1,7 +1,7 @@
 # Bessels.jl
-[![Build Status](https://github.com/heltonmc/Bessels.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/heltonmc/Bessels.jl/actions/workflows/CI.yml?query=branch%3Amaster)
+[![Build Status](https://github.com/JuliaMath/Bessels.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/JuliaMath/Bessels.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliamath.github.io/Bessels.jl/stable)
-[![Coverage](https://codecov.io/gh/heltonmc/Bessels.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/heltonmc/Bessels.jl)
+[![Coverage](https://codecov.io/gh/JuliaMath/Bessels.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaMath/Bessels.jl)
 
 [![version](https://juliahub.com/docs/Bessels/version.svg)](https://juliahub.com/ui/Packages/Bessels/29L49)
 [![deps](https://juliahub.com/docs/Bessels/deps.svg)](https://juliahub.com/ui/Packages/Bessels/29L49?t=2)
