@@ -90,7 +90,7 @@ function besseli0x(x::T) where T <: Union{Float32, Float64}
 end
 
 """
-    besseli1(x::T) where T <: Union{Float32, Float64}
+    besseli1(x::T) where T <: Union{Float32, Float64, ComplexF32, ComplexF64}
 
 Modified Bessel function of the first kind of order one, ``I_1(x)``.
 
@@ -489,7 +489,7 @@ function _besseli!(out::DenseVector{T}, nu::AbstractRange, x::T) where T
         k -= 1
         k < 1 && break
     end
-    if k > 1
+    if k >= 1
         out[k] = _besseli(nu[k], x)
         tmp = @view out[begin:k+1]
         besselk_down_recurrence!(tmp, x, nu[begin:k+1])
