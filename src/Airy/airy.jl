@@ -103,15 +103,19 @@ function airyai_large_neg_arg(x::T) where T <: Float64
     xabs = abs(x)
     xsqr = sqrt(xabs)
     xsqrx = xabs * xsqr
-    scale = cis(-2 * xsqrx / 3)
-    a = muladd(im / xsqrx, q, p) * scale
-    c = muladd(im / xsqrx, q1, p1) * scale
+    z = -2 * xsqrx / 3
 
-    xsqr = sqrt(xsqr * 0.5)
-    cxsqr = complex(xsqr, xsqr) # sqrt(im*xsqr)
+    # must compute spc = sin(z) + cos(z) & smc = sin(z) - cos(z)
+    # use sin(x) +- cos(x) = -cos(2x) / (sin(x) -+ cos(x)) to reduce cancellation
+    _s, _c = sincos(z)
+    spc = -cos(2z) / (_s - _c)
+    smc = -cos(2z) / (_s + _c)
+    a = p * smc + q / xsqrx * spc
+    c = p1 * spc - q1 / xsqrx * smc
 
-    ai = 2*real(a*im / (PIPOW3O2(T) * cxsqr))
-    aip = -2*real(c*im * cxsqr / PIPOW3O2(T))
+    xsqr = sqrt(0.5) * sqrt(xsqr)
+    ai = -a / (xsqr * PIPOW3O2(T))
+    aip = 2 / PIPOW3O2(T) * xsqr * c
     return ai, aip
 end
 
