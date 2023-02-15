@@ -87,8 +87,8 @@ function airyaix_large_pos_arg(x::T) where T <: Float64
         q = evalpoly(zinv, (1.00000000000000000470e0, 1.40959135607834029598e1, 7.14778400825575695274e1, 1.64234692871529701831e2, 1.77318088145400459522e2, 8.45138970141474626562e1, 1.47562562584847203173e1, 5.67594532638770212846e-1))
         p1 = evalpoly(zinv, (1.00000000000000000550e0, 1.39470856980481566958e1, 6.99778599330103016170e1, 1.59317847137141783523e2, 1.71184781360976385540e2, 8.20584123476060982430e1, 1.47454670787755323881e1, 6.13759184814035759225e-1))
         q1 = evalpoly(zinv, (9.99999999999999994502e-1, 1.38498634758259442477e1, 6.86752304592780337944e1, 1.53206427475809220834e2, 1.58778084372838313640e2, 7.11727352147859965283e1, 1.11810297306158156705e1, 3.34203677749736953049e-1))
-        ai = ONEOSQPI(T) * p / (q * 2 * xsqr)
-        aip = -0.5 * ONEOSQPI(T) * xsqr * p1 / q1
+        ai = (ONEOSQPI(T)/2) * p / (q * xsqr)
+        aip = -(ONEOSQPI(T)/2)* xsqr * p1 / q1
         return ai, aip
     end
 end
@@ -259,15 +259,19 @@ function airybi_large_neg_arg(x::T) where T <: Float64
     xabs = abs(x)
     xsqr = sqrt(xabs)
     xsqrx = xabs * xsqr
-    scale = cis(2 * x * xsqr / 3)
-    b = muladd(im / xsqrx, p1, p) * scale
-    d = muladd(im / xsqrx, q1, q) * scale
+    z = 2 * xsqrx / 3
 
-    xsqr = sqrt(xsqr * 0.5)
-    cxsqr = complex(xsqr, xsqr) # sqrt(im*xsqr)
+    # must compute spc = sin(z) + cos(z) & smc = sin(z) - cos(z)
+    # use sin(x) +- cos(x) = -cos(2x) / (sin(x) -+ cos(x)) to reduce cancellation
+    s, c = sincos(z)
+    spc = -cos(2z) / (s - c)
+    smc = -cos(2z) / (s + c)
+    b = p1 * spc / xsqrx - p * smc
+    d = q * spc + q1 * smc / xsqrx
 
-    bi = 2*real(b / (cxsqr * PIPOW3O2(T)))
-    bip = -2*real(cxsqr * d / PIPOW3O2(T))
+    xsqr = sqrt(0.5) * sqrt(xsqr)
+    bi = b / (xsqr * PIPOW3O2(T))
+    bip = -2 / PIPOW3O2(T) * d * xsqr
     return bi, bip
 end
 
