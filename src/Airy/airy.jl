@@ -9,7 +9,12 @@ function airyai(x::Float64)
         return exp(-2/3 * x * sqrt(x)) * airyaix_large_pos_arg(x)[1]
     else
         if x <= -9.8
-            return airyai_large_neg_arg(x)[1]
+            if x >= -1e8
+                return airyai_large_neg_arg(x)[1]
+            else
+                isinf(x) && return 0.0
+                throw(DomainError(x, "Total loss of significant digits for large negative arguments. Requires a higher precision routine."))
+            end
         else
             return airyai_small_arg(x)
         end
@@ -34,10 +39,15 @@ end
 
 function airyaiprime(x::Float64)
     if x >= 2.06
+        isinf(x) && return 0.0
         return exp(-2/3 * x * sqrt(x)) * airyaix_large_pos_arg(x)[2]
     else
         if x <= -9.5
-            return airyai_large_neg_arg(x)[2]
+            if x >= -1e8
+                return airyai_large_neg_arg(x)[2]
+            else
+                throw(DomainError(x, "Total loss of significant digits for large negative arguments. Requires a higher precision routine."))
+            end
         else
             return airyaiprime_small_arg(x)
         end
@@ -75,7 +85,6 @@ function airyaix_large_pos_arg(x::T) where T <: Float64
         a = muladd(xsqrx, -q, p)
         c = muladd(xsqrx, -q1, p1)
         xsqr = sqrt(xsqr)
-        
         ai = a / (PIPOW3O2(T) * xsqr)
         aip = c * xsqr * inv(PIPOW3O2(T))
         return ai, aip
@@ -105,17 +114,16 @@ function airyai_large_neg_arg(x::T) where T <: Float64
     xsqrx = xabs * xsqr
     z = -2 * xsqrx / 3
 
-    # must compute spc = sin(z) + cos(z) & smc = sin(z) - cos(z)
-    # use sin(x) +- cos(x) = -cos(2x) / (sin(x) -+ cos(x)) to reduce cancellation
-    _s, _c = sincos(z)
-    spc = -cos(2z) / (_s - _c)
-    smc = -cos(2z) / (_s + _c)
-    a = p * smc + q / xsqrx * spc
-    c = p1 * spc - q1 / xsqrx * smc
+    # spc = sin(z) + cos(z) = sqrt(2) * sin(z + pi/4)
+    # smc = sin(z) - cos(z) = -sqrt(2) * cos(z + pi/4)
+    # prone to error for large arguments
+    spc, smc = sincos(mod2pi(z) + π/4)
+    a = -p * smc + q / xsqrx * spc
+    c = p1 * spc + q1 / xsqrx * smc
 
-    xsqr = sqrt(0.5) * sqrt(xsqr)
-    ai = -a / (xsqr * PIPOW3O2(T))
-    aip = 2 / PIPOW3O2(T) * xsqr * c
+    xsqr = sqrt(xsqr)
+    ai = -2 * a / (xsqr * PIPOW3O2(T))
+    aip = (2/PIPOW3O2(T)) * xsqr * c
     return ai, aip
 end
 
@@ -179,7 +187,12 @@ function airybi(x::Float64)
     elseif x > -10.0
         return airybi_small_arg(x)
     else
-        return airybi_large_neg_arg(x)[1]
+        if x >= -1e8
+            return airybi_large_neg_arg(x)[1]
+        else
+            isinf(x) && return 0.0
+            throw(DomainError(x, "Total loss of significant digits for large negative arguments. Requires a higher precision routine."))
+        end
     end
 end
 
@@ -196,8 +209,13 @@ function airybix(x::Float64)
         x >= 0.0 ? (c = exp(-2 * x * sqrt(x) / 3)) : (c = 1.0)
         return airybi_small_arg(x) * c
     else
-        isnan(x) && return x
-        return airybi_large_neg_arg(x)[1]
+        if x >= -1e8
+            return airybi_large_neg_arg(x)[1]
+        else
+            isnan(x) && return x
+            isinf(x) && return 0.0
+            throw(DomainError(x, "Total loss of significant digits for large negative arguments. Requires a higher precision routine."))
+        end
     end
 end
 
@@ -214,7 +232,12 @@ function airybiprime(x::Float64)
     elseif x > -10.0
         return airybiprime_small_arg(x)
     else
-        return airybi_large_neg_arg(x)[2]
+        if x >= -1e8
+            return airybi_large_neg_arg(x)[2]
+        else
+            isnan(x) && return x
+            throw(DomainError(x, "Total loss of significant digits for large negative arguments. Requires a higher precision routine."))
+        end
     end
 end
 
@@ -231,8 +254,12 @@ function airybiprimex(x::Float64)
         x >= 0.0 ? (c = exp(-2 * x * sqrt(x) / 3)) : (c = 1.0)
         return airybiprime_small_arg(x) * c
     else
-        isnan(x) && return x
-        return airybi_large_neg_arg(x)[2]
+        if x >= -1e8
+            return airybi_large_neg_arg(x)[2]
+        else
+            isnan(x) && return x
+            throw(DomainError(x, "Total loss of significant digits for large negative arguments. Requires a higher precision routine."))
+        end
     end
 end
 
@@ -265,17 +292,16 @@ function airybi_large_neg_arg(x::T) where T <: Float64
     xsqrx = xabs * xsqr
     z = 2 * xsqrx / 3
 
-    # must compute spc = sin(z) + cos(z) & smc = sin(z) - cos(z)
-    # use sin(x) +- cos(x) = -cos(2x) / (sin(x) -+ cos(x)) to reduce cancellation
-    s, c = sincos(z)
-    spc = -cos(2z) / (s - c)
-    smc = -cos(2z) / (s + c)
-    b = p1 * spc / xsqrx - p * smc
-    d = q * spc + q1 * smc / xsqrx
+    # spc = sin(z) + cos(z) = sqrt(2) * sin(z + pi/4)
+    # smc = sin(z) - cos(z) = -sqrt(2) * cos(z + pi/4)
+    # prone to error for large arguments
+    spc, smc = sincos(mod2pi(z) + π/4)
+    b = p1 * spc / xsqrx + p * smc
+    d = q * spc - q1 * smc / xsqrx
 
-    xsqr = sqrt(0.5) * sqrt(xsqr)
-    bi = b / (xsqr * PIPOW3O2(T))
-    bip = -2 / PIPOW3O2(T) * d * xsqr
+    xsqr = sqrt(xsqr)
+    bi = 2 * b / (xsqr * PIPOW3O2(T))
+    bip = -(2 / PIPOW3O2(T)) * d * xsqr
     return bi, bip
 end
 
