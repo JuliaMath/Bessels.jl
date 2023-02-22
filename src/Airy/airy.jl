@@ -97,7 +97,7 @@ function airyaix_large_pos_arg(x::T) where T <: Float64
         p1 = evalpoly(zinv, (1.00000000000000000550e0, 1.39470856980481566958e1, 6.99778599330103016170e1, 1.59317847137141783523e2, 1.71184781360976385540e2, 8.20584123476060982430e1, 1.47454670787755323881e1, 6.13759184814035759225e-1))
         q1 = evalpoly(zinv, (9.99999999999999994502e-1, 1.38498634758259442477e1, 6.86752304592780337944e1, 1.53206427475809220834e2, 1.58778084372838313640e2, 7.11727352147859965283e1, 1.11810297306158156705e1, 3.34203677749736953049e-1))
         ai = (ONEOSQPI(T)/2) * p / (q * xsqr)
-        aip = -(ONEOSQPI(T)/2)* xsqr * p1 / q1
+        aip = -(ONEOSQPI(T)/2) * xsqr * p1 / q1
         return ai, aip
     end
 end
@@ -122,8 +122,8 @@ function airyai_large_neg_arg(x::T) where T <: Float64
     c = p1 * spc + q1 / xsqrx * smc
 
     xsqr = sqrt(xsqr)
-    ai = -2 * a / (xsqr * PIPOW3O2(T))
-    aip = (2/PIPOW3O2(T)) * xsqr * c
+    ai = -2/PIPOW3O2(T) * a / xsqr
+    aip = 2/PIPOW3O2(T) * c * xsqr
     return ai, aip
 end
 
@@ -273,9 +273,9 @@ function airybix_large_pos_arg(x::T) where T <: Float64
     xsqr = sqrt(x)
     xsqrx = 1 / (x * xsqr)
     xsqr = sqrt(xsqr)
-    bi = muladd(xsqrx, p1, p) / (xsqr * PIPOW3O2(T))
-    bip = xsqr * muladd(xsqrx, q1, q) / PIPOW3O2(T)
-    return 2*bi, -2*bip
+    bi = 2/PIPOW3O2(T) * muladd(xsqrx, p1, p) / xsqr
+    bip = -2/PIPOW3O2(T) * muladd(xsqrx, q1, q) * xsqr
+    return bi, bip
 end
 
 # scaled factor is exp(-|2/3 Re(z^(3/2))|)
@@ -300,8 +300,8 @@ function airybi_large_neg_arg(x::T) where T <: Float64
     d = q * spc - q1 * smc / xsqrx
 
     xsqr = sqrt(xsqr)
-    bi = 2 * b / (xsqr * PIPOW3O2(T))
-    bip = -(2 / PIPOW3O2(T)) * d * xsqr
+    bi = 2/PIPOW3O2(T) * b / xsqr
+    bip = -2/PIPOW3O2(T) * d * xsqr
     return bi, bip
 end
 
