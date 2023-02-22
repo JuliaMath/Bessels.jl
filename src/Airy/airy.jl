@@ -1,6 +1,35 @@
-#######
-####### Real arguments
-#######
+#                           Airy functions
+#
+#                       airyai(x), airybi(x)
+#                       airyaix(x), airybix(x)
+#                   airyaiprime(x), airybiprime(x)
+#                   airyaiprimex(x), airybiprimex(x)
+#
+#    Routines for computing Airy functions, their derivatives, and scaled versions for real arguments.
+#    These routines are loosely based on the methods reported in [1] using their asymptotic expansions.
+#    Asymptotic coefficiens have been explicitly calculated and unrolled to desired amount of coefficients.
+#    For negative arguments, Euler's equation was used to avoid complex arithmetic using the forms given in [1].
+#    Where asymptotic expansions are not valid (≈|x|<10), taylor series are used.
+#    The airy functions are oscillatory for negative arguments and exponential for positive arguments.
+#    Taylor series are used around the zeros of the Airy function's for negative arguments to preserve accuracy.
+#    These were generated in Mathematica using the form `InputForm[Series[AiryAi[x], {x, 2.0, 33}]]`.
+#    The scaled versions were also calculated with `InputForm[Series[AiryBiPrime[x] * Exp[-2 x^(3/2) / 3] * x^(1/4), {x, 7.000000000000000000000, 42}]]`.
+#    Higher precisions coefficients were generated then rounded to Float64. The one caveat is the generation of the Taylor series
+#    around function zeros. The accuracy of the routine was compared to Arb accessed through ArbNumerics.jl.
+#    The roots of the Airy function were calculated in high precision then rounded to Float64 and then converted to an Arb numbers
+#    with ArbNumerics.ArbFloat(root) which was the value used for the Taylor series in high precision.
+#    The routine also uses rational function approximations from the Cephes library [2] for the airyai and airyaiprime routines.
+#    There was a small bug reported with these approximations [3] that caused SciPy to switch back to the amos expansions.
+#    This bug was investigated but couldn't reproduce, however, the default precision in the Arb library must be increased to give correct results.
+#    The switch from the rational approximation back to the asymptotic expansions for very large arguments (x>1e3) was for better handling of infinite
+#    and very large arguments while being faster by avoiding the division.
+#
+#
+# [1] Jentschura, Ulrich David, and E. Lötstedt. "Numerical calculation of Bessel, Hankel and Airy functions." 
+#     Computer Physics Communications 183.3 (2012): 506-519.
+# [2] Cephes Math Library Release 2.8:  June, 2000
+#     Copyright 1984, 1987, 1989, 2000 by Stephen L. Moshier
+# [3] https://github.com/scipy/scipy/pull/502
 
 # airyai & airyaix
 
@@ -74,6 +103,7 @@ end
 
 function airyaix_large_pos_arg(x::T) where T <: Float64
     if x > 1000.0
+        # asymptotic expansion
         invx3 = 1 / (x * x * x)
         p = evalpoly(invx3, (1.5707963267948966, 0.13124057851910487, 0.4584353787485384))
         q = evalpoly(invx3, (0.1636246173744684, 0.20141783231057064, 1.3848568733028765))
@@ -89,6 +119,7 @@ function airyaix_large_pos_arg(x::T) where T <: Float64
         aip = c * xsqr * inv(PIPOW3O2(T))
         return ai, aip
     else
+        # rational approximation from cephes
         xsqr = sqrt(x)
         zinv = 3 / (2 * x * xsqr)
         xsqr = sqrt(xsqr)
