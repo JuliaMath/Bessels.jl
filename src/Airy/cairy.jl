@@ -1,7 +1,7 @@
 #                           Airy functions
 #
-#                       airyai(z), airybi(nu, z)
-#                   airyaiprime(z), airybiprime(nu, z)
+#                       airyai(z), airybi(z)
+#                   airyaiprime(z), airybiprime(z)
 #
 #    A numerical routine to compute the airy functions and their derivatives in the entire complex plane.
 #    These routines are based on the methods reported in [1] which use a combination of the power series

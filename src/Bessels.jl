@@ -30,9 +30,13 @@ export hankelh1
 export hankelh2
 
 export airyai
+export airyaix
 export airyaiprime
+export airyaiprimex
 export airybi
+export airybix
 export airybiprime
+export airybiprimex
 
 const ComplexOrReal{T} = Union{T,Complex{T}}
 

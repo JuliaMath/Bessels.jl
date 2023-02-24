@@ -2,63 +2,45 @@
 # these are prone to some cancellation as they are indirectly calculated from relations to bessel functions
 # this is amplified for negative arguments
 
-function arb_airyaix(x)
-    x = ArbNumerics.ArbFloat(x)
-    return Float64(ArbNumerics.airyai(x) * exp(2 * x * sqrt(x) / 3))
-end
-function arb_airyaiprimex(x)
-    x = ArbNumerics.ArbFloat(x)
-    return Float64(ArbNumerics.airyaiprime(x) * exp(2 * x * sqrt(x) / 3))
-end
-function arb_airyai(x)
-    x = ArbNumerics.ArbFloat(x)
-    return Float64(ArbNumerics.airyai(x))
-end
-function arb_airyaiprime(x)
-    x = ArbNumerics.ArbFloat(x)
-    return Float64(ArbNumerics.airyaiprime(x))
-end
-function arb_airybi(x)
-    x = ArbNumerics.ArbFloat(x)
-    return Float64(ArbNumerics.airybi(x))
-end
-function arb_airybiprime(x)
-    x = ArbNumerics.ArbFloat(x)
-    return Float64(ArbNumerics.airybiprime(x))
-end
-function arb_airybix(x)
-    x = ArbNumerics.ArbFloat(x)
-    return Float64(ArbNumerics.airybi(x) * exp(-2 * x * sqrt(complex(x)) / 3))
-end
-function arb_airybiprimex(x)
-    x = ArbNumerics.ArbFloat(x)
-    return Float64(ArbNumerics.airybiprime(x) * exp(-2 * x * sqrt(complex(x)) / 3))
+# test Float64 for positive arguments
+for line in eachline("data/airy/airy_positive_args.csv")
+    x, aix, aiprimex, bix, biprimex = parse.(Float64, split(line))
+    @test isapprox(airyaix(x), aix, rtol=4.4e-16)
+    @test isapprox(airybix(x), bix, rtol=5.5e-16)
+    @test isapprox(airyaiprimex(x), aiprimex, rtol=4.4e-16)
+    @test isapprox(airybiprimex(x), biprimex, rtol=5.9e-16)
+    if x < 105.0
+        x_big = BigFloat(x)
+        scale = exp(-2 * sqrt(x) * x / 3)
+        if x < 2.0
+            tol = 5e-16
+        else
+            tol = 2.6e-16 * sqrt(x) * x
+        end
+        @test isapprox(airyai(x), aix * scale, rtol=tol)
+        @test isapprox(airybi(x), bix / scale, rtol=tol)
+        @test isapprox(airyaiprime(x), aiprimex * scale, rtol=tol)
+        @test isapprox(airybiprime(x), biprimex / scale, rtol=tol)
+    end
 end
 
-x = rand(10000)*105.0
-for _x in x
-    @show _x
-    @test isapprox(airyai(_x), arb_airyai(_x), rtol=5e-13)
-    @test isapprox(airyaiprime(_x), arb_airyaiprime(_x), rtol=6e-13)
-    @test isapprox(airyai(-_x), arb_airyai(-_x), atol=5e-14)
-    @test isapprox(airyaiprime(-_x), arb_airyaiprime(-_x), rtol=5e-11, atol=1e-13)
-
-
-    @test isapprox(Bessels.airyaix(_x), arb_airyaix(_x), rtol=8e-16)
-    @test isapprox(Bessels.airyaiprimex(_x), arb_airyaiprimex(_x), rtol=8e-16)
-
-
-    @test isapprox(airybi(_x), arb_airybi(_x), rtol=5e-13)
-    @test isapprox(airybiprime(_x), arb_airybiprime(_x), rtol=5e-13)
-
-    @test isapprox(airybi(-_x), arb_airybi(-_x), atol=4e-14)
-    @test isapprox(airybiprime(-_x), arb_airybiprime(-_x), rtol=8e-11, atol=4e-14)
-
-    @test isapprox(Bessels.airybix(_x), arb_airybix(_x), rtol=4e-15)
-    @test isapprox(Bessels.airybiprimex(_x), arb_airybiprimex(_x), rtol=4e-15, atol=5e-14)
-
-    @test isapprox(Bessels.airybix(-_x), arb_airybi(-_x), atol=8e-14) # scaled should be same for neg args
-
+# test Float64 for negative arguments
+for line in eachline("data/airy/airy_negative_args.csv")
+    x, ai, aiprime, bi, biprime = parse.(Float64, split(line))
+    if x >= -9.5
+        tol = 2.4e-16
+        @test isapprox(airyai(x), ai, rtol=tol)
+        @test isapprox(airybi(x), bi, rtol=tol)
+        @test isapprox(airyaiprime(x), aiprime, rtol=tol)
+        @test isapprox(airybiprime(x), biprime, rtol=tol)
+    elseif x >= -1e8
+        tol = 0.8e-16 * abs(x)^(5/4)
+        tol2 = 0.8e-16 * abs(x)^(7/4)
+        @test isapprox(airyai(x), ai, atol=tol)
+        @test isapprox(airybi(x), bi, atol=tol)
+        @test isapprox(airyaiprime(x), aiprime, atol=tol2)
+        @test isapprox(airybiprime(x), biprime, atol=tol2)
+    end
 end
 
 #=
