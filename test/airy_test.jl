@@ -12,11 +12,11 @@ for line in eachline("data/airy/airy_positive_args.csv")
     @test isapprox(airybiprimex(x), biprimex, rtol=5.9e-16)
     if x < 105.0
         x_big = BigFloat(x)
-        scale = exp(-2 * sqrt(x) * x / 3)
+        scale = exp(-2 * sqrt(x_big) * x_big / 3)
         if x < 2.0
-            tol = 5e-16
+            tol = 4e-16
         else
-            tol = 2.6e-16 * sqrt(x) * x
+            tol = 2.4e-16 * sqrt(x) * x
         end
         @test isapprox(airyai(x), aix * scale, rtol=tol)
         @test isapprox(airybi(x), bix / scale, rtol=tol)
@@ -73,6 +73,7 @@ end
 @test airyai(-Inf) === 0.0
 # @test airyaiprime(-Inf) === Nan # value is indeterminate
 @test airybi(-Inf) === 0.0
+@test airybix(-Inf) === 0.0
 # @test airybiprime(-Inf) === Nan # value is indeterminate
 
 @test airyai(Inf + 0.0im) === exp(-(Inf + 0.0im))
