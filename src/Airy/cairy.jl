@@ -48,7 +48,6 @@ See also: [`airyaiprime`](@ref), [`airybi`](@ref)
 """
 airyai(z::Number) = _airyai(float(z))
 
-_airyai(x::Float16) = Float16(_airyai(Float32(x)))
 _airyai(z::ComplexF16) = ComplexF16(_airyai(ComplexF32(z)))
 
 function _airyai(z::Complex{T}) where T <: Union{Float32, Float64}
@@ -106,7 +105,6 @@ See also: [`airyai`](@ref), [`airybi`](@ref)
 """
 airyaiprime(z::Number) = _airyaiprime(float(z))
 
-_airyaiprime(x::Float16) = Float16(_airyaiprime(Float32(x)))
 _airyaiprime(z::ComplexF16) = ComplexF16(_airyaiprime(ComplexF32(z)))
 
 function _airyaiprime(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
@@ -164,7 +162,6 @@ See also: [`airybiprime`](@ref), [`airyai`](@ref)
 """
 airybi(z::Number) = _airybi(float(z))
 
-_airybi(x::Float16) = Float16(_airybi(Float32(x)))
 _airybi(z::ComplexF16) = ComplexF16(_airybi(ComplexF32(z)))
 
 function _airybi(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
@@ -224,7 +221,6 @@ See also: [`airybi`](@ref), [`airyai`](@ref)
 """
 airybiprime(z::Number) = _airybiprime(float(z))
 
-_airybiprime(x::Float16) = Float16(_airybiprime(Float32(x)))
 _airybiprime(z::ComplexF16) = ComplexF16(_airybiprime(ComplexF32(z)))
 
 function _airybiprime(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}

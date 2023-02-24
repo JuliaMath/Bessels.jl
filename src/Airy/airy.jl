@@ -209,6 +209,7 @@ function airybi(x::Float64)
     if x >= 4.0
         c = exp(x * sqrt(x) / 3)
         if x > 10.0
+            isinf(x) && return x
             return  (c * airybix_large_pos_arg(x)[1]) * c
         else
             # taylor expansion
@@ -221,6 +222,7 @@ function airybi(x::Float64)
         if x >= -1e8
             return airybi_large_neg_arg(x)[1]
         else
+            isnan(x) && return NaN
             isinf(x) && return 0.0
             throw(DomainError(x, "Total loss of significant digits for large negative arguments. Requires a higher precision routine."))
         end
@@ -381,4 +383,10 @@ function airybiprime_small_arg(x::T) where T <: Float64
         p = evalpoly(x + 9.01958335879424, (1.4408236312418457e-15, -2.935962201853191, 0.1627548682163053, 4.413525969647323, -0.4893270336421936, -1.9795579449241065, 0.3310144477235477, 0.411133225177042, -0.09455529773724823, -0.04624928014006227, 0.014615269647565455, 0.0028371617779749344, -0.0013840746291783367, -6.183388868085215e-5, 8.548004625717443e-5, -4.442028547574055e-6, -3.4885208239390457e-6, 4.82514569024414e-7, 8.740310143336716e-8, -2.3525755287654844e-8, -7.34259540066286e-10, 7.242756561007131e-10, -3.9132744422986586e-11, -1.4430610543508328e-11, 2.0111563898805826e-12, 1.4887321103652866e-13, -5.1033351829108886e-14))
     end
     return p
+end
+
+# Support for Float32 and Float16
+# based on code from https://github.com/JuliaMath/SpecialFunctions.jl
+for internalf in (:airyai, :airyaix, :airyaiprime, :airyaiprimex, :airybi, :airybix, :airybiprime, :airybiprimex), T in (:Float16, :Float32)
+    @eval $internalf(x::$T) = $T($internalf(Float64(x)))
 end
