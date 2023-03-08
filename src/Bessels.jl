@@ -60,6 +60,8 @@ include("Polynomials/besselj_polys.jl")
 include("asymptotics.jl")
 include("gamma.jl")
 
+include("SIMDMath/SIMDMath.jl")
+
 precompile(besselj, (Float64, Float64))
 
 end
