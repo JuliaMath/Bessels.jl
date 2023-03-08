@@ -26,6 +26,11 @@ const CVec{N, FloatTypes} = NTuple{2, LVec{N, FloatTypes}}
 const ScalarTypes = Union{VE{FloatTypes}, FloatTypes}
 const SIMDLanes = Union{LVec{2, Float64}, LVec{4, Float64}, LVec{8, Float64}}
 
+const LLVMType = Dict{DataType, String}(
+    Float32      => "float",
+    Float64      => "double",
+)
+
 include("arithmetic.jl")
 include("shufflevector.jl")
 include("horner.jl")

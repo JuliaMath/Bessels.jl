@@ -10,35 +10,13 @@ import Base: muladd
 
 # muladd llvm instructions
 
-@inline function _muladd(x::LVec{2, Float64}, y::LVec{2, Float64}, z::LVec{2, Float64})
-    llvmcall("""%4 = fmul contract <2 x double> %0, %1
-                %5 = fadd contract <2 x double> %4, %2
-                ret <2 x double> %5""",
-        LVec{2, Float64},
-        Tuple{LVec{2, Float64}, LVec{2, Float64}, LVec{2, Float64}},
-        x,
-        y,
-        z)
-end
-
-@inline function _muladd(x::LVec{4, Float64}, y::LVec{4, Float64}, z::LVec{4, Float64})
-    llvmcall("""%4 = fmul contract <4 x double> %0, %1
-                %5 = fadd contract <4 x double> %4, %2
-                ret <4 x double> %5""",
-        LVec{4, Float64},
-        Tuple{LVec{4, Float64}, LVec{4, Float64}, LVec{4, Float64}},
-        x,
-        y,
-        z)
-end
-
-@inline function _muladd(x::LVec{8, Float64}, y::LVec{8, Float64}, z::LVec{8, Float64})
-    llvmcall("""%4 = fmul contract <8 x double> %0, %1
-                %5 = fadd contract <8 x double> %4, %2
-                ret <8 x double> %5""",
-        LVec{8, Float64},
-        Tuple{LVec{8, Float64}, LVec{8, Float64}, LVec{8, Float64}},
-        x,
-        y,
-        z)
+@generated function _muladd(x::LVec{N, T}, y::LVec{N, T}, z::LVec{N, T}) where {N, T <: FloatTypes}
+    s = """
+        %4 = fmul contract <$N x $(LLVMType[T])> %0, %1
+        %5 = fadd contract <$N x $(LLVMType[T])> %4, %2
+        ret <$N x $(LLVMType[T])> %5
+        """
+    return :(
+        llvmcall($s, LVec{N, T}, Tuple{LVec{N, T}, LVec{N, T}, LVec{N, T}}, x, y, z)
+        )
 end
