@@ -16,7 +16,7 @@ export horner, horner2, horner4, horner8
 export pack_horner2, pack_horner4, pack_horner8
 
 const VE = Base.VecElement
-const FloatTypes = Union{Float32, Float64}
+const FloatTypes = Union{Float16, Float32, Float64}
 const LVec{N, FloatTypes} = NTuple{N, VE{FloatTypes}}
 
 ## maybe have a complex type stored as a pack or real and complex values separately
@@ -27,8 +27,9 @@ const ScalarTypes = Union{VE{FloatTypes}, FloatTypes}
 const SIMDLanes = Union{LVec{2, Float64}, LVec{4, Float64}, LVec{8, Float64}}
 
 const LLVMType = Dict{DataType, String}(
-    Float32      => "float",
-    Float64      => "double",
+    Float16  => "half",
+    Float32  => "float",
+    Float64  => "double",
 )
 
 include("arithmetic.jl")

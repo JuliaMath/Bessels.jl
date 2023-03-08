@@ -10,7 +10,7 @@ import Base: muladd
 
 # muladd llvm instructions
 
-@generated function _muladd(x::LVec{N, T}, y::LVec{N, T}, z::LVec{N, T}) where {N, T <: FloatTypes}
+@inline @generated function _muladd(x::LVec{N, T}, y::LVec{N, T}, z::LVec{N, T}) where {N, T <: FloatTypes}
     s = """
         %4 = fmul contract <$N x $(LLVMType[T])> %0, %1
         %5 = fadd contract <$N x $(LLVMType[T])> %4, %2
