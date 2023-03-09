@@ -18,13 +18,7 @@ export pack_horner2, pack_horner4, pack_horner8
 const VE = Base.VecElement
 const FloatTypes = Union{Float16, Float32, Float64}
 const LVec{N, FloatTypes} = NTuple{N, VE{FloatTypes}}
-
-## maybe have a complex type stored as a pack or real and complex values separately
-const CVec{N, FloatTypes} = NTuple{2, LVec{N, FloatTypes}}
-# CVec{2, Float64}((LVec{2, Float64}((1.1, 1.2)), LVec{2, Float64}((1.5, 1.0))))
-
 const ScalarTypes = Union{VE{FloatTypes}, FloatTypes}
-const SIMDLanes = Union{LVec{2, Float64}, LVec{4, Float64}, LVec{8, Float64}}
 
 const LLVMType = Dict{DataType, String}(
     Float16  => "half",
@@ -33,7 +27,6 @@ const LLVMType = Dict{DataType, String}(
 )
 
 include("arithmetic.jl")
-include("shufflevector.jl")
 include("horner.jl")
 
 end
