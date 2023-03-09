@@ -59,22 +59,52 @@ julia> @btime test_simd(x) setup=(x=rand()*2)
 
 ### Case 2: Evaluating a single polynomial.
 
-In some cases, we are interested in improving the performance when evaluating a single polynomial of larger degree. Horner's scheme is latency bound and for large polynomials (N>10) this can become a large part of the total runtime. In this case we are aiming to improve the performance of the following structure.
+In some cases, we are interested in improving the performance when evaluating a single polynomial of larger degree. Horner's scheme is latency bound and for large polynomials (N>10) this can become a large part of the total runtime. We can test the performance of using a straight Horner scheme using the Base library function `evalpoly` against the higher order Horner schemes.
 ```julia
-const P4 =  ntuple(n -> rand()*(-1)^n / n, 4)
-const P8 =  ntuple(n -> rand()*(-1)^n / n, 8)
-const P16 =  ntuple(n -> rand()*(-1)^n / n, 16)
-const P32 =  ntuple(n -> rand()*(-1)^n / n, 32)
-const P64 =  ntuple(n -> rand()*(-1)^n / n, 64)
+let
+    horner_times = []
+    horner2_times = []
+    horner4_times = []
+    horner8_times = []
 
-@btime evalpoly(x, P4) setup=(x=rand())
-@btime evalpoly(x, P8) setup=(x=rand())
-@btime evalpoly(x, P16) setup=(x=rand())
-@btime evalpoly(x, P32) setup=(x=rand())
-@btime evalpoly(x, P64) setup=(x=rand())
+    for N in [4, 8, 12, 16, 24, 48, 96, 198]
+        poly = ntuple(n -> rand()*(-1)^n / n, N)
+        poly_packed2 = pack_horner2(poly)
+        poly_packed4 = pack_horner4(poly)
+        poly_packed8 = pack_horner8(poly)
+
+        t1 = @benchmark evalpoly(x, $poly) setup=(x=rand())
+        t2 = @benchmark horner2(x, $poly_packed2) setup=(x=rand())
+        t3 = @benchmark horner4(x, $poly_packed4) setup=(x=rand())
+        t4 = @benchmark horner8(x, $poly_packed8) setup=(x=rand())
+
+        push!(horner_times,  round(minimum(t1).time, digits=3))
+        push!(horner2_times,  round(minimum(t2).time, digits=3))
+        push!(horner4_times,  round(minimum(t3).time, digits=3))
+        push!(horner8_times,  round(minimum(t4).time, digits=3))
+
+    end
+    @show horner_times
+    @show horner2_times
+    @show horner4_times
+    @show horner8_times
+end
 ```
 
 As mentioned, Horner's scheme requires sequential multiply-add instructions that can't be performed in parallel. One way (another way is Estrin's method which we won't discuss) to improve this structure is to break the polynomial down into even and odd polynomials (a second order Horner's scheme) or into larger powers of `x^4` or `x^8` (a fourth and eighth order Horner's scheme) which allow for computing many different polynomials of similar length simultaneously. In some regard, we are just rearranging the coefficients and using the same method as we did in the first case with some additional arithmetic at the end to add all the different polynomials together.
 
 The last fact is important because we are actually increasing the total amount of arithmetic operations needed but increasing by a large amount the number of operations that can happen in parallel. The increased operations make the advantages of this approach less straightforward than the first case which is always superior. The second and perhaps most important point is that floating point arithmetic is not associative so these approaches will give slightly different results as we are adding and multiplying in slightly differnet order.
 
+The above benchmarks are as follows.
+```julia
+Julia Version 1.8.2
+Platform Info:
+  OS: macOS (arm64-apple-darwin21.3.0)
+  CPU: 8 × Apple M1
+
+horner_times  = [2.125, 2.125, 2.416, 2.416, 4.000, 12.345, 40.573, 126.353]
+horner2_times = [2.125, 2.084, 2.125, 2.125, 2.417, 4.125,  24.849, 68.818]
+horner4_times = [2.125, 2.084, 2.125, 2.416, 2.416, 3.291,  8.6340, 29.271]
+horner8_times = [2.416, 2.416, 2.458, 2.416, 2.416, 3.375,  6.5000, 17.41]
+```
+Asymptotically, we can see that the method approaches a 2, 4, and 8x increase respecitively for large degrees, however, for smaller degrees the advanges are more complex. Therefore, it is encouraged to test the performance for individual cases. Of course, this depends on statically knowing the polynomial size during compilation which allows for packing the coefficients in the most efficient way.
