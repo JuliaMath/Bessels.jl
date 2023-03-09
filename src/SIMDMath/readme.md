@@ -67,7 +67,7 @@ let
     horner4_times = []
     horner8_times = []
 
-    for N in [4, 8, 12, 16, 24, 48, 96, 198]
+    for N in [4, 8, 12, 16, 32, 64, 128, 256, 512]
         poly = ntuple(n -> rand()*(-1)^n / n, N)
         poly_packed2 = pack_horner2(poly)
         poly_packed4 = pack_horner4(poly)
@@ -84,10 +84,9 @@ let
         push!(horner8_times,  round(minimum(t4).time, digits=3))
 
     end
-    @show horner_times
-    @show horner2_times
-    @show horner4_times
-    @show horner8_times
+    @show horner_times ./ horner2_times
+    @show horner_times ./ horner4_times
+    @show horner_times ./ horner8_times
 end
 ```
 
@@ -97,14 +96,31 @@ The last fact is important because we are actually increasing the total amount o
 
 The above benchmarks are as follows.
 ```julia
+# Relative Speedup compared to evalpoly when evaluating a polynomial of N degree
+# N = [4, 8, 12, 16, 32, 64, 128, 256, 512]
+
+# CPU #1
 Julia Version 1.8.2
 Platform Info:
   OS: macOS (arm64-apple-darwin21.3.0)
   CPU: 8 × Apple M1
 
-horner_times  = [2.125, 2.125, 2.416, 2.416, 4.000, 12.345, 40.573, 126.353]
-horner2_times = [2.125, 2.084, 2.125, 2.125, 2.417, 4.125,  24.849, 68.818]
-horner4_times = [2.125, 2.084, 2.125, 2.416, 2.416, 3.291,  8.6340, 29.271]
-horner8_times = [2.416, 2.416, 2.458, 2.416, 2.416, 3.375,  6.5000, 17.41]
+#   N   = [ 4,    8,    12,   16,   32,   64,   128,  256,  512]
+horner2 = [1.00, 1.00, 1.16, 1.16, 2.57, 3.14,  1.59, 1.76, 2.05]
+horner4 = [1.00, 0.98, 1.14, 1.00, 2.57, 4.23,  3.53, 3.87, 4.57]
+horner8 = [0.88, 0.86, 1.00, 1.00, 2.29, 4.91,  6.21, 7.19, 8.45]
+
+# CPU #2
+julia> versioninfo()
+Julia Version 1.8.2
+Commit 36034abf260 (2022-09-29 15:21 UTC)
+Platform Info:
+  OS: Linux (x86_64-linux-gnu)
+  CPU: 12 × Intel(R) Core(TM) i7-8700K CPU @ 3.70GHz
+
+#   N   = [ 4,    8,    12,   16,   32,   64,   128,  256,  512]
+horner2 = [1.00, 1.11, 1.30, 1.37, 2.61, 2.11, 2.09, 2.59, 2.27]
+horner4 = [1.00, 0.93, 1.21, 1.44, 3.30, 5.77, 4.69, 5.41, 5.65]
+horner8 = [0.68, 0.84, 0.95, 1.26, 3.05, 6.37, 6.98, 8.76, 9.45]
 ```
 Asymptotically, we can see that the method approaches a 2, 4, and 8x increase respecitively for large degrees, however, for smaller degrees the advanges are more complex. Therefore, it is encouraged to test the performance for individual cases. Of course, this depends on statically knowing the polynomial size during compilation which allows for packing the coefficients in the most efficient way.
