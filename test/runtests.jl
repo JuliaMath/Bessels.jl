@@ -1,7 +1,6 @@
 using Bessels
 using Test
 import SpecialFunctions
-import ArbNumerics
 
 @time @testset "besseli" begin include("besseli_test.jl") end
 @time @testset "besselk" begin include("besselk_test.jl") end
