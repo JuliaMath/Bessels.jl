@@ -71,10 +71,10 @@ end
 @test airybiprimex(Inf) === Inf
 
 # test negative infinite arguments
-@test airyai(-Inf) === 0.0
+@test_throws DomainError airyai(-Inf)
 # @test airyaiprime(-Inf) === Nan # value is indeterminate
-@test airybi(-Inf) === 0.0
-@test airybix(-Inf) === 0.0
+@test_throws DomainError airybi(-Inf)
+@test_throws DomainError airybix(-Inf)
 # @test airybiprime(-Inf) === Nan # value is indeterminate
 
 @test airyai(Inf + 0.0im) === exp(-(Inf + 0.0im))
