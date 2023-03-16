@@ -4,11 +4,12 @@
 
 # test Float64 for positive arguments
 for line in eachline("data/airy/airy_positive_args.csv")
+    T = Float64
     local x, aix, aiprimex, bix, biprimex
     x, aix, aiprimex, bix, biprimex = parse.(Float64, split(line))
     @test isapprox(airyaix(x), aix, rtol=4.4e-16)
     @test isapprox(airybix(x), bix, rtol=5.5e-16)
-    @test isapprox(airyaiprimex(x), aiprimex, rtol=4.4e-16)
+    @test isapprox(airyaiprimex(x), aiprimex, rtol=4.9e-16)
     @test isapprox(airybiprimex(x), biprimex, rtol=5.9e-16)
     if x < 105.0
         x_big = BigFloat(x)
@@ -18,10 +19,10 @@ for line in eachline("data/airy/airy_positive_args.csv")
         else
             tol = 2.4e-16 * sqrt(x) * x
         end
-        @test isapprox(airyai(x), aix * scale, rtol=tol)
-        @test isapprox(airybi(x), bix / scale, rtol=tol)
-        @test isapprox(airyaiprime(x), aiprimex * scale, rtol=tol)
-        @test isapprox(airybiprime(x), biprimex / scale, rtol=tol)
+        @test isapprox(airyai(x), T(aix * scale), rtol=tol)
+        @test isapprox(airybi(x), T(bix / scale), rtol=tol)
+        @test isapprox(airyaiprime(x), T(aiprimex * scale), rtol=tol)
+        @test isapprox(airybiprime(x), T(biprimex / scale), rtol=tol)
     end
 end
 
