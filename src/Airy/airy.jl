@@ -9,8 +9,8 @@
 #    These routines are loosely based on the methods reported in [1] using their asymptotic expansions.
 #    Asymptotic coefficiens have been explicitly calculated and unrolled to desired amount of coefficients.
 #    For negative arguments, Euler's equation was used to avoid complex arithmetic using the forms given in [1].
-#    Where asymptotic expansions are not valid (≈|x|<10), taylor series are used.
-#    The airy functions are oscillatory for negative arguments and exponential for positive arguments.
+#    Where asymptotic expansions are not valid (≈|x|<10), minimax rational and polynomial approximations, taylor series
+#    and Chebyshev series are used. The airy functions are oscillatory for negative arguments and exponential for positive arguments.
 #    Taylor series are used around the zeros of the Airy function's for negative arguments to preserve accuracy.
 #    These were generated in Mathematica using the form `InputForm[Series[AiryAi[x], {x, 2.0, 33}]]`.
 #    The scaled versions were also calculated with `InputForm[Series[AiryBiPrime[x] * Exp[-2 x^(3/2) / 3] * x^(1/4), {x, 7.000000000000000000000, 42}]]`.
@@ -31,117 +31,100 @@
 #     Copyright 1984, 1987, 1989, 2000 by Stephen L. Moshier
 # [3] https://github.com/scipy/scipy/pull/502
 
-# airyai & airyaix
+#
+# Generate function definitions for separate positive and negative argument branches
+# Large negative arguments return domain error due to loss of precision
+# Scaled versions of airyai throw domain error for negative arguments as function is complex
+#
 
-
-function airyai(x::Float64)
-    if x >= 0.0
-        return airyai_aiprime_pos_args(x)[1]
-    else
-        if x >= -1e8
-            return airyai_neg_args(x)
+for f in (:airyai, :airyaiprime, :airybi, :airybiprime, :airybix, :airybiprimex)
+    f_pos_args = Symbol(f, :_pos_args)
+    f_neg_args = Symbol(f, :_neg_args)
+    @eval function $f(x::Float64)
+        if x >= 0.0
+            return $f_pos_args(x)
         else
-            isnan(x) && return x
-            isinf(x) && return 0.0
-            throw(DomainError(x, "Total loss of significant digits for large negative arguments. Requires a higher precision routine."))
+            if x >= -1e8
+                return $f_neg_args(x)
+            else
+                isnan(x) && return x
+                throw(DomainError(x, "Loss of significant digits for large negative arguments. Requires a higher precision routine."))
+            end
         end
     end
 end
 
-function airyaiprime(x::Float64)
-    if x >= 0.0
-        isinf(x) && return 0.0
-        return airyai_aiprime_pos_args(x)[2]
-    else
-        if x >= -1e8
-            return airyaiprime_neg_args(x)
+for f in (:airyaix, :airyaiprimex)
+    f_pos_args = Symbol(f, :_pos_args)
+    @eval function $f(x::Float64)
+        if x >= 0.0
+            return $f_pos_args(x)
         else
             isnan(x) && return x
-            throw(DomainError(x, "Total loss of significant digits for large negative arguments. Requires a higher precision routine."))
+            throw(DomainError(x, "Complex result returned for real arguments. Use complex argument: $f(complex(x))"))
         end
     end
 end
 
-function airyaix(x::Float64)
-    if x >= 0.0
-        return airyaix_aiprimex_pos_args(x)[1]
-    else
-        isnan(x) && return x
-        throw(DomainError(x, "Complex result returned for real arguments. Use complex argument: airyaix(complex(x))"))
-    end
-end
+#
+# Positive argument branch for airyai
+# Routines compute both airyai and airyaiprime
+#
 
-function airyaiprimex(x::Float64)
-    if x >= 0.0
-        return airyaix_aiprimex_pos_args(x)[2]
-    else
-        isnan(x) && return x
-        throw(DomainError(x, "Complex result returned for real arguments. Use complex argument: airyaix(complex(x))"))
-    end
-end
-
-function airyai_aiprime_pos_args(x)
+@inline function airyai_aiprime_pos_args(x)
     if x >= 2.06
+        isinf(x) && return (0.0, 0.0)
+
         c = exp(-x * sqrt(x) / 3)
         aix, aiprimex = airyaix_large_pos_args(x)
         ai = (c * aix) * c
         aiprime = (c * aiprimex) * c
     else
-        if x < 0.1
-            # minimax polynomial
-            ai = evalpoly(x, (0.3550280538878172, -0.2588194037928022, -9.261034519371688e-13, 0.0591713423857866, -0.021568286307597485, 5.279319501583404e-8, 0.001971826010638854, -0.0005109862484427906))
-            aiprime = evalpoly(x, (-0.2588194037928068, 7.026072286612935e-16, 0.1775140269437213, -0.08627313457837005, -9.890864876107356e-10, 0.011834297039414418, -0.0035951989961820843, 4.799599033246355e-6, 0.0002209248351055058))
-        else
-            # rational approximations for airyai, airyaiprime 0.0 < x < 2.1
-            # airyai
-            p1 = evalpoly(x, (0.35502805388781744, -0.10482341989661095, -0.0486577708334799, 0.027567409888166392, -0.003289115420423328, -0.0007305591670017397, 0.00028980078696335705, -4.0935293322551856e-5, 2.843352302971319e-6, -8.16006902427902e-8)) 
-            q1 = evalpoly(x, (1.0, 0.43375722625250424, 0.1791605343840418, 0.04159189705098047, 0.009514630923507036, 0.0013695863161550792, 0.00021134924004087647, 1.643834172337603e-5, 1.820647551730948e-6))
-
-            # airyaiprime
-            p2 = evalpoly(x, (-0.25881940379280843, -0.1281771862490461, 0.1215372422831532, -0.012741106612258057, -0.007817713517073376, 0.0024841727869283543, -0.00022800908016912754, -1.0310082365339424e-5, 3.234478554177193e-6, -1.6817588355348419e-7)) 
-            q2 = evalpoly(x, (1.0, 0.4952379318195294, 0.2162773881682495, 0.05555863041440847, 0.013462108119986573, 0.0021389588233556925, 0.0003499286802943533, 3.0276702049000568e-5, 3.5914680052925263e-6))
-
-            ai = p1 / q1
-            aiprime = p2 / q2
-        end
+        ai, aiprime = _airyai_small_pos_args(x)
     end
     return ai, aiprime
 end
 
-function airyaix_aiprimex_pos_args(x)
+@inline function airyaix_aiprimex_pos_args(x)
     if x >= 2.06
         aix, aiprimex = airyaix_large_pos_args(x)
     else
         # multiply by scale factor
         c = exp(2 * x * sqrt(x) / 3)
-        if x < 0.1
-            # minimax polynomial
-            ai = evalpoly(x, (0.3550280538878172, -0.2588194037928022, -9.261034519371688e-13, 0.0591713423857866, -0.021568286307597485, 5.279319501583404e-8, 0.001971826010638854, -0.0005109862484427906))
-            aiprime = evalpoly(x, (-0.2588194037928068, 7.026072286612935e-16, 0.1775140269437213, -0.08627313457837005, -9.890864876107356e-10, 0.011834297039414418, -0.0035951989961820843, 4.799599033246355e-6, 0.0002209248351055058))
-        else
-            # rational approximations for airyai, airyaiprime 0.0 < x < 2.1
-            # airyai
-            p1 = evalpoly(x, (0.35502805388781744, -0.10482341989661095, -0.0486577708334799, 0.027567409888166392, -0.003289115420423328, -0.0007305591670017397, 0.00028980078696335705, -4.0935293322551856e-5, 2.843352302971319e-6, -8.16006902427902e-8)) 
-            q1 = evalpoly(x, (1.0, 0.43375722625250424, 0.1791605343840418, 0.04159189705098047, 0.009514630923507036, 0.0013695863161550792, 0.00021134924004087647, 1.643834172337603e-5, 1.820647551730948e-6))
+        ai, aiprime = _airyai_small_pos_args(x)
 
-            # airyaiprime
-            p2 = evalpoly(x, (-0.25881940379280843, -0.1281771862490461, 0.1215372422831532, -0.012741106612258057, -0.007817713517073376, 0.0024841727869283543, -0.00022800908016912754, -1.0310082365339424e-5, 3.234478554177193e-6, -1.6817588355348419e-7)) 
-            q2 = evalpoly(x, (1.0, 0.4952379318195294, 0.2162773881682495, 0.05555863041440847, 0.013462108119986573, 0.0021389588233556925, 0.0003499286802943533, 3.0276702049000568e-5, 3.5914680052925263e-6))
-
-            ai = p1 / q1
-            aiprime = p2 / q2
-        end
         aix = c * ai
         aiprimex = c * aiprime
     end
     return aix, aiprimex
 end
 
+@inline function _airyai_small_pos_args(x)
+    if x < 0.1
+        # minimax polynomial
+        ai = evalpoly(x, (0.3550280538878172, -0.2588194037928022, -9.261034519371688e-13, 0.0591713423857866, -0.021568286307597485, 5.279319501583404e-8, 0.001971826010638854, -0.0005109862484427906))
+        aiprime = evalpoly(x, (-0.2588194037928068, 7.026072286612935e-16, 0.1775140269437213, -0.08627313457837005, -9.890864876107356e-10, 0.011834297039414418, -0.0035951989961820843, 4.799599033246355e-6, 0.0002209248351055058))
+    else
+        # rational approximations for airyai, airyaiprime 0.0 < x < 2.1
+        # airyai
+        p1 = evalpoly(x, (0.35502805388781744, -0.10482341989661095, -0.0486577708334799, 0.027567409888166392, -0.003289115420423328, -0.0007305591670017397, 0.00028980078696335705, -4.0935293322551856e-5, 2.843352302971319e-6, -8.16006902427902e-8)) 
+        q1 = evalpoly(x, (1.0, 0.43375722625250424, 0.1791605343840418, 0.04159189705098047, 0.009514630923507036, 0.0013695863161550792, 0.00021134924004087647, 1.643834172337603e-5, 1.820647551730948e-6))
+
+        # airyaiprime
+        p2 = evalpoly(x, (-0.25881940379280843, -0.1281771862490461, 0.1215372422831532, -0.012741106612258057, -0.007817713517073376, 0.0024841727869283543, -0.00022800908016912754, -1.0310082365339424e-5, 3.234478554177193e-6, -1.6817588355348419e-7)) 
+        q2 = evalpoly(x, (1.0, 0.4952379318195294, 0.2162773881682495, 0.05555863041440847, 0.013462108119986573, 0.0021389588233556925, 0.0003499286802943533, 3.0276702049000568e-5, 3.5914680052925263e-6))
+
+        ai = p1 / q1
+        aiprime = p2 / q2
+    end
+    return ai, aiprime
+end
+
 # asymptotic expansions for airyai
 # positive arguments are asymptotically scaled
 # negative arguments are not
 
-function airyaix_large_pos_args(x::T) where T <: Float64
+@inline function airyaix_large_pos_args(x::T) where T <: Float64
     if x > 1000.0
         # asymptotic expansion
         invx3 = 1 / (x * x * x)
@@ -215,7 +198,7 @@ function airyaiprime_neg_args(x::T) where T <: Float64
     return p
 end
 
-function airyai_large_neg_args(x::T) where T <: Float64
+@inline function airyai_large_neg_args(x::T) where T <: Float64
     invx3 = 1 / x^3
     p = evalpoly(invx3, (1.5707963267948966, 0.13124057851910487, 0.4584353787485384, 5.217255928936184, 123.97197893818594, 5038.313653002081, 312467.7049060495, 2.746439545069411e7, 3.2482560591146026e9, 4.97462635569055e11, 9.57732308323407e13))
     q = evalpoly(invx3, (0.1636246173744684, 0.20141783231057064, 1.3848568733028765, 23.555289417250567, 745.2667344964557, 37835.063701047824, 2.8147130917899106e6, 2.8856687720069575e8, 3.8998976239149216e10, 6.718472897263214e12, 1.4370735281142392e15))
@@ -240,67 +223,7 @@ function airyai_large_neg_args(x::T) where T <: Float64
     return ai, aip
 end
 
-
-
-### airybi
-function airybi(x::Float64)
-    if x >= 0.0
-        isinf(x) && return x
-        return airybi_biprime_pos_args(x)[1]
-    else
-        if x >= -1e8
-            return airybi_neg_args(x)
-        else
-            isnan(x) && return NaN
-            isinf(x) && return 0.0
-            throw(DomainError(x, "Total loss of significant digits for large negative arguments. Requires a higher precision routine."))
-        end
-    end
-end
-
-function airybix(x::Float64)
-    if x >= 0.0
-        return airybix_biprimex_pos_args(x)[1]
-    else
-        if x >= -1e8
-            # scale factor for negative arguments is 1
-            return airybi_neg_args(x)
-        else
-            isnan(x) && return NaN
-            isinf(x) && return 0.0
-            throw(DomainError(x, "Total loss of significant digits for large negative arguments. Requires a higher precision routine."))
-        end
-    end
-end
-
-function airybiprime(x::Float64)
-    if x >= 0.0
-        return airybi_biprime_pos_args(x)[2]
-    else
-        if x >= -1e8
-            return airybiprime_neg_args(x)
-        else
-            isnan(x) && return NaN
-            throw(DomainError(x, "Total loss of significant digits for large negative arguments. Requires a higher precision routine."))
-        end
-    end
-end
-
-function airybiprimex(x::Float64)
-    if x >= 0.0
-        return airybix_biprimex_pos_args(x)[2]
-    else
-        if x >= -1e8
-            # scale factor for negative arguments is 1
-            return airybiprime_neg_args(x)
-        else
-            isnan(x) && return NaN
-            throw(DomainError(x, "Total loss of significant digits for large negative arguments. Requires a higher precision routine."))
-        end
-    end
-end
-
-function airybi_biprime_pos_args(x)
+@inline function airybi_biprime_pos_args(x)
     if x <= 2.0
         # minimax polynomial for x < 2.0
         bi = evalpoly(x, (0.6149266274460008, 0.4482883573538208, 3.5122876076055943e-13, 0.10248777123224333, 0.03735736322749984, -9.112176579053885e-10, 0.003416263825552168, 0.0008894434900642912, 4.656589540929903e-8, 4.7356203781096e-5, 1.0019617843212616e-5, -1.5501028624002673e-7, 4.936240473816792e-7, -2.4890774184202023e-8, 4.351871351672967e-8, -1.397416816153122e-8, 4.207858977853583e-9, -6.320382000910312e-10, 5.7683713281742576e-11))
@@ -314,6 +237,7 @@ function airybi_biprime_pos_args(x)
             bix = clenshaw_chebyshev(muladd(x, 0.5, -4.0), (0.3388998275567636, -0.022239535106198405, 0.001847776356735787, -0.00018642620881156231, 2.0614467307054072e-5, -2.413394583210988e-6, 2.9461272726896696e-7, -3.722819620752169e-8, 4.854723628008316e-9, -6.531662239526833e-10, 9.08219420289064e-11, -1.3082391956275184e-11, 1.953106497996366e-12, -3.007137783175837e-13, 4.709451540463225e-14, -7.327307135432242e-15, 1.0856338884553918e-15, -1.4783310001069625e-16))
             biprimex = clenshaw_chebyshev(muladd(x, 0.5, -4.0), (0.9393816481647195, 0.0621197721009847, -0.0031821373579424077, 0.0002596583618312277, -2.5490889161776127e-5, 2.7833396581896174e-6, -3.270630123629566e-7, 4.070105276526434e-8, -5.322537351397486e-9, 7.293189148846469e-10, -1.0468150599102346e-10, 1.5727589039481186e-11, -2.460184674017499e-12, 3.9506685986702333e-13, -6.352712208186561e-14, 9.868492209739352e-15, -1.3994310387891848e-15, 1.6674714479000505e-16))
         else
+            isinf(x) && return (x, x)
             bix, biprimex = airybix_large_pos_args(x)
         end
         bi = (c * bix) * c
@@ -322,7 +246,7 @@ function airybi_biprime_pos_args(x)
     return bi, biprime
 end
 
-function airybix_biprimex_pos_args(x)
+@inline function airybix_biprimex_pos_args(x)
     if x <= 2.0
         c = exp(-x * sqrt(x) / 3)
         # minimax polynomial for x < 2.0
@@ -344,7 +268,7 @@ function airybix_biprimex_pos_args(x)
     return bix, biprimex
 end
 
-function airybix_large_pos_args(x::T) where T <: Float64
+@inline function airybix_large_pos_args(x::T) where T <: Float64
     invx3 = 1 / x^3
     p = evalpoly(invx3, (1.5707963267948966, 0.13124057851910487, 0.4584353787485384, 5.217255928936184, 123.97197893818594, 5038.313653002081, 312467.7049060495, 2.746439545069411e7, 3.2482560591146026e9, 4.97462635569055e11, 9.57732308323407e13, 2.2640712393216476e16))
     p1 = evalpoly(invx3, (0.1636246173744684, 0.20141783231057064, 1.3848568733028765, 23.555289417250567, 745.2667344964557, 37835.063701047824, 2.8147130917899106e6, 2.8856687720069575e8, 3.8998976239149216e10, 6.718472897263214e12, 1.4370735281142392e1, 3.7367429394637446e17))
@@ -390,10 +314,10 @@ function airybiprime_neg_args(x)
     if x < -10.0
         return airybi_large_neg_args(x)[2]
     elseif x > -1.5
-        x3 = x*x*x
+        x3 = x^3
         ap = evalpoly(x3, (0.4482883573538264, 0.14942945245127545, 0.0062262271854698105, 9.882900294396525e-5, 8.235750245330437e-7, 4.223461664272019e-9, 1.4664797445388956e-11, 3.67538783092455e-14, 6.960961800993466e-17, 1.0312536001471802e-19, 1.2276828573180715e-22, 1.2000809944458178e-25, 9.804583287956028e-29, 6.79458301313654e-32, 4.0443946506765124e-35, 2.0901264344581458e-38, 9.466152329973487e-42, 3.78797612243837e-45, 1.3489943455977101e-48, 4.3030122666593625e-52, 1.236497777775679e-55, 3.2175325989479025e-59, 7.617264675539542e-63))
         bp = evalpoly(x3, (0.30746331372300034, 0.020497554248200024, 0.0004270323801708338, 4.313458385563978e-6, 2.567534753311892e-8, 1.0068763738478007e-10, 2.796878816243891e-13, 5.790639371105364e-16, 9.279870787027826e-19, 1.1851686828898885e-21, 1.2345507113436338e-24, 1.068875074756393e-27, 7.813414289154919e-31, 4.8864379544433515e-34, 2.6441763822745408e-37, 1.2502015991841802e-40, 5.209173329934083e-44, 1.9271821420399865e-47, 6.372956818915299e-51, 1.895021355609664e-54, 5.0941434290582364e-58, 1.2439910693670906e-61, 2.771816108215443e-65))
-        p = muladd(x*x, bp, ap)
+        p = muladd(x * x, bp, ap)
     elseif x > -3.2
         p = evalpoly(x + 2.294439682614123, (1.3050830085951108e-16, 1.0438424472052532, -0.22747219181982883, -0.39917225554412844, 0.17397374120087558, 0.030629020377963098, -0.029937919165809637, 0.0032974297534822746, 0.0018647251224384134, -0.0005802849783048269, -6.3210093935846245e-6, 3.093950621960744e-5, -4.725835616276457e-6, -4.992594707816475e-7, 2.4374144602236595e-7, -1.8780193767765568e-8, -4.559045448346791e-9, 1.1142680058276989e-9, -3.1024513355303083e-11, -2.1590191000016282e-11, 3.2825148908037815e-12, 4.0190496443783935e-14, -6.537063414339622e-14, 6.613854651768023e-15, 3.4783752581066423e-16))
     elseif x > -4.8
@@ -410,7 +334,10 @@ function airybiprime_neg_args(x)
     return p
 end
 
-function airybi_large_neg_args(x::T) where T <: Float64
+@inline airybix_neg_args(x) = airybi_neg_args(x)
+@inline airybiprimex_neg_args(x) = airybiprime_neg_args(x)
+
+@inline function airybi_large_neg_args(x::T) where T <: Float64
     invx3 = 1 / x^3
     p = evalpoly(invx3, (1.5707963267948966, 0.13124057851910487, 0.4584353787485384, 5.217255928936184, 123.97197893818594, 5038.313653002081, 312467.7049060495, 2.746439545069411e7, 3.2482560591146026e9, 4.97462635569055e11, 9.57732308323407e13, 2.2640712393216476e16))
     p1 = evalpoly(invx3, (0.1636246173744684, 0.20141783231057064, 1.3848568733028765, 23.555289417250567, 745.2667344964557, 37835.063701047824, 2.8147130917899106e6, 2.8856687720069575e8, 3.8998976239149216e10, 6.718472897263214e12, 1.4370735281142392e1, 3.7367429394637446e17))
@@ -434,6 +361,17 @@ function airybi_large_neg_args(x::T) where T <: Float64
     bip = -2/PIPOW3O2(T) * d * xsqr
     return bi, bip
 end
+
+# Boilerplate code to return single value from general routine
+@inline airyai_pos_args(x) = airyai_aiprime_pos_args(x)[1]
+@inline airyaiprime_pos_args(x) = airyai_aiprime_pos_args(x)[2]
+@inline airyaix_pos_args(x) = airyaix_aiprimex_pos_args(x)[1]
+@inline airyaiprimex_pos_args(x) = airyaix_aiprimex_pos_args(x)[2]
+
+@inline airybi_pos_args(x) = airybi_biprime_pos_args(x)[1]
+@inline airybiprime_pos_args(x) = airybi_biprime_pos_args(x)[2]
+@inline airybix_pos_args(x) = airybix_biprimex_pos_args(x)[1]
+@inline airybiprimex_pos_args(x) = airybix_biprimex_pos_args(x)[2]
 
 # Support for Float32 and Float16
 # based on code from https://github.com/JuliaMath/SpecialFunctions.jl
