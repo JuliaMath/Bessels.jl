@@ -17,7 +17,7 @@ The library currently supports Bessel functions, modified Bessel functions, Hank
 
 ```julia
 # add the package
-pkg> add https://github.com/heltonmc/Bessels.jl.git
+pkg> add https://github.com/JuliaMath/Bessels.jl.git
 
 julia> using Bessels
 
@@ -158,7 +158,7 @@ Support for complex numbers is only provided for the Airy functions (`airyai`, `
 
 ### Support for negative arguments
 
-Support is provided for negative arguments and orders only if the return value is real. A domain error will be thrown if the return value is complex. See https://github.com/heltonmc/Bessels.jl/issues/30 for more details.
+Support is provided for negative arguments and orders only if the return value is real. A domain error will be thrown if the return value is complex. See https://github.com/JuliaMath/Bessels.jl/issues/30 for more details.
 
 ```julia
 julia> ν, x = 13.0, -1.0
@@ -266,5 +266,5 @@ Benchmarks were run using Julia Version 1.7.2 on an Apple M1 using Rosetta.
 
 # Contributing 
 
-Contributions are very welcome, as are feature requests, suggestions or general discussions. Please open an [issue](https://github.com/heltonmc/Bessels.jl/issues/new) for discussion on newer implementations, share papers, new features, or if you encounter any problems. Our goal is to provide high quality implementations of Bessel functions that match or exceed the accuracy of the implementatations provided by SpecialFunctions.jl. Please let us know if you encounter any accuracy or performance differences.
+Contributions are very welcome, as are feature requests, suggestions or general discussions. Please open an [issue](https://github.com/JuliaMath/Bessels.jl/issues/new) for discussion on newer implementations, share papers, new features, or if you encounter any problems. Our goal is to provide high quality implementations of Bessel functions that match or exceed the accuracy of the implementatations provided by SpecialFunctions.jl. Please let us know if you encounter any accuracy or performance differences.
  

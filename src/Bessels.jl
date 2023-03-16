@@ -30,9 +30,13 @@ export hankelh1
 export hankelh2
 
 export airyai
+export airyaix
 export airyaiprime
+export airyaiprimex
 export airybi
+export airybix
 export airybiprime
+export airybiprimex
 
 const ComplexOrReal{T} = Union{T,Complex{T}}
 
@@ -41,7 +45,8 @@ include("besselj.jl")
 include("besselk.jl")
 include("bessely.jl")
 include("hankel.jl")
-include("airy.jl")
+include("Airy/airy.jl")
+include("Airy/cairy.jl")
 include("sphericalbessel.jl")
 include("modifiedsphericalbessel.jl")
 
