@@ -1,5 +1,7 @@
 module Bessels
 
+using .AiryFunctions
+
 export besselj0
 export besselj1
 export besselj
@@ -45,10 +47,13 @@ include("besselj.jl")
 include("besselk.jl")
 include("bessely.jl")
 include("hankel.jl")
-include("Airy/airy.jl")
-include("Airy/cairy.jl")
 include("sphericalbessel.jl")
 include("modifiedsphericalbessel.jl")
+
+include("SIMDMath/SIMDMath.jl")
+include("Math/Math.jl")
+
+include("AiryFunctions/AiryFunctions.jl")
 
 include("Float128/besseli.jl")
 include("Float128/besselj.jl")
@@ -57,15 +62,11 @@ include("Float128/bessely.jl")
 include("Float128/constants.jl")
 
 include("constants.jl")
-include("math_constants.jl")
 include("U_polynomials.jl")
 include("recurrence.jl")
-include("misc.jl")
 include("Polynomials/besselj_polys.jl")
 include("asymptotics.jl")
 include("gamma.jl")
-
-include("SIMDMath/SIMDMath.jl")
 
 precompile(besselj, (Float64, Float64))
 

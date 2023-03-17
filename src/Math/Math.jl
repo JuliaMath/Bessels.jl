@@ -1,3 +1,9 @@
+module Math
+
+# constains miscelaneous math functions and math constants
+
+include("math_constants.jl")
+
 # function to more accurately compute cos(x + xn)
 # see https://github.com/heltonmc/Bessels.jl/pull/13
 # written by @oscardssmith
@@ -18,6 +24,7 @@ function cos_sum(x, xn)
         return Base.Math.sin_kernel(y)
     end
 end
+
 # function to more accurately compute sin(x + xn)
 function sin_sum(x, xn)
     s = x + xn
@@ -36,6 +43,7 @@ function sin_sum(x, xn)
         return -Base.Math.cos_kernel(y)
     end
 end
+
 @inline function reduce_pi02_med(x::Float64)
     pio2_1 = 1.57079632673412561417e+00
 
@@ -44,4 +52,6 @@ end
     w  = fn * 6.07710050650619224932e-11
     y = r-w
     return unsafe_trunc(Int, fn), Base.Math.DoubleFloat64(y, (r-y)-w)
+end
+
 end
