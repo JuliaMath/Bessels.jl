@@ -21,6 +21,8 @@
 # [1] Jentschura, Ulrich David, and E. Lötstedt. "Numerical calculation of Bessel, Hankel and Airy functions." 
 #     Computer Physics Communications 183.3 (2012): 506-519.
 
+using ..BesselFunctions: besseli_power_series_inu_inum1, besselk_down_recurrence, besselk_ratio_knu_knup1
+
 """
     airyai(z)
 

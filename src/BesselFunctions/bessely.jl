@@ -508,17 +508,6 @@ function bessely_chebyshev_low_orders(v, x)
     return clenshaw_chebyshev(v1, a), clenshaw_chebyshev(v2, a)
 end
 
-# uses the Clenshaw algorithm to recursively evaluate a linear combination of Chebyshev polynomials
-function clenshaw_chebyshev(x, c)
-    x2 = 2x
-    c0 = c[end-1]
-    c1 = c[end]
-    for i in length(c)-2:-1:1
-        c0, c1 = c[i] - c1, c0 + c1 * x2
-    end
-    return c0 + c1 * x
-end
-
 # to generate the Chebyshev weights
 #=
 using ArbNumerics, FastChebInterp

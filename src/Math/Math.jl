@@ -2,6 +2,9 @@ module Math
 
 # constains miscelaneous math functions and math constants
 
+export cos_sum, sin_sum
+export clenshaw_chebyshev
+
 include("math_constants.jl")
 
 # function to more accurately compute cos(x + xn)
@@ -52,6 +55,17 @@ end
     w  = fn * 6.07710050650619224932e-11
     y = r-w
     return unsafe_trunc(Int, fn), Base.Math.DoubleFloat64(y, (r-y)-w)
+end
+
+# uses the Clenshaw algorithm to recursively evaluate a linear combination of Chebyshev polynomials
+function clenshaw_chebyshev(x, c)
+    x2 = 2x
+    c0 = c[end-1]
+    c1 = c[end]
+    for i in length(c)-2:-1:1
+        c0, c1 = c[i] - c1, c0 + c1 * x2
+    end
+    return c0 + c1 * x
 end
 
 end

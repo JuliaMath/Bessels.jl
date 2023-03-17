@@ -82,7 +82,7 @@ for v in nu, xx in x
     xx *= v
     sf = SpecialFunctions.bessely(BigFloat(v), BigFloat(xx))
     @test isapprox(bessely(v, xx), Float64(sf), rtol=2e-13)
-    @test isapprox(Bessels.besseljy_positive_args(v, xx)[2], Float64(sf), rtol=5e-12)
+    @test isapprox(Bessels.BesselFunctions.besseljy_positive_args(v, xx)[2], Float64(sf), rtol=5e-12)
     @test isapprox(bessely(Float32(v), Float32(xx)), Float32(sf))
 end
 
@@ -95,7 +95,7 @@ for v in nu, xx in x
     xx *= v
     sf = SpecialFunctions.bessely(v, xx)
     @test isapprox(bessely(v, xx), sf, rtol=5e-12)
-    @test isapprox(Bessels.besseljy_positive_args(v, xx)[2], SpecialFunctions.bessely(v, xx), rtol=5e-12)
+    @test isapprox(Bessels.BesselFunctions.besseljy_positive_args(v, xx)[2], SpecialFunctions.bessely(v, xx), rtol=5e-12)
     @test isapprox(bessely(Float32(v), Float32(xx)), Float32(sf))
 end
 

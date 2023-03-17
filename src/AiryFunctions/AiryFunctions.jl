@@ -1,9 +1,8 @@
 module AiryFunctions
 
-using ..SIMDMath
+using ..GammaFunctions
 using ..Bessels: ComplexOrReal
-using ..Math: GAMMA_TWO_THIRDS, GAMMA_ONE_THIRD, GAMMA_ONE_SIXTH, GAMMA_FIVE_SIXTHS
-using ..Math: PIPOW3O2, ONEOSQPI
+using ..Math
 
 export airyai
 export airyaix

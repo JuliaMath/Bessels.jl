@@ -102,8 +102,8 @@ for v in nu, xx in x
     xx *= v
     sf = SpecialFunctions.besselj(BigFloat(v), BigFloat(xx))
     @test isapprox(besselj(v, xx), Float64(sf), rtol=5e-14)
-    @test isapprox(Bessels.besseljy_positive_args(v, xx)[1], Float64(sf), rtol=5e-14)
-    @test isapprox(Bessels.besselj(Float32(v), Float32(xx)), Float32(sf))
+    @test isapprox(Bessels.BesselFunctions.besseljy_positive_args(v, xx)[1], Float64(sf), rtol=5e-14)
+    @test isapprox(besselj(Float32(v), Float32(xx)), Float32(sf))
 end
 
 # test half orders (SpecialFunctions does not give big float precision)
@@ -115,8 +115,8 @@ for v in nu, xx in x
     xx *= v
     sf = SpecialFunctions.besselj(v, xx)
     @test isapprox(besselj(v, xx), sf, rtol=1e-12)
-    @test isapprox(Bessels.besseljy_positive_args(v, xx)[1], sf, rtol=1e-12)
-    @test isapprox(Bessels.besselj(Float32(v), Float32(xx)), Float32(sf))
+    @test isapprox(Bessels.BesselFunctions.besseljy_positive_args(v, xx)[1], sf, rtol=1e-12)
+    @test isapprox(besselj(Float32(v), Float32(xx)), Float32(sf))
 end
 
 ## test large orders
@@ -126,7 +126,7 @@ for v in nu, xx in x
     xx *= v
     sf = SpecialFunctions.besselj(v, xx)
     @test isapprox(besselj(v, xx), sf, rtol=5e-11)
-    @test isapprox(Bessels.besseljy_positive_args(v, xx)[1], Float64(sf), rtol=5e-11)
+    @test isapprox(Bessels.BesselFunctions.besseljy_positive_args(v, xx)[1], Float64(sf), rtol=5e-11)
 end
 
 # test nu_range
@@ -143,13 +143,13 @@ end
 
 ## test large arguments
 @test isapprox(besselj(10.0, 150.0), SpecialFunctions.besselj(10.0, 150.0), rtol=1e-12)
-@test isapprox(Bessels.besseljy_large_argument(15.0, 100.0)[1], SpecialFunctions.besselj(15.0, 100.0), rtol=1e-12)
-@test isapprox(Bessels.besseljy_large_argument(15.0, 45.0)[1], SpecialFunctions.besselj(15.0, 45.0), rtol=1e-12)
-@test isapprox(Bessels.besseljy_large_argument(15.0, 25.5)[1], SpecialFunctions.besselj(15.0, 25.5), rtol=1e-12)
+@test isapprox(Bessels.BesselFunctions.besseljy_large_argument(15.0, 100.0)[1], SpecialFunctions.besselj(15.0, 100.0), rtol=1e-12)
+@test isapprox(Bessels.BesselFunctions.besseljy_large_argument(15.0, 45.0)[1], SpecialFunctions.besselj(15.0, 45.0), rtol=1e-12)
+@test isapprox(Bessels.BesselFunctions.besseljy_large_argument(15.0, 25.5)[1], SpecialFunctions.besselj(15.0, 25.5), rtol=1e-12)
 
 # test BigFloat for single point
-@test isapprox(Bessels.besseljy_debye(big"2000", big"1500.0")[1], SpecialFunctions.besselj(big"2000", big"1500"), rtol=5e-20)
-@test isapprox(Bessels.besseljy_large_argument(big"20", big"1500.0")[1], SpecialFunctions.besselj(big"20", big"1500"), rtol=5e-20)
+@test isapprox(Bessels.BesselFunctions.besseljy_debye(big"2000", big"1500.0")[1], SpecialFunctions.besselj(big"2000", big"1500"), rtol=5e-20)
+@test isapprox(Bessels.BesselFunctions.besseljy_large_argument(big"20", big"1500.0")[1], SpecialFunctions.besselj(big"20", big"1500"), rtol=5e-20)
 
 # need to test accuracy of negative orders and negative arguments and all combinations within
 # SpecialFunctions.jl doesn't provide these so will hand check against hard values

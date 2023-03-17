@@ -1,7 +1,5 @@
 module Bessels
 
-using .AiryFunctions
-
 export besselj0
 export besselj1
 export besselj
@@ -12,6 +10,8 @@ export bessely
 
 export sphericalbesselj
 export sphericalbessely
+export sphericalbesseli
+export sphericalbesselk
 
 export besseli
 export besselix
@@ -40,33 +40,19 @@ export airybix
 export airybiprime
 export airybiprimex
 
-const ComplexOrReal{T} = Union{T,Complex{T}}
+export gamma
 
-include("besseli.jl")
-include("besselj.jl")
-include("besselk.jl")
-include("bessely.jl")
-include("hankel.jl")
-include("sphericalbessel.jl")
-include("modifiedsphericalbessel.jl")
+const ComplexOrReal{T} = Union{T,Complex{T}}
 
 include("SIMDMath/SIMDMath.jl")
 include("Math/Math.jl")
-
+include("GammaFunctions/GammaFunctions.jl")
+include("BesselFunctions/BesselFunctions.jl")
 include("AiryFunctions/AiryFunctions.jl")
 
-include("Float128/besseli.jl")
-include("Float128/besselj.jl")
-include("Float128/besselk.jl")
-include("Float128/bessely.jl")
-include("Float128/constants.jl")
-
-include("constants.jl")
-include("U_polynomials.jl")
-include("recurrence.jl")
-include("Polynomials/besselj_polys.jl")
-include("asymptotics.jl")
-include("gamma.jl")
+using .GammaFunctions
+using .BesselFunctions
+using .AiryFunctions
 
 precompile(besselj, (Float64, Float64))
 
