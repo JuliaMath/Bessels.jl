@@ -38,3 +38,16 @@ end
         llvmcall($s, LVec{N, T}, Tuple{LVec{N, T}, LVec{N, T}, LVec{N, T}}, x, y, z)
         )
 end
+
+for f in (:fadd, :fsub, :fmul, :fdiv)
+    @eval @inline @generated function $f(x::LVec{N, T}, y::LVec{N, T}) where {N, T <: FloatTypes}
+        ff = $(QuoteNode(f))
+        s = """
+        %3 = $ff <$N x $(LLVMType[T])> %0, %1
+        ret <$N x $(LLVMType[T])> %3
+        """
+        return :(
+        llvmcall($s, LVec{N, T}, Tuple{LVec{N, T}, LVec{N, T}}, x, y)
+        )
+    end
+end

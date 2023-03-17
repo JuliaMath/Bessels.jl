@@ -15,6 +15,8 @@ export horner_simd, pack_horner
 export horner, horner2, horner4, horner8
 export pack_horner2, pack_horner4, pack_horner8
 
+export clenshaw_simd
+
 const VE = Base.VecElement
 const FloatTypes = Union{Float16, Float32, Float64}
 const LVec{N, FloatTypes} = NTuple{N, VE{FloatTypes}}

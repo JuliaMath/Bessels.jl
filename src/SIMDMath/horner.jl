@@ -33,6 +33,18 @@ end
 
 @inline pack_horner(P::Tuple{Vararg{NTuple{M, T}, N}}) where {N, M, T} = ntuple(i -> LVec{N, T}((ntuple(j -> P[j][i], Val(N)))), Val(M))
 
+# need to add multiply/add/subtract commands
+# finish of clenshaw_simd algorithm
+@inline function clenshaw_simd(x::T, c::NTuple{N, LVec{M, T}}) where {N, M, T <: FloatTypes}
+    x2 = constantvector(2*x, LVec{M, T})
+    c0 = c[end-1]
+    c1 = c[end]
+    @inbounds for i in length(c)-2:-1:1
+        c0, c1 = fsub(c[i], c1), muladd(x2, c1, c0)
+    end
+    return muladd(x, c1, c0)
+end
+
 #
 # Horner scheme for evaluating single polynomials
 #

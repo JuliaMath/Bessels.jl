@@ -1,4 +1,4 @@
-using SIMDMath
+using Bessels.SIMDMath
 using Test
 
 
@@ -75,4 +75,38 @@ let
         @test evalpoly(x16, poly16) ≈ horner2(x16, pack_horner2(poly16)) ≈ horner4(x16, pack_horner4(poly16)) ≈ horner8(x16, pack_horner8(poly16))
     end
 
+end
+
+# Tests for Clenshaw algorithm to evaluate Chebyshev polynomials
+
+# non-SIMD version
+function clen(x, c)
+    x2 = 2x
+    c0 = c[end-1]
+    c1 = c[end]
+    for i in length(c)-2:-1:1
+        c0, c1 = c[i] - c1, c0 + c1 * x2
+    end
+    return c0 + c1 * x
+end
+
+let
+    for N in [2, 6, 10], x in [0.1, 0.5, 1.5, 4.2, 45.0]
+        P = (
+            ntuple(n -> rand()*(-1)^n / n, N),
+            ntuple(n -> rand()*(-1)^n / n, N),
+            ntuple(n -> rand()*(-1)^n / n, N),
+            ntuple(n -> rand()*(-1)^n / n, N)
+        )
+        # the native code generated between the SIMD and non-simd cases
+        # is slightly different due to the SIMD case always using the fsub instruction
+        # where the non-simd case sometimes chooses to reorder this in the native code generation
+        # some small tests showed the SIMD case ordering was slightly more accurate
+        # the SIMD case using this instruction is also faster than even a single evaluation
+        a = clenshaw_simd(x, pack_horner(P))
+        @test clen(x, P[1]) ≈ a[1].value
+        @test clen(x, P[2]) ≈ a[2].value
+        @test clen(x, P[3]) ≈ a[3].value
+        @test clen(x, P[4]) ≈ a[4].value
+    end
 end
