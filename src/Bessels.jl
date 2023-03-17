@@ -44,7 +44,6 @@ export gamma
 
 const ComplexOrReal{T} = Union{T,Complex{T}}
 
-include("SIMDMath/SIMDMath.jl")
 include("Math/Math.jl")
 include("GammaFunctions/GammaFunctions.jl")
 include("BesselFunctions/BesselFunctions.jl")
