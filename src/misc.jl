@@ -45,3 +45,20 @@ end
     y = r-w
     return unsafe_trunc(Int, fn), Base.Math.DoubleFloat64(y, (r-y)-w)
 end
+
+# performs a fourth order horner scheme for polynomial evaluation
+# computes the even and odd coefficients of the polynomial independently within a loop to reduce latency
+# splits the polynomial to compute both 1 + ax + bx^2 + cx^3 and 1 - ax + bx^2 - cx^3 ....
+# return both 1 + ax + bx^2 + cx^3 and 1 - ax + bx^2 - cx^3 ....
+# uses a fourth order Horner scheme
+@inline function horner_split(x, P)
+    x2 = x * x
+    x4 = x2 * x2
+    p = horner_simd(x4, P)
+    a0 = SIMDMath.Vec(SIMDMath.shufflevector(p.data, Val(0:1)))
+    b0 = SIMDMath.Vec(SIMDMath.shufflevector(p.data, Val(2:3)))
+    p1 = horner_simd(x2, (a0, b0))
+    a1 = SIMDMath.Vec(SIMDMath.shufflevector(p1.data, Val(0)))
+    b1 = SIMDMath.Vec(SIMDMath.shufflevector(p1.data, Val(1)))
+    return SIMDMath.muladd(-x, b1, a1).data[1].value,  SIMDMath.muladd(x, b1, a1).data[1].value
+end
