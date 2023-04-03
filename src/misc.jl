@@ -60,5 +60,5 @@ end
     p1 = horner_simd(x2, (a0, b0))
     a1 = SIMDMath.Vec(SIMDMath.shufflevector(p1.data, Val(0)))
     b1 = SIMDMath.Vec(SIMDMath.shufflevector(p1.data, Val(1)))
-    return SIMDMath.muladd(-x, b1, a1).data[1].value,  SIMDMath.muladd(x, b1, a1).data[1].value
+    return SIMDMath.fmadd(-x, b1, a1).data[1].value,  SIMDMath.fmadd(x, b1, a1).data[1].value
 end

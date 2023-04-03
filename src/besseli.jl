@@ -556,11 +556,11 @@ end
 
 Debye's uniform asymptotic expansion for large order valid when v-> ∞ or x -> ∞
 """
-function besseli_large_orders(v, x::T) where T
+function besseli_large_orders(v, x::ComplexOrReal{T}) where T
     S = promote_type(T, Float64)
     x = S(x)
     z = x / v
-    zs = hypot(1, z)
+    zs = sqrt(1 + z^2)
     n = zs + log(z) - log1p(zs)
     coef = SQ1O2PI(S) * sqrt(inv(v)) * exp(v*n) / sqrt(zs)
     p = inv(zs)
@@ -573,7 +573,7 @@ function besseli_large_orders_scaled(v, x::T) where T
     S = promote_type(T, Float64)
     x = S(x)
     z = x / v
-    zs = hypot(1, z)
+    zs = sqrt(1 + z^2)
     n = zs + log(z) - log1p(zs)
     coef = SQ1O2PI(S) * sqrt(inv(v)) * exp(v*n - x) / sqrt(zs)
     p = inv(zs)
@@ -586,12 +586,11 @@ end
 #####  Large argument expansion (x>>nu) for I_{nu}(x)
 #####
 
-# Implements the large agument Hankel asymptotic expansion https://dlmf.nist.gov/10.40.E1
-# In general this is valid when x > nu^2
 """
-    besseli_large_orders(nu, x::T)
+    besseli_large_argument(nu, x::T)
 
-Debey's uniform asymptotic expansion for large order valid when v-> ∞ or x -> ∞
+Hankel's large argument asymptotic expansion valid when x -> ∞.
+https://dlmf.nist.gov/10.40.E1
 """
 function besseli_large_argument(v, x::T) where T
     a = exp(x / 2)
@@ -620,6 +619,8 @@ besseli_large_argument_scaled(v, x::Float32) = Float32(besseli_large_argument_sc
 
 besseli_large_argument_cutoff(nu, x::Float64) = x > 23.0 && x > nu^2 / 1.8 + 23.0
 besseli_large_argument_cutoff(nu, x::Float32) = x > 18.0f0 && x > nu^2 / 19.5f0 + 18.0f0
+besseli_large_argument_cutoff(nu, z::ComplexF64) = abs2(z) > 529.0 && abs(x) > nu^2 / 1.8 + 23.0
+
 
 #####
 #####  Power series for I_{nu}(x)
