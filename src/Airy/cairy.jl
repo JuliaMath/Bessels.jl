@@ -451,14 +451,21 @@ end
 
 @inline function compute_airy_asy_coef(z, xsqrx)
     invx3 = @fastmath inv(z^3)
-    p1 = evalpoly(invx3, AIRY_ASYM_COEF[1])
-    p2 = evalpoly(invx3, AIRY_ASYM_COEF[2])
-    p3 = evalpoly(invx3, AIRY_ASYM_COEF[3])
-    p4 = evalpoly(invx3, AIRY_ASYM_COEF[4])
-    A = muladd(xsqrx, -p2, p1)
-    B = muladd(xsqrx, p2, p1)
-    C = muladd(xsqrx, -p4, p3)
-    D = muladd(xsqrx, p4, p3)
+    p = SIMDMath.horner_simd(invx3, pack_AIRY_ASYM_COEF)
+
+    zvec = SIMDMath.ComplexVec{2, Float64}((xsqrx.re, xsqrx.re), (xsqrx.im, xsqrx.im))
+    zvecn = SIMDMath.ComplexVec{2, Float64}((-xsqrx.re, -xsqrx.re), (-xsqrx.im, -xsqrx.im))
+
+    pvec1 = SIMDMath.ComplexVec{2, Float64}((p.re[1], p.re[3]), (p.im[1], p.im[3]))
+    pvec2 = SIMDMath.ComplexVec{2, Float64}((p.re[2], p.re[4]), (p.im[2], p.im[4]))
+
+    a = SIMDMath.fmadd(zvec, pvec2, pvec1)
+    b = SIMDMath.fmadd(zvecn, pvec2, pvec1)
+
+    A = complex(b.re[1].value, b.im[1].value)
+    B = complex(a.re[1].value, a.im[1].value)
+    C = complex(b.re[2].value, b.im[2].value)
+    D = complex(a.re[2].value, a.im[2].value)
     return A, B, C, D
 end
 
@@ -472,3 +479,5 @@ const AIRY_ASYM_COEF = (
     (-1.5707963267948966, 0.15510250188621483, 0.4982993247266722, 5.515384839161109, 129.24738229725767, 5209.103946324185, 321269.61208650155, 2.812618811215662e7, 3.3166403972012258e9, 5.0676100258903735e11, 9.738286496397669e13, 2.298637212441062e16, 6.537678293827411e18),
     (0.22907446432425577, 0.22511404787652015, 1.4803642438754887, 24.70432792540913, 773.390007496322, 38999.21950723391, 2.8878225227454924e6, 2.950515261265541e8, 3.97712331943799e10, 6.837383921993536e12, 1.460066704564067e15, 3.7912939312807334e17, 1.176400728321794e20)
 )
+
+const pack_AIRY_ASYM_COEF = SIMDMath.pack_poly(AIRY_ASYM_COEF)
