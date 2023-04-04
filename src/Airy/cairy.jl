@@ -413,7 +413,7 @@ end
 
 @inline function airyaix_large_args(z::Complex{T}) where T
     xsqr = sqrt(z)
-    xsqrx = 1 / (z * xsqr)
+    xsqrx =  Base.FastMath.inv_fast(z * xsqr)
     A, B, C, D = compute_airy_asy_coef(z, xsqrx)
     
     if abs(angle(z)) > 4π/6
@@ -426,14 +426,14 @@ end
     end
 
     xsqr = sqrt(xsqr)
-    return ai / (PIPOW3O2(T) * xsqr), aip * xsqr * inv(PIPOW3O2(T))
+    return ai * Base.FastMath.inv_fast(xsqr) * inv(PIPOW3O2(T)), aip * xsqr * inv(PIPOW3O2(T))
 end
 
 # valid in 0 <= angle(z) <= pi
 # use conjugation for bottom half plane
 @inline function airybix_large_args(z::Complex{T}) where T
     xsqr = sqrt(z)
-    xsqrx = 1 / (z * xsqr)
+    xsqrx = Base.FastMath.inv_fast(z * xsqr)
     A, B, C, D = compute_airy_asy_coef(z, xsqrx)
     
     if abs(angle(z)) < 2π/3
@@ -444,7 +444,7 @@ end
     e = exp(-4/3 * z * xsqr)
     xsqr = sqrt(xsqr)
 
-    bi = muladd(A*im, e, B) / (xsqr * PIPOW3O2(T))
+    bi = muladd(A*im, e, B) * Base.FastMath.inv_fast(xsqr) * inv(PIPOW3O2(T))
     bip = muladd(C*im, e, -D) * xsqr * inv(PIPOW3O2(T))
     return bi, bip
 end
