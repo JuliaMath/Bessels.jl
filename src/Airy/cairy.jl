@@ -416,7 +416,7 @@ end
     xsqrx =  Base.FastMath.inv_fast(z * xsqr)
     A, B, C, D = compute_airy_asy_coef(z, xsqrx)
     
-    if abs(angle(z)) > 4π/6
+    if (real(z) < 0.0) && abs(imag(z)) < sqrt(3)*abs(real(z))
         e = exp(4/3 * z * xsqr)
         ai = muladd(B*im, e, A)
         aip = muladd(-D*im, e, C)
@@ -436,7 +436,7 @@ end
     xsqrx = Base.FastMath.inv_fast(z * xsqr)
     A, B, C, D = compute_airy_asy_coef(z, xsqrx)
     
-    if abs(angle(z)) < 2π/3
+    if (real(z) > 0.0) || abs(imag(z)) > sqrt(3)*abs(real(z))
         B *= 2
         D *= 2
     end
