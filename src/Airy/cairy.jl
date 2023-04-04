@@ -394,8 +394,6 @@ end
 airy_large_argument_cutoff(z::ComplexOrReal{Float64}) = abs(z) > 8.3
 airy_large_argument_cutoff(z::ComplexOrReal{Float32}) = abs(z) > 4
 
-
-
 function airyai_large_args(z::Complex{T}) where T
     if imag(z) < zero(T)
         out = conj.(airyaix_large_args(conj(z)))
@@ -414,26 +412,19 @@ function airybi_large_args(z::Complex{T}) where T
 end
 
 @inline function airyaix_large_args(z::Complex{T}) where T
-    invx3 = @fastmath inv(z^3)
-    p = evalpoly(invx3, AIRY_ASYM_COEF[1])
-    q = evalpoly(invx3, AIRY_ASYM_COEF[2])
-    p1 = evalpoly(invx3, AIRY_ASYM_COEF[3])
-    q1 = evalpoly(invx3, AIRY_ASYM_COEF[4])
     xsqr = sqrt(z)
     xsqrx = 1 / (z * xsqr)
-    a = muladd(xsqrx, -q, p)
-    c = muladd(xsqrx, -q1, p1)
-
+    A, B, C, D = compute_airy_asy_coef(z, xsqrx)
+    
     if abs(angle(z)) > 4π/6
-        b = muladd(xsqrx, q, p)
-        d = muladd(xsqrx, q1, p1)
-        e = exp(4 * z * xsqr / 3)
-        ai = a + im * b * e
-        aip = c - im * d * e
+        e = exp(4/3 * z * xsqr)
+        ai = muladd(B*im, e, A)
+        aip = muladd(-D*im, e, C)
     else
-        ai = a 
-        aip = c
+        ai = A
+        aip = C
     end
+
     xsqr = sqrt(xsqr)
     return ai / (PIPOW3O2(T) * xsqr), aip * xsqr * inv(PIPOW3O2(T))
 end
@@ -441,29 +432,34 @@ end
 # valid in 0 <= angle(z) <= pi
 # use conjugation for bottom half plane
 @inline function airybix_large_args(z::Complex{T}) where T
-    invx3 = @fastmath inv(z^3)
-    p = evalpoly(invx3, AIRY_ASYM_COEF[1])
-    p1 = evalpoly(invx3, AIRY_ASYM_COEF[2])
-    q = evalpoly(invx3, AIRY_ASYM_COEF[3])
-    q1 = evalpoly(invx3, AIRY_ASYM_COEF[4])
-    
     xsqr = sqrt(z)
     xsqrx = 1 / (z * xsqr)
-    e = exp(-4 * z * xsqr / 3)
-
-    B =  muladd(xsqrx, p1, p)
-    A = muladd(xsqrx, -p1, p)
-    C = muladd(xsqrx, -q1, q)
-    D = muladd(xsqrx, q1, q)
-
-    xsqr = sqrt(xsqr)
+    A, B, C, D = compute_airy_asy_coef(z, xsqrx)
+    
     if abs(angle(z)) < 2π/3
         B *= 2
         D *= 2
     end
-    bi = (B + im * A * e) / (xsqr * PIPOW3O2(T))
-    bip = (-D + im * C * e) * xsqr * inv(PIPOW3O2(T))
+
+    e = exp(-4/3 * z * xsqr)
+    xsqr = sqrt(xsqr)
+
+    bi = muladd(A*im, e, B) / (xsqr * PIPOW3O2(T))
+    bip = muladd(C*im, e, -D) * xsqr * inv(PIPOW3O2(T))
     return bi, bip
+end
+
+@inline function compute_airy_asy_coef(z, xsqrx)
+    invx3 = @fastmath inv(z^3)
+    p1 = evalpoly(invx3, AIRY_ASYM_COEF[1])
+    p2 = evalpoly(invx3, AIRY_ASYM_COEF[2])
+    p3 = evalpoly(invx3, AIRY_ASYM_COEF[3])
+    p4 = evalpoly(invx3, AIRY_ASYM_COEF[4])
+    A = muladd(xsqrx, -p2, p1)
+    B = muladd(xsqrx, p2, p1)
+    C = muladd(xsqrx, -p4, p3)
+    D = muladd(xsqrx, p4, p3)
+    return A, B, C, D
 end
 
 # to generate asymptotic expansions then split into even and odd coefficients
