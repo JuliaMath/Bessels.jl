@@ -394,6 +394,8 @@ end
 airy_large_argument_cutoff(z::ComplexOrReal{Float64}) = abs(z) > 8.3
 airy_large_argument_cutoff(z::ComplexOrReal{Float32}) = abs(z) > 4
 
+# valid in 0 <= angle(z) <= pi
+# use conjugation for bottom half plane
 function airyai_large_args(z::Complex{T}) where T
     if imag(z) < zero(T)
         out = conj.(airyaix_large_args(conj(z)))
@@ -429,8 +431,6 @@ end
     return ai * Base.FastMath.inv_fast(xsqr) * inv(PIPOW3O2(T)), aip * xsqr * inv(PIPOW3O2(T))
 end
 
-# valid in 0 <= angle(z) <= pi
-# use conjugation for bottom half plane
 @inline function airybix_large_args(z::Complex{T}) where T
     xsqr = sqrt(z)
     xsqrx = Base.FastMath.inv_fast(z * xsqr)
@@ -453,14 +453,13 @@ end
     invx3 = @fastmath inv(z^3)
     p = SIMDMath.horner_simd(invx3, pack_AIRY_ASYM_COEF)
 
-    zvec = SIMDMath.ComplexVec{2, Float64}((xsqrx.re, xsqrx.re), (xsqrx.im, xsqrx.im))
-    zvecn = SIMDMath.ComplexVec{2, Float64}((-xsqrx.re, -xsqrx.re), (-xsqrx.im, -xsqrx.im))
-
     pvec1 = SIMDMath.ComplexVec{2, Float64}((p.re[1], p.re[3]), (p.im[1], p.im[3]))
     pvec2 = SIMDMath.ComplexVec{2, Float64}((p.re[2], p.re[4]), (p.im[2], p.im[4]))
 
-    a = SIMDMath.fmadd(zvec, pvec2, pvec1)
-    b = SIMDMath.fmadd(zvecn, pvec2, pvec1)
+    zvec = SIMDMath.ComplexVec{2, Float64}((xsqrx.re, xsqrx.re), (xsqrx.im, xsqrx.im))
+    zvec = SIMDMath.fmul(zvec, pvec2)
+    a = SIMDMath.fadd(pvec1, zvec)
+    b = SIMDMath.fsub(pvec1, zvec)
 
     A = complex(b.re[1].value, b.im[1].value)
     B = complex(a.re[1].value, a.im[1].value)
