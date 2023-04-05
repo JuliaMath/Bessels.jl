@@ -59,7 +59,7 @@ function _airyai(z::Complex{T}) where T <: Union{Float32, Float64}
         end
     end
     x, y = real(z), imag(z)
-    airy_large_argument_cutoff(z) && return airyai_large_argument(z)
+    airy_large_argument_cutoff(z) && return airyai_large_args(z)[1]
     airyai_power_series_cutoff(x, y) && return airyai_power_series(z)
 
     if x > zero(T)
@@ -116,7 +116,7 @@ function _airyaiprime(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
         end
     end
     x, y = real(z), imag(z)
-    airy_large_argument_cutoff(z) && return airyaiprime_large_argument(z)
+    airy_large_argument_cutoff(z) && return airyai_large_args(z)[2]
     airyai_power_series_cutoff(x, y) && return airyaiprime_power_series(z)
 
     if x > zero(T)
@@ -173,7 +173,7 @@ function _airybi(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
         end
     end
     x, y = real(z), imag(z)
-    airy_large_argument_cutoff(z) && return airybi_large_argument(z)
+    airy_large_argument_cutoff(z) && return airybi_large_args(z)[1]
     airybi_power_series_cutoff(x, y) && return airybi_power_series(z)
 
     if x > zero(T)
@@ -232,7 +232,7 @@ function _airybiprime(z::ComplexOrReal{T}) where T <: Union{Float32, Float64}
         end
     end
     x, y = real(z), imag(z)
-    airy_large_argument_cutoff(z) && return airybiprime_large_argument(z)
+    airy_large_argument_cutoff(z) && return airybi_large_args(z)[2]
     airybi_power_series_cutoff(x, y) && return airybiprime_power_series(z)
 
     if x > zero(T)
@@ -377,190 +377,6 @@ end
 airybiprime_power_series(x::Float32) = Float32(airybiprime_power_series(Float64(x), tol=eps(Float32)))
 airybiprime_power_series(x::ComplexF32) = ComplexF32(airybiprime_power_series(ComplexF64(x), tol=eps(Float32)))
 
-#####
-#####  Large argument expansion for airy functions
-#####
-airy_large_argument_cutoff(z::ComplexOrReal{Float64}) = abs(z) > 8
-airy_large_argument_cutoff(z::ComplexOrReal{Float32}) = abs(z) > 4
-
-function airyai_large_argument(x::Real)
-    x < zero(x) && return real(airyai_large_argument(complex(x)))
-    return airy_large_arg_a(abs(x))
-end
-
-function airyai_large_argument(z::Complex{T}) where T
-    x, y = real(z), imag(z)
-    a = airy_large_arg_a(z)
-    if x < zero(T) && abs(y) < 5.5
-        b = airy_large_arg_b(z)
-        y >= zero(T) ? (return a + im*b) : (return a - im*b)
-    end
-    return a
-end
-
-function airyaiprime_large_argument(x::Real)
-    x < zero(x) && return real(airyaiprime_large_argument(complex(x)))
-    return airy_large_arg_c(abs(x))
-end
-
-function airyaiprime_large_argument(z::Complex{T}) where T
-    x, y = real(z), imag(z)
-    c = airy_large_arg_c(z)
-    if x < zero(T) && abs(y) < 5.5
-        d = airy_large_arg_d(z)
-        y >= zero(T) ? (return c + im*d) : (return c - im*d)
-    end
-    return c
-end
-
-function airybi_large_argument(x::Real)
-    if x < zero(x)
-        return 2*real(airy_large_arg_b(complex(x)))
-    else
-        return 2*(airy_large_arg_b(x))
-    end
-end
-
-function airybi_large_argument(z::Complex{T}) where T
-    x, y = real(z), imag(z)
-    b = airy_large_arg_b(z)
-    abs(y) <= 1.7*(x - 6) && return 2*b
-
-    check_conj = false
-    if y < zero(T)
-        z = conj(z)
-        b = conj(b)
-        y = abs(y)
-        check_conj = true
-    end
-
-    a = airy_large_arg_a(z)
-    if x < zero(T) && y < 5
-        out = b + im*a
-        check_conj && (out = conj(out))
-        return out
-    else
-        out = 2*b + im*a
-        check_conj && (out = conj(out))
-        return out
-    end
-end
-
-function airybiprime_large_argument(x::Real)
-    if x < zero(x)
-        return 2*real(airy_large_arg_d(complex(x)))
-    else
-        return 2*(airy_large_arg_d(x))
-    end
-end
-
-function airybiprime_large_argument(z::Complex{T}) where T
-    x, y = real(z), imag(z)
-    d = airy_large_arg_d(z)
-    abs(y) <= 1.7*(x - 6) && return 2*d
-
-    check_conj = false
-    if y < zero(T)
-        z = conj(z)
-        d = conj(d)
-        y = abs(y)
-        check_conj = true
-    end
-
-    c = airy_large_arg_c(z)
-    if x < zero(T) && y < 5
-        out = d + im*c
-        check_conj && (out = conj(out))
-        return out
-    else
-        out = 2*d + im*c
-        check_conj && (out = conj(out))
-        return out
-    end
-end
-
-# see equations 24 and relations using eq 25 and 26 in [1]
-function airy_large_arg_a(x::ComplexOrReal{T}; tol=eps(T)*40) where T
-    S = eltype(x)
-    MaxIter = 3000
-    xsqr = sqrt(x)
-
-    out = zero(S)
-    t = GAMMA_ONE_SIXTH(T) * GAMMA_FIVE_SIXTHS(T) / 4
-    a = 4*xsqr*x
-    for i in 0:MaxIter
-        out += t
-        abs(t) < tol*abs(out) && break
-        t *= -3*(i + one(T)/6) * (i + T(5)/6) / (a*(i + one(T)))
-    end
-    return out * exp(-a / 6) / (sqrt(T(π)^3) * sqrt(xsqr))
-end
-
-function airy_large_arg_b(x::ComplexOrReal{T}; tol=eps(T)*40) where T
-    S = eltype(x)
-    MaxIter = 3000
-    xsqr = sqrt(x)
-
-    out = zero(S)
-    t = GAMMA_ONE_SIXTH(T) * GAMMA_FIVE_SIXTHS(T) / 4
-    a = 4*xsqr*x
-    for i in 0:MaxIter
-        out += t
-        abs(t) < tol*abs(out) && break
-        t *= 3*(i + one(T)/6) * (i + T(5)/6) / (a*(i + one(T)))
-    end
-    return out * exp(a / 6) / (sqrt(T(π)^3) * sqrt(xsqr))
-end
-
-function airy_large_arg_c(x::ComplexOrReal{T}; tol=eps(T)*40) where T
-    S = eltype(x)
-    MaxIter = 3000
-    xsqr = sqrt(x)
-
-    out = zero(S)
-    # use identities of gamma to relate to defined constants
-    # t = gamma(-one(T) / 6) * gamma(T(7) / 6) / 4
-    t = -GAMMA_FIVE_SIXTHS(T) * GAMMA_ONE_SIXTH(T) / 4
-    a = 4*xsqr*x
-    for i in 0:MaxIter
-        out += t
-        abs(t) < tol*abs(out) && break
-        t *= -3*(i - one(T)/6) * (i + T(7)/6) / (a*(i + one(T)))
-    end
-    return out * exp(-a / 6) * sqrt(xsqr) / sqrt(T(π)^3)
-end
-
-function airy_large_arg_d(x::ComplexOrReal{T}; tol=eps(T)*40) where T
-    S = eltype(x)
-    MaxIter = 3000
-    xsqr = sqrt(x)
-
-    out = zero(S)
-    # use identities of gamma to relate to defined constants
-    # t = gamma(-one(T) / 6) * gamma(T(7) / 6) / 4
-    t = -GAMMA_FIVE_SIXTHS(T) * GAMMA_ONE_SIXTH(T) / 4
-    a = 4*xsqr*x
-    for i in 0:MaxIter
-        out += t
-        abs(t) < tol*abs(out) && break
-        t *= 3*(i - one(T)/6) * (i + T(7)/6) / (a*(i + one(T)))
-    end
-    return -out * exp(a / 6) * sqrt(xsqr) / sqrt(T(π)^3)
-end
-
-# negative arguments of airy functions oscillate around zero so as x -> -Inf it is more prone to cancellation
-# to give best accuracy it is best to promote to Float64 numbers until the Float32 tolerance
-airy_large_arg_a(x::Float32) = (airy_large_arg_a(Float64(x), tol=eps(Float32)))
-airy_large_arg_a(x::ComplexF32) = (airy_large_arg_a(ComplexF64(x), tol=eps(Float32)))
-
-airy_large_arg_b(x::Float32) = Float32(airy_large_arg_b(Float64(x), tol=eps(Float32)))
-airy_large_arg_b(x::ComplexF32) = ComplexF32(airy_large_arg_b(ComplexF64(x), tol=eps(Float32)))
-
-airy_large_arg_c(x::Float32) = Float32(airy_large_arg_c(Float64(x), tol=eps(Float32)))
-airy_large_arg_c(x::ComplexF32) = ComplexF32(airy_large_arg_c(ComplexF64(x), tol=eps(Float32)))
-
-airy_large_arg_d(x::Float32) = Float32(airy_large_arg_d(Float64(x), tol=eps(Float32)))
-airy_large_arg_d(x::ComplexF32) = ComplexF32(airy_large_arg_d(ComplexF64(x), tol=eps(Float32)))
 # calculates besselk from the power series of besseli using the continued fraction and wronskian
 # this shift the order higher first to avoid cancellation in the power series of besseli along the imaginary axis
 # for real arguments this is not needed because besseli can be computed stably over the entire real axis
@@ -571,3 +387,96 @@ function besselk_continued_fraction_shift(nu, x)
     H_knu = besselk_ratio_knu_knup1(nu-1, x)
     return 1 / (x * (inum1 + inu / H_knu))
 end
+
+#####
+#####  Large argument expansion for airy functions
+#####
+airy_large_argument_cutoff(z::ComplexOrReal{Float64}) = abs(z) > 8.3
+airy_large_argument_cutoff(z::ComplexOrReal{Float32}) = abs(z) > 4
+
+# valid in 0 <= angle(z) <= pi
+# use conjugation for bottom half plane
+function airyai_large_args(z::Complex{T}) where T
+    if imag(z) < zero(T)
+        out = conj.(airyaix_large_args(conj(z)))
+    else
+        out = airyaix_large_args(z)
+    end
+    return out .* exp(-2/3 * z * sqrt(z))
+end
+function airybi_large_args(z::Complex{T}) where T
+    if imag(z) < zero(T)
+        out = conj.(airybix_large_args(conj(z)))
+    else
+        out = airybix_large_args(z)
+    end
+    return out .* exp(2/3 * z * sqrt(z))
+end
+
+@inline function airyaix_large_args(z::Complex{T}) where T
+    xsqr = sqrt(z)
+    xsqrx =  Base.FastMath.inv_fast(z * xsqr)
+    A, B, C, D = compute_airy_asy_coef(z, xsqrx)
+    
+    if (real(z) < 0.0) && abs(imag(z)) < sqrt(3)*abs(real(z))
+        e = exp(4/3 * z * xsqr)
+        ai = muladd(B*im, e, A)
+        aip = muladd(-D*im, e, C)
+    else
+        ai = A
+        aip = C
+    end
+
+    xsqr = sqrt(xsqr)
+    return ai * Base.FastMath.inv_fast(xsqr) * inv(PIPOW3O2(T)), aip * xsqr * inv(PIPOW3O2(T))
+end
+
+@inline function airybix_large_args(z::Complex{T}) where T
+    xsqr = sqrt(z)
+    xsqrx = Base.FastMath.inv_fast(z * xsqr)
+    A, B, C, D = compute_airy_asy_coef(z, xsqrx)
+    
+    if (real(z) > 0.0) || abs(imag(z)) > sqrt(3)*abs(real(z))
+        B *= 2
+        D *= 2
+    end
+
+    e = exp(-4/3 * z * xsqr)
+    xsqr = sqrt(xsqr)
+
+    bi = muladd(A*im, e, B) * Base.FastMath.inv_fast(xsqr) * inv(PIPOW3O2(T))
+    bip = muladd(C*im, e, -D) * xsqr * inv(PIPOW3O2(T))
+    return bi, bip
+end
+
+@inline function compute_airy_asy_coef(z, xsqrx)
+    invx3 = @fastmath inv(z^3)
+    p = SIMDMath.horner_simd(invx3, pack_AIRY_ASYM_COEF)
+
+    pvec1 = SIMDMath.ComplexVec{2, Float64}((p.re[1], p.re[3]), (p.im[1], p.im[3]))
+    pvec2 = SIMDMath.ComplexVec{2, Float64}((p.re[2], p.re[4]), (p.im[2], p.im[4]))
+
+    zvec = SIMDMath.ComplexVec{2, Float64}((xsqrx.re, xsqrx.re), (xsqrx.im, xsqrx.im))
+    zvec = SIMDMath.fmul(zvec, pvec2)
+    a = SIMDMath.fadd(pvec1, zvec)
+    b = SIMDMath.fsub(pvec1, zvec)
+
+    A = complex(b.re[1].value, b.im[1].value)
+    B = complex(a.re[1].value, a.im[1].value)
+    C = complex(b.re[2].value, b.im[2].value)
+    D = complex(a.re[2].value, a.im[2].value)
+    return A, B, C, D
+end
+
+# to generate asymptotic expansions then split into even and odd coefficients
+# tuple(Float64.([3^k * gamma(k + 1//6) * gamma(k + 5//6) / (2^(2k+2) * gamma(k+1)) for k in big"0":big"24"])...)
+# tuple(Float64.([(3)^k * gamma(k - 1//6) * gamma(k + 7//6) / (2^(2k+2) * gamma(k+1)) for k in big"0":big"24"])...)
+
+const AIRY_ASYM_COEF = (
+    (1.5707963267948966, 0.13124057851910487, 0.4584353787485384, 5.217255928936184, 123.97197893818594, 5038.313653002081, 312467.7049060495, 2.746439545069411e7, 3.2482560591146026e9, 4.97462635569055e11, 9.57732308323407e13, 2.2640712393216476e16, 6.447503420809101e18),
+    (0.1636246173744684, 0.20141783231057064, 1.3848568733028765, 23.555289417250567, 745.2667344964557, 37835.063701047824, 2.8147130917899106e6, 2.8856687720069575e8, 3.8998976239149216e10, 6.718472897263214e12, 1.4370735281142392e15, 3.7367429394637446e17, 1.1608192617215053e20),
+    (-1.5707963267948966, 0.15510250188621483, 0.4982993247266722, 5.515384839161109, 129.24738229725767, 5209.103946324185, 321269.61208650155, 2.812618811215662e7, 3.3166403972012258e9, 5.0676100258903735e11, 9.738286496397669e13, 2.298637212441062e16, 6.537678293827411e18),
+    (0.22907446432425577, 0.22511404787652015, 1.4803642438754887, 24.70432792540913, 773.390007496322, 38999.21950723391, 2.8878225227454924e6, 2.950515261265541e8, 3.97712331943799e10, 6.837383921993536e12, 1.460066704564067e15, 3.7912939312807334e17, 1.176400728321794e20)
+)
+
+const pack_AIRY_ASYM_COEF = SIMDMath.pack_poly(AIRY_ASYM_COEF)
