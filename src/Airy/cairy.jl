@@ -48,7 +48,7 @@ See also: [`airyaiprime`](@ref), [`airybi`](@ref)
 """
 airyai(z::Number) = _airyai(float(z))
 
-function _airyai(z::Complex{T}) where T <: Float64
+function _airyai(z::Complex{T}) where T <: Union{Float32, Float64}
     if ~isfinite(z)
         if abs(angle(z)) < 2*T(π)/3
             return exp(-z)
@@ -103,7 +103,7 @@ See also: [`airyai`](@ref), [`airybi`](@ref)
 """
 airyaiprime(z::Number) = _airyaiprime(float(z))
 
-function _airyaiprime(z::Complex{T}) where T <: Float64
+function _airyaiprime(z::Complex{T}) where T <: Union{Float32, Float64}
     if ~isfinite(z)
         if abs(angle(z)) < 2*T(π)/3
             return -exp(-z)
@@ -158,7 +158,7 @@ See also: [`airybiprime`](@ref), [`airyai`](@ref)
 """
 airybi(z::Number) = _airybi(float(z))
 
-function _airybi(z::Complex{T}) where T <: Float64
+function _airybi(z::Complex{T}) where T <: Union{Float32, Float64}
     if ~isfinite(z)
         if abs(angle(z)) < 2π/3
             return exp(z)
@@ -215,7 +215,7 @@ See also: [`airybi`](@ref), [`airyai`](@ref)
 """
 airybiprime(z::Number) = _airybiprime(float(z))
 
-function _airybiprime(z::Complex{T}) where T <: Float64
+function _airybiprime(z::Complex{T}) where T <: Union{Float32, Float64}
     if ~isfinite(z)
         if abs(angle(z)) < 2*T(π)/3
             return exp(z)
@@ -420,3 +420,143 @@ const AIRYBI_POW_COEF = (
 
 const pack_AIRYAI_POW_COEF =  SIMDMath.pack_poly(AIRYAI_POW_COEF)
 const pack_AIRYBI_POW_COEF =  SIMDMath.pack_poly(AIRYBI_POW_COEF)
+
+# promote Float16 values
+for internalf in (:airyai, :airyaiprime, :airybi, :airybiprime), T in (:ComplexF16,)
+    @eval $internalf(x::$T) = $T($internalf(ComplexF32(x)))
+end
+
+# promote power series and asymptotic expansion to Float64 precision
+for internalf in (:airyai_power_series, :airybi_power_series, :airyai_large_args, :airybi_large_args), T in (:ComplexF32,)
+    @eval $internalf(x::$T) = $T.($internalf(ComplexF64(x)))
+end
+
+#=
+using Base.Cartesian
+using SIMDMath: VE, fmadd, Vec, FloatTypes
+
+@inline levin_scale(B::T, n, k) where T = -(B + n) * (B + n + k)^(k - one(T)) / (B + n + k + one(T))^k
+@inline levin_scale(B::T, n, k) where T = -(B + n + k) * (B + n + k - 1) / ((B + n + 2k) * (B + n + 2k - 1))
+
+
+# compute the scaled modified bessel function using the Levin-u transformation
+# v = 0.2; x = 4.3
+# besselkx(v, x, Val(19))
+@generated function besselkx_levin(v, x::T, ::Val{N}) where {T <: FloatTypes, N}
+    len = N-1
+    len2 = N-2
+    :(
+        begin
+
+            # generate a sequence of partial sums and weights of the asymptotic expansion for large argument besselk
+            l = let (out, term, fv2) = (one(typeof(x)), one(typeof(x)), 4*v^2)
+                @ntuple $N i -> begin
+                    offset = muladd(2, i, -1)
+                    term *= muladd(offset, -offset, fv2) / (8 * x * i)
+                    out += term
+                    # this check is relatively cheap but if the normal sum converges then we should return value
+                    abs(term) <= eps(T) && return out * sqrt(π / 2x)
+                    # need to return the weights and weighted partial sums
+                    invterm = inv(term)
+                    Vec{2, T}((out * invterm, invterm))
+                end
+            end
+            # this is required because you can't set the index of a tuple
+            @nexprs $len i -> a_{i} = l[i]
+            @nexprs $len2 k -> (@nexprs ($len-k) i -> a_{i} = fmadd(a_{i}, levin_scale(one(T), i, k-1), a_{i+1}))
+            return (a_1.data[1].value / a_1.data[2].value) * sqrt(π / 2x)
+        end
+    )
+end
+
+besselk_levin(v, x::T, ::Val{N}) where {T <: Union{Complex{FloatTypes}, FloatTypes}, N} = exp(-x) * besselkx_levin(v, x, Val(N))
+
+
+@generated function airyaix_levin2(v, x::T, ::Val{N}) where {T <: FloatTypes, N}
+    len = N-1
+    len2 = N-2
+    :(
+        begin
+
+            # generate a sequence of partial sums and weights of the asymptotic expansion for large argument besselk
+            l = let (out, term, fv2) = (one(typeof(x)), one(typeof(x)), 4*v^2)
+                @ntuple $N i -> begin
+                    offset = muladd(2, i, -1)
+                    term *= muladd(offset, -offset, fv2) / (8 * x * i)
+                    out += term
+                    # this check is relatively cheap but if the normal sum converges then we should return value
+                    abs(term) <= eps(T) && return out * sqrt(π / 2x)
+                    # need to return the weights and weighted partial sums
+                    invterm = inv(term)
+                    Vec{2, T}((out * invterm, invterm))
+                end
+            end
+            # this is required because you can't set the index of a tuple
+            @nexprs $len i -> a_{i} = l[i]
+            @nexprs $len2 k -> (@nexprs ($len-k) i -> a_{i} = fmadd(a_{i}, levin_scale2(one(T), i, k-1), a_{i+1}))
+            return (a_1.data[1].value / a_1.data[2].value) * sqrt(π / 2x)
+        end
+    )
+end
+
+
+function airy_large_arg_a(x::T, iter=40) where T
+    S = eltype(x)
+    MaxIter = 3000
+    xsqr = sqrt(x)
+
+    out = zero(S)
+    t = GAMMA_ONE_SIXTH(Float64) * GAMMA_FIVE_SIXTHS(Float64) / 4
+    a = 4*xsqr*x
+    for i in 0:iter
+        out += t
+        t *= -3*(i + one(T)/6) * (i + T(5)/6) / (a*(i + one(T)))
+    end
+    return out * exp(-a / 6) / (sqrt(T(π)^3) * sqrt(xsqr))
+end
+function airy_large_arg_b(x::T, iter = 40) where T
+    S = eltype(x)
+    MaxIter = 3000
+    xsqr = sqrt(x)
+
+    out = zero(S)
+    t = GAMMA_ONE_SIXTH(Float64) * GAMMA_FIVE_SIXTHS(Float64) / 4
+    a = 4*xsqr*x
+    for i in 0:iter
+        out += t
+        t *= 3*(i + one(T)/6) * (i + T(5)/6) / (a*(i + one(T)))
+    end
+    return out * exp(a / 6) / (sqrt(T(π)^3) * sqrt(xsqr))
+end
+
+
+@inline levin_scale(B, n, k) = -(B + n) * (B + n + k)^(k - 1.0) / (B + n + k + 1.0)^k
+
+@generated function levin_transform(s::NTuple{N, T}) where {N, T}
+    len = N-1
+    len2 = N-2
+    :(
+        begin
+            @nexprs $len i -> b_{i} = 1 / (s[i + 1] - s[i])
+            @nexprs $len i -> a_{i} = s[i] * b_{i}
+            @nexprs $len2 k -> (@nexprs ($len-k) i -> (a_{i}, b_{i}) = (muladd(a_{i}, levin_scale(1.0, i, k-1), a_{i+1}), muladd(b_{i}, levin_scale(1.0, i, k-1), b_{i+1})))
+            return a_1 / b_1
+        end
+    )
+end
+
+function airy_levin(x)
+    N = 50
+    sequence = tuple([airy_large_arg_a(BigFloat(real(x)) + im*BigFloat(imag(x)), iter) for iter in 1:N]...);
+    levin_transform(sequence[1:N-10])
+end
+
+
+function airy_levin2(x)
+    N = 40
+    sequence = tuple([airy_large_arg_a(BigFloat(real(x)) + im*BigFloat(imag(x)), iter) + im*airy_large_arg_b(BigFloat(real(x)) + im*BigFloat(imag(x)), iter) for iter in 1:N]...);
+    levin_transform(sequence[1:N-20])
+end
+
+
+=#
