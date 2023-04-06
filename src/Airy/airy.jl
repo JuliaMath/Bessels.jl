@@ -378,3 +378,6 @@ end
 for internalf in (:airyai, :airyaix, :airyaiprime, :airyaiprimex, :airybi, :airybix, :airybiprime, :airybiprimex), T in (:Float16, :Float32)
     @eval $internalf(x::$T) = $T($internalf(Float64(x)))
 end
+for internalf in (:airyai, :airyaiprime, :airybi, :airybiprime), T in (:ComplexF16, :ComplexF32)
+    @eval $internalf(x::$T) = $T($internalf(ComplexF64(x)))
+end
