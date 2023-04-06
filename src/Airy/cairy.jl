@@ -259,8 +259,8 @@ function airyai_power_series(z::Complex{T}) where T
     z2 = z * z
     z3 = z2 * z
     p = SIMDMath.horner_simd(z3, pack_AIRYAI_POW_COEF)
-    ai = muladd(-complex(p.re[2].value, p.im[2].value), z, complex(p.re[1].value, p.im[1].value))
-    aip = muladd(complex(p.re[4].value, p.im[4].value), z2, -complex(p.re[3].value, p.im[3].value))
+    ai = muladd(-p[2], z, p[1])
+    aip = muladd(p[4], z2, -p[3])
     return ai, aip
 end
 
@@ -268,8 +268,8 @@ function airybi_power_series(z::Complex{T}) where T
     z2 = z * z
     z3 = z2 * z
     p = SIMDMath.horner_simd(z3, pack_AIRYBI_POW_COEF)
-    bi = muladd(complex(p.re[2].value, p.im[2].value), z, complex(p.re[1].value, p.im[1].value))
-    bip = muladd(complex(p.re[4].value, p.im[4].value), z2, complex(p.re[3].value, p.im[3].value))
+    bi = muladd(p[2], z, p[1])
+    bip = muladd(p[4], z2, p[3])
     return bi, bip
 end
 
@@ -368,10 +368,7 @@ end
     a = SIMDMath.fadd(pvec1, zvec)
     b = SIMDMath.fsub(pvec1, zvec)
 
-    A = complex(b.re[1].value, b.im[1].value)
-    B = complex(a.re[1].value, a.im[1].value)
-    C = complex(b.re[2].value, b.im[2].value)
-    D = complex(a.re[2].value, a.im[2].value)
+    A, B, C, D = b[1], a[1], b[2], a[2]
     return A, B, C, D
 end
 
