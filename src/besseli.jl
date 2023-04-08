@@ -655,7 +655,7 @@ end
 # using K0 and K1 as starting values then forward recurrence up till nu
 # then using the wronskian to getting I_{nu}
 # in general this method is slow and depends on starting values of K0 and K1
-# which is not very flexible for arbitary orders
+# which is not very flexible for arbitrary orders
 
 function _besseli_continued_fractions(nu, x::T) where T
     S = promote_type(T, Float64)

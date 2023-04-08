@@ -8,7 +8,7 @@
 #    where r1 and r2 are zeros of J0
 #    and P3 and Q8 are a 3 and 8 degree polynomial respectively
 #    Polynomial coefficients are from [1] which is based on [2].
-#    For tiny arugments the power series expansion is used.
+#    For tiny arguments the power series expansion is used.
 #
 #    Branch 2: 5.0 < x < 25.0
 #              bessely0 = sqrt(2/(pi*x))*(sin(x - pi/4)*R7(x) - cos(x - pi/4)*R8(x))
@@ -429,7 +429,7 @@ end
 
 Computes ``Y_{nu}(x)`` using the power series when nu is not an integer.
 In general, this is most accurate for small arguments and when nu > x.
-Outpus both (Y_{nu}(x), J_{nu}(x)).
+Outputs both (Y_{nu}(x), J_{nu}(x)).
 """
 function bessely_power_series(v, x::T) where T
     MaxIter = 3000
@@ -550,7 +550,7 @@ const bessely_cheb_weights = (
 
 #=
 ### don't quite have this right (issue with signs)
-# probably not needed because we should use debye exapnsion for large nu
+# probably not needed because we should use debye expansion for large nu
 function log_bessely_power_series(v, x::T) where T
     MaxIter = 2000
     out = zero(T)

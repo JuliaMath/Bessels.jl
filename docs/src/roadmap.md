@@ -12,12 +12,12 @@ A nice list of Bessel and related functions is provided by [mpmath](https://mpma
 
 ### Develop higher precision routines
 
-Current development has focused on single and double precison routine (`Float32` and `Float64`). We intend to also provide support for higher precision types such as double-double (`Double64`) and/or quadruple  (`Float128`) precision in the future. 
+Current development has focused on single and double precision routine (`Float32` and `Float64`). We intend to also provide support for higher precision types such as double-double (`Double64`) and/or quadruple  (`Float128`) precision in the future. 
 
 ### Derivatives through automatic differentiation
 
 Typically, the derivatives of certain special functions with respect to argument can be obtained through definitions. However, derivative with respect to the order usually does not have a simple expression. Automatic differentiation could be a powerful tool to quickly compute higher order derivatives using native Julia code. This is not an immediate goal but would be a welcome contribution.
 
-### Accuracy and Peformance improvements
+### Accuracy and Performance improvements
 
-Speed improvements are beneficial in most cases as these low level functions are typically called many times. Performance gains can come from using better algorithms or through better support for parallelization (e.g., vectorization, SIMD). In general, any speed improvements will only be incoporated that maintain the current relative accuracy. Accuracy improvements may come at the cost of a slightly longer runtime. These type of improvements will come on a more ad-hoc basis.
+Speed improvements are beneficial in most cases as these low level functions are typically called many times. Performance gains can come from using better algorithms or through better support for parallelization (e.g., vectorization, SIMD). In general, any speed improvements will only be incorporated that maintain the current relative accuracy. Accuracy improvements may come at the cost of a slightly longer runtime. These type of improvements will come on a more ad-hoc basis.

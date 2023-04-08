@@ -1,6 +1,6 @@
 # most of the tests are contained in bessely_test and besselj_test which test the besseljy function
 # which is called by hankelh1 and besselh
-# here we will test just a few cases of the overal hankel function
+# here we will test just a few cases of the overall hankel function
 # focusing on negative arguments and reflection
 
 v, x = 1.5, 1.3

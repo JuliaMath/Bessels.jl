@@ -11,7 +11,7 @@ In general, Bessels.jl aims to provide highly accurate implementations. We do no
 
 Even if the function isn't quite to those error tolerances, please open a pull request to discuss further. It might be good for a single precision implementation or there might be opportunities to improve the errors of the existing implementation. Though, there are fairly strict criteria that the function should be non-allocating and type stable.
 
-**2. Improving exisiting function**
+**2. Improving existing function**
 
 Improving the accuracy or speed of any implementation would be a great contribution. There are plenty of opportunities so please open an issue if you are interested and we can point you to a good function to work with. Accuracy improvements are always welcome whereas any speed improvements would also need to maintain the current level of accuracy. Ideally, implementations could trend to more accurate and faster but there will always be some tradeoff.
 

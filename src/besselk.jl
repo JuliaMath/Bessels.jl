@@ -40,7 +40,7 @@
 #
 #                    K_{nu+1} = (2*nu/x)*K_{nu} + K_{nu-1}
 #
-#    When nu is large, a large amount of recurrence is necesary.
+#    When nu is large, a large amount of recurrence is necessary.
 #    We consider uniform asymptotic expansion for large orders to more efficiently
 #    compute besselk(nu, x) when nu is larger than 100 (Let's double check this cutoff)
 #    The boundary should be carefully determined for accuracy and machine roundoff.
@@ -312,7 +312,7 @@ besselk_underflow_check(nu, x::T) where T = nu < T(1.45)*(x - 780) + 45*Base.Mat
 """
     besselk_positive_args(x::T) where T <: Union{Float32, Float64}
 
-Modified Bessel function of the second kind of order nu, ``K_{nu}(x)`` valid for postive arguments and orders.
+Modified Bessel function of the second kind of order nu, ``K_{nu}(x)`` valid for positive arguments and orders.
 """
 function besselk_positive_args(nu, x::T) where T <: Union{Float32, Float64}
     iszero(x) && return T(Inf)
