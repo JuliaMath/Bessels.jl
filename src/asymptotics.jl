@@ -60,9 +60,9 @@ end
 # 20 terms gives ~2e-16 relative error when x > 2*nu
 # 15 terms gives ~5e-18 relative error when x > 3*nu
 # 10 terms gives ~3e-18 relative error when x > 5*nu
-# 5 terms give  ~5e-15 relative erros when x > 20*nu
-# 3 terms give  ~5e-15 relative erros when x > 50*nu
-# 2 terms give  ~5e-15 relative erros when x > 500*nu
+# 5 terms give  ~5e-15 relative errors when x > 20*nu
+# 3 terms give  ~5e-15 relative errors when x > 50*nu
+# 2 terms give  ~5e-15 relative errors when x > 500*nu
 
 # Float32
 # can only use for x > 15.0
@@ -70,8 +70,8 @@ end
 # 20 terms gives ~8e-8 relative error when x > 1.3*nu
 # 15 terms gives ~8e-8 relative error when x > 1.4*nu
 # 10 terms gives ~3e-8 relative error when x > 1.8*nu
-# 5 terms give  ~8e-8 relative erros when x > 4*nu
-# 3 terms give  ~2e-8 relative erros when x > 8*nu
+# 5 terms give  ~8e-8 relative errors when x > 4*nu
+# 3 terms give  ~2e-8 relative errors when x > 8*nu
 
 # Float128
 # can only use for x > 40.0
@@ -80,7 +80,7 @@ end
 # 15 terms gives ~6e-34 relative error when x > 8.5*nu
 # 10 terms gives ~3e-34 relative error when x > 30*nu
 
-# can fit a rational function to trend (numer of terms on y axis; x/nu on x axis)
+# can fit a rational function to trend (number of terms on y axis; x/nu on x axis)
 # to get the number of terms needed for desired precision as function of x/nu
 # terms = a / (x/nu) + b / (x/nu)^2 + c
 #

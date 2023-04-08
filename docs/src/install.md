@@ -4,7 +4,7 @@ Bessels requires Julia v1.6 or later but it is recommended to use the latest sta
 
 ### Installation
 
-Install Julia by [downloading](https://julialang.org/downloads/) the latest version from the offical site and follow the [platform specific installations](https://julialang.org/downloads/platform/). 
+Install Julia by [downloading](https://julialang.org/downloads/) the latest version from the official site and follow the [platform specific installations](https://julialang.org/downloads/platform/). 
 
 You can add Bessels using Julia's package manager by typing `] add Bessels` in the Julia prompt.
 
