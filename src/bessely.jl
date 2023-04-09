@@ -85,7 +85,7 @@ function _bessely0_compute(x::Float64)
 
         a = SQ2OPI(T) * sqrt(xinv) * p
         xn = xinv*q
-        b = sin_sum((x,), (-pi/4, xn))
+        b = sin_sum(x, -pi/4, xn)
         return a * b
     end
 end
@@ -164,7 +164,7 @@ function _bessely1_compute(x::Float64)
 
         a = SQ2OPI(T) * sqrt(xinv) * p
         xn = xinv*q
-        b = sin_sum((-x,), (-pi/4, -xn))
+        b = sin_sum(-x, -pi/4, -xn)
         return a * b
     end
 end

@@ -1,6 +1,12 @@
-using Base.Math: sin_kernel, cos_kernel, rem_pio2_kernel, DoubleFloat64, DoubleFloat32
-function sin_double(n,y)
-    n = n&3
+using Base.Math: sin_kernel, cos_kernel, sincos_kernel, rem_pio2_kernel, DoubleFloat64, DoubleFloat32
+
+"""
+    computes sin(sum(xs)) where xs are sorted by absolute value
+    Doing this is much more accurate than the naive sin(sum(xs))
+"""
+function sin_sum(xs::Vararg{T})::T where T<:Base.IEEEFloat
+    n, y = rem_pio2_sum(xs...)
+    n &= 3
     if n == 0
         return sin_kernel(y)
     elseif n == 1
@@ -13,21 +19,42 @@ function sin_double(n,y)
 end
 
 """
-    computes sin(sum(xs)+sum(xlos)) where xs, xlos are sorted by absolute value
-    and xlos are all <=pi/4 (and therefore don't need to be reduced)
-    Doing this is much more accurate than the naive sin(sum(xs)+sum(xlos))
+    computes sincos(sum(xs)) where xs are sorted by absolute value
+    Doing this is much more accurate than the naive sincos(sum(xs))
 """
-function sin_sum(xs::Tuple{Vararg{Float64}}, xlos::Tuple{Vararg{Float64}})
+function sincos_sum(xs::Vararg{T})::T where T<:Base.IEEEFloat
+    n, y = rem_pio2_sum(xs...)
+    n &= 3
+    si, co = sincos_kernel(y)
+    if n == 0
+        return si, co
+    elseif n == 1
+        return co, -si
+    elseif n == 2
+        return -si, -co
+    else
+        return -co, si
+    end
+end
+
+function rem_pio2_sum(xs::Vararg{Float64})
     n = 0
     hi, lo = 0.0, 0.0
-    for x in xs
+    small_start = length(xs)+1
+    for i in eachindex(xs)
+        x = xs[i]
+        if abs(x) <= pi/4
+            small_start = i
+            break
+        end
         n_i, y = rem_pio2_kernel(x)
         n += n_i
         s = y.hi + hi
         lo += (y.hi - (s - hi)) + y.lo
         hi = s
     end
-    for x in xlos
+    for i in small_start:length(xs)
+        x = xs[i]
         s = x + hi
         lo += (x - (s - hi))
         hi = s
@@ -42,28 +69,10 @@ function sin_sum(xs::Tuple{Vararg{Float64}}, xlos::Tuple{Vararg{Float64}})
         lo += 6.123233995736766e-17
         n -= 1
     end
-    sin_double(n,DoubleFloat64(hi, lo))
+    return n, DoubleFloat64(hi, lo)
 end
 
-function sin_sum(xs::Tuple{Vararg{Float32}}, xlos::Tuple{Vararg{Float32}})
-    n = 0
-    y = 0.0
-    for x in xs
-        n_i, y_i = rem_pio2_kernel(x)
-        n += n_i
-        y += y_i.hi
-    end
-    for x in xlos
-        y += x
-    end
-    while y > pi/4
-        y -= pi/2
-        n += 1
-    end
-    while y < -pi/4
-        y += pi/2
-        n -= 1
-    end
-
-    sin_double(n,DoubleFloat32(y))
+function rem_pio2_sum(xs::Vararg{Union{Float32,Float64}})
+    n, y = rem_pio2_kernel(sum(Float64, xs))
+    return n, DoubleFloat32(y.hi)
 end

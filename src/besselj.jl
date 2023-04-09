@@ -63,7 +63,7 @@ function _besselj0(x::Float64)
 
         a = SQ2OPI(T) * sqrt(xinv) * p
         xn = xinv*q
-        b = sin_sum((x,), (pi/4, xn))
+        b = sin_sum(x, pi/4, xn)
         return a * b
     end
 end
@@ -131,7 +131,7 @@ function _besselj1(x::Float64)
 
         a = SQ2OPI(T) * sqrt(xinv) * p
         xn = xinv*q
-        b = sin_sum((x,), (-pi/4, xn))
+        b = sin_sum(x, -pi/4, xn)
         return a * b * s
     end
 end
