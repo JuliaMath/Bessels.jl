@@ -40,23 +40,16 @@ end
 function rem_pio2_sum(xs::Vararg{Float64})
     n = 0
     hi, lo = 0.0, 0.0
-    small_start = length(xs)+1
-    for i in eachindex(xs)
-        x = xs[i]
+    for x in xs
         if abs(x) <= pi/4
-            small_start = i
-            break
+            s = x + hi
+            lo += (x - (s - hi))
+        else
+            n_i, y = rem_pio2_kernel(x)
+            n += n_i
+            s = y.hi + hi
+            lo += (y.hi - (s - hi)) + y.lo
         end
-        n_i, y = rem_pio2_kernel(x)
-        n += n_i
-        s = y.hi + hi
-        lo += (y.hi - (s - hi)) + y.lo
-        hi = s
-    end
-    for i in small_start:length(xs)
-        x = xs[i]
-        s = x + hi
-        lo += (x - (s - hi))
         hi = s
     end
     while hi > pi/4
@@ -72,7 +65,28 @@ function rem_pio2_sum(xs::Vararg{Float64})
     return n, DoubleFloat64(hi, lo)
 end
 
-function rem_pio2_sum(xs::Vararg{Union{Float32,Float64}})
-    n, y = rem_pio2_kernel(sum(Float64, xs))
+function rem_pio2_sum(xs::Vararg{Float32})
+    y = 0.0
+    n = 0
+    # The minimum cosine or sine of any Float32 that gets reduced is 1.6e-9
+    # so reducing at 2^22 prevents catastrophic loss of precision.
+    # There probably is a case where this loses some digits but it is a decent
+    # tradeoff between accuracy and speed.
+    @fastmath for x in xs
+        if x > 0x1p22
+            n_i, y_i = rem_pio2_kernel(Float32(x))
+            n += n_i
+            y += y_i.hi
+        else
+            y += x
+        end
+    end
+    n_i, y = rem_pio2_kernel(y)
+    return n + n_i, DoubleFloat32(y.hi)
+end
+
+function rem_pio2_sum(xs::Vararg{Float16})
+    y = sum(Float64, xs) #Float16 can be losslessly accumulated in Float64
+    n, y = rem_pio2_kernel(y)
     return n, DoubleFloat32(y.hi)
 end
