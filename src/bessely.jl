@@ -64,7 +64,7 @@ function _bessely0_compute(x::Float64)
         z = w * w
         p = evalpoly(z, PP_y0(T)) / evalpoly(z, PQ_y0(T))
         q = evalpoly(z, QP_y0(T)) / evalpoly(z, QQ_y0(T))
-        xn = x - PIO4(T)
+        xn = x - pi/4
         sc = sincos(xn)
         p = p * sc[1] + w * q * sc[2]
         return p * SQ2OPI(T) / sqrt(x)
@@ -81,21 +81,11 @@ function _bessely0_compute(x::Float64)
             q2 = (-1/8, 25/384, -1073/5120, 375733/229376)
             p = evalpoly(x2, p2)
             q = evalpoly(x2, q2)
-            if x > 1e15
-                a = SQ2OPI(T) * sqrt(xinv) * p
-                xn = muladd(xinv, q, -PIO4(T))
-                s_x, c_x = sincos(x)
-                s_xn, c_xn = sincos(xn)
-                return a * (s_x * c_xn + c_x * s_xn)
-            end
         end
 
         a = SQ2OPI(T) * sqrt(xinv) * p
-        xn = muladd(xinv, q, -PIO4(T))
-
-        # the following computes b = sin(x + xn) more accurately
-        # see src/misc.jl
-        b = sin_sum(x, xn)
+        xn = xinv*q
+        b = sin_sum(x, -pi/4, xn)
         return a * b
     end
 end
@@ -170,21 +160,11 @@ function _bessely1_compute(x::Float64)
             q2 = (3/8, -21/128, 1899/5120, -543483/229376)
             p = evalpoly(x2, p2)
             q = evalpoly(x2, q2)
-            if x > 1e15
-                a = SQ2OPI(T) * sqrt(xinv) * p
-                xn = muladd(xinv, q, - 3 * PIO4(T))
-                s_x, c_x = sincos(x)
-                s_xn, c_xn = sincos(xn)
-                return a * (s_x * c_xn + c_x * s_xn)
-            end
         end
 
         a = SQ2OPI(T) * sqrt(xinv) * p
-        xn = muladd(xinv, q, - 3 * PIO4(T))
-
-        # the following computes b = sin(x + xn) more accurately
-        # see src/misc.jl
-        b = sin_sum(x, xn)
+        xn = xinv*q
+        b = sin_sum(-x, -pi/4, -xn)
         return a * b
     end
 end
@@ -225,7 +205,7 @@ end
 #    for positive arguments and orders. For integer orders up to 250, forward recurrence is used starting from
 #    `bessely0` and `bessely1` routines for calculation of Y_{n}(x) of the zero and first order.
 #    For small arguments, Y_{ν}(x) is calculated from the power series (`bessely_power_series(nu, x`) form of J_{ν}(x) using the connection formula [1].
-#    
+#
 #    When x < ν and ν being reasonably large, the debye asymptotic expansion (Eq. 33; [3]) is used `besseljy_debye(nu, x)`.
 #    When x > ν and x being reasonably large, the Hankel function is calculated from the debye expansion (Eq. 29; [3]) with `hankel_debye(nu, x)`
 #    and Y_{n}(x) is calculated from the imaginary part of the Hankel function.
@@ -234,20 +214,20 @@ end
 #
 #    For values where the expansions for large arguments and orders are not valid, forward recurrence is employed after shifting the order down
 #    to where these expansions are valid then using recurrence. In general, the routine will be the slowest when ν ≈ x as all methods struggle at this point.
-#    Additionally, the Hankel expansion is only accurate (to Float64 precision) when x > 19 and the power series can only be computed for x < 7 
+#    Additionally, the Hankel expansion is only accurate (to Float64 precision) when x > 19 and the power series can only be computed for x < 7
 #    without loss of precision. Therefore, when x > 19 the Hankel expansion is used to generate starting values after shifting the order down.
 #    When x ∈ (7, 19) and ν ∈ (0, 2) Chebyshev approximation is used with higher orders filled by recurrence.
-#    
+#
 # [1] https://dlmf.nist.gov/10.2#E3
-# [2] Bremer, James. "An algorithm for the rapid numerical evaluation of Bessel functions of real orders and arguments." 
+# [2] Bremer, James. "An algorithm for the rapid numerical evaluation of Bessel functions of real orders and arguments."
 #     Advances in Computational Mathematics 45.1 (2019): 173-211.
-# [3] Matviyenko, Gregory. "On the evaluation of Bessel functions." 
+# [3] Matviyenko, Gregory. "On the evaluation of Bessel functions."
 #     Applied and Computational Harmonic Analysis 1.1 (1993): 116-135.
-# [4] Heitman, Z., Bremer, J., Rokhlin, V., & Vioreanu, B. (2015). On the asymptotics of Bessel functions in the Fresnel regime. 
+# [4] Heitman, Z., Bremer, J., Rokhlin, V., & Vioreanu, B. (2015). On the asymptotics of Bessel functions in the Fresnel regime.
 #     Applied and Computational Harmonic Analysis, 39(2), 347-356.
-# [5] Ratis, Yu L., and P. Fernández de Córdoba. "A code to calculate (high order) Bessel functions based on the continued fractions method." 
+# [5] Ratis, Yu L., and P. Fernández de Córdoba. "A code to calculate (high order) Bessel functions based on the continued fractions method."
 #     Computer physics communications 76.3 (1993): 381-388.
-# [6] Abramowitz, Milton, and Irene A. Stegun, eds. Handbook of mathematical functions with formulas, graphs, and mathematical tables. 
+# [6] Abramowitz, Milton, and Irene A. Stegun, eds. Handbook of mathematical functions with formulas, graphs, and mathematical tables.
 #     Vol. 55. US Government printing office, 1964.
 #
 
@@ -389,7 +369,7 @@ No checks on arguments are performed and should only be called if certain nu, x 
 """
 function bessely_positive_args(nu, x::T) where T
     iszero(x) && return -T(Inf)
-    
+
     # use forward recurrence if nu is an integer up until it becomes inefficient
     (isinteger(nu) && nu < 250) && return besselj_up_recurrence(x, bessely1(x), bessely0(x), 1, nu)[1]
 
@@ -418,7 +398,7 @@ end
 # combined to calculate both J_v and J_{-v} in the same loop
 # J_{-v} always converges slower so just check that convergence
 # Combining the loop was faster than using two separate loops
-# 
+#
 # this works well for small arguments x < 7.0 for rel. error ~1e-14
 # this also works well for nu > 1.35x - 4.5
 # for nu > 25 more cancellation occurs near integer values
@@ -575,7 +555,7 @@ function log_bessely_power_series(v, x::T) where T
     logout2 = -v * log(x/2) + log(out2)
 
     spi, cpi = sincospi(v)
-   
+
     #tmp = logout2 + log(abs(sign*(inv(spi)) - exp(logout - logout2) * cpi / spi))
     tmp = logout + log((-cpi + exp(logout2) - logout) / spi)
 

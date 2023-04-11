@@ -59,21 +59,11 @@ function _besselj0(x::Float64)
             q2 = (-1/8, 25/384, -1073/5120, 375733/229376)
             p = evalpoly(x2, p2)
             q = evalpoly(x2, q2)
-            if x > 1e15
-                a = SQ2OPI(T) * sqrt(xinv) * p
-                xn = muladd(xinv, q, -PIO4(T))
-                s_x, c_x = sincos(x)
-                s_xn, c_xn = sincos(xn)
-                return a * (c_x * c_xn - s_x * s_xn)
-            end
         end
 
         a = SQ2OPI(T) * sqrt(xinv) * p
-        xn = muladd(xinv, q, -PIO4(T))
-
-        # the following computes b = cos(x + xn) more accurately
-        # see src/misc.jl
-        b = cos_sum(x, xn)
+        xn = xinv*q
+        b = sin_sum(x, pi/4, xn)
         return a * b
     end
 end
@@ -137,21 +127,11 @@ function _besselj1(x::Float64)
             q2 = (3/8, -21/128, 1899/5120, -543483/229376)
             p = evalpoly(x2, p2)
             q = evalpoly(x2, q2)
-            if x > 1e15
-                a = SQ2OPI(T) * sqrt(xinv) * p
-                xn = muladd(xinv, q, -3 * PIO4(T))
-                s_x, c_x = sincos(x)
-                s_xn, c_xn = sincos(xn)
-                return s * a * (c_x * c_xn - s_x * s_xn)
-            end
         end
 
         a = SQ2OPI(T) * sqrt(xinv) * p
-        xn = muladd(xinv, q, -3 * PIO4(T))
-
-        # the following computes b = cos(x + xn) more accurately
-        # see src/misc.jl
-        b = cos_sum(x, xn)
+        xn = xinv*q
+        b = sin_sum(x, -pi/4, xn)
         return a * b * s
     end
 end
@@ -182,7 +162,7 @@ end
 #####
 
 besselj0(z::T) where T <: Union{ComplexF32, ComplexF64} = besseli0(z/im)
-besselj1(z::T) where T <: Union{ComplexF32, ComplexF64} = besseli1(z/im) * im 
+besselj1(z::T) where T <: Union{ComplexF32, ComplexF64} = besseli1(z/im) * im
 
 
 #                  Bessel functions of the first kind of order nu
@@ -208,17 +188,17 @@ besselj1(z::T) where T <: Union{ComplexF32, ComplexF64} = besseli1(z/im) * im
 #
 #    For values where the expansions for large arguments and orders are not valid, backward recurrence is employed after shifting the order up
 #    to where `besseljy_debye` is accurate then using downward recurrence. In general, the routine will be the slowest when ν ≈ x as all methods struggle at this point.
-#    
+#
 # [1] http://dlmf.nist.gov/10.2.E2
-# [2] Bremer, James. "An algorithm for the rapid numerical evaluation of Bessel functions of real orders and arguments." 
+# [2] Bremer, James. "An algorithm for the rapid numerical evaluation of Bessel functions of real orders and arguments."
 #     Advances in Computational Mathematics 45.1 (2019): 173-211.
-# [3] Matviyenko, Gregory. "On the evaluation of Bessel functions." 
+# [3] Matviyenko, Gregory. "On the evaluation of Bessel functions."
 #     Applied and Computational Harmonic Analysis 1.1 (1993): 116-135.
-# [4] Heitman, Z., Bremer, J., Rokhlin, V., & Vioreanu, B. (2015). On the asymptotics of Bessel functions in the Fresnel regime. 
+# [4] Heitman, Z., Bremer, J., Rokhlin, V., & Vioreanu, B. (2015). On the asymptotics of Bessel functions in the Fresnel regime.
 #     Applied and Computational Harmonic Analysis, 39(2), 347-356.
-# [5] Ratis, Yu L., and P. Fernández de Córdoba. "A code to calculate (high order) Bessel functions based on the continued fractions method." 
+# [5] Ratis, Yu L., and P. Fernández de Córdoba. "A code to calculate (high order) Bessel functions based on the continued fractions method."
 #     Computer physics communications 76.3 (1993): 381-388.
-# [6] Abramowitz, Milton, and Irene A. Stegun, eds. Handbook of mathematical functions with formulas, graphs, and mathematical tables. 
+# [6] Abramowitz, Milton, and Irene A. Stegun, eds. Handbook of mathematical functions with formulas, graphs, and mathematical tables.
 #     Vol. 55. US Government printing office, 1964.
 #
 
@@ -432,7 +412,7 @@ end
 # Cutoff for Float32 determined from using Float64 precision down to eps(Float32)
 besselj_series_cutoff(v, x::Float32) = (x < 20.0) || v > (14.4 + x*(-0.455 + 0.027*x))
 besselj_series_cutoff(v, x::Float64) = (x < 7.0) || v > (2 + x*(0.109 + 0.062*x))
-# cutoff for Float128 for ~1e-35 relative error 
+# cutoff for Float128 for ~1e-35 relative error
 #besselj_series_cutoff(v, x::AbstractFloat) = (x < 4.0) || v > (x*(0.08 + 0.12*x))
 
 #=
@@ -467,7 +447,7 @@ end
 # On the other hand, shifting the order down avoids any concern about underflow for large orders
 # Shifting the order too high while keeping x fixed could result in numerical underflow
 # Therefore we need to shift up only until the `besseljy_debye` is accurate and need to test that no underflow occurs
-# Shifting the order up decreases the value substantially for high orders and results 
+# Shifting the order up decreases the value substantially for high orders and results
 # in a stable forward recurrence as the values rapidly increase
 function besselj_recurrence(nu, x)
     # shift order up to where expansions are valid see src/U_polynomials.jl
