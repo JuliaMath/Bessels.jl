@@ -85,8 +85,8 @@ function _besselj0(x::Float32)
         w = sqrt(q)
         p = w * evalpoly(q, MO_j0(T))
         w = q * q
-        xn = q * evalpoly(w, PH_j0(T)) - PIO4(Float32)
-        p = p * cos(xn + x)
+        xn = q * evalpoly(w, PH_j0(T))
+        p = p * sin_sum(xn, PIO4(Float32), x)
         return p
     end
 end
