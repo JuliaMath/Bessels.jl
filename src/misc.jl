@@ -4,7 +4,7 @@ using Base.Math: sin_kernel, cos_kernel, sincos_kernel, rem_pio2_kernel, DoubleF
     computes sin(sum(xs)) where xs are sorted by absolute value
     Doing this is much more accurate than the naive sin(sum(xs))
 """
-function sin_sum(xs::Vararg{T})::T where T<:Base.IEEEFloat
+function sin_sum(xs::Vararg{T, N})::T where {T<:Base.IEEEFloat, N}
     n, y = rem_pio2_sum(xs...)
     n &= 3
     if n == 0
@@ -22,7 +22,7 @@ end
     computes sincos(sum(xs)) where xs are sorted by absolute value
     Doing this is much more accurate than the naive sincos(sum(xs))
 """
-function sincos_sum(xs::Vararg{T})::T where T<:Base.IEEEFloat
+function sincos_sum(xs::Vararg{T, N})::T where {T<:Base.IEEEFloat, N}
     n, y = rem_pio2_sum(xs...)
     n &= 3
     si, co = sincos_kernel(y)
@@ -37,7 +37,7 @@ function sincos_sum(xs::Vararg{T})::T where T<:Base.IEEEFloat
     end
 end
 
-function rem_pio2_sum(xs::Vararg{Float64})
+function rem_pio2_sum(xs::Vararg{Float64, N}) where N
     n = 0
     hi, lo = 0.0, 0.0
     for x in xs
@@ -65,7 +65,7 @@ function rem_pio2_sum(xs::Vararg{Float64})
     return n, DoubleFloat64(hi, lo)
 end
 
-function rem_pio2_sum(xs::Vararg{Float32})
+function rem_pio2_sum(xs::Vararg{Float32, N}) where N
     y = 0.0
     n = 0
     # The minimum cosine or sine of any Float32 that gets reduced is 1.6e-9
@@ -85,7 +85,7 @@ function rem_pio2_sum(xs::Vararg{Float32})
     return n + n_i, DoubleFloat32(y.hi)
 end
 
-function rem_pio2_sum(xs::Vararg{Float16})
+function rem_pio2_sum(xs::Vararg{Float16, N}) where N
     y = sum(Float64, xs) #Float16 can be losslessly accumulated in Float64
     n, y = rem_pio2_kernel(y)
     return n, DoubleFloat32(y.hi)
