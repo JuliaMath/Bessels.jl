@@ -151,8 +151,8 @@ function _besselj1(x::Float32)
         w = sqrt(q)
         p = w * evalpoly(q, MO132)
         w = q * q
-        xn = q * evalpoly(w, PH132) - THPIO4(T)
-        p = p * cos(xn + x)
+        xn = q * evalpoly(w, PH132) 
+        p = p * sin_sum(xn, -PIO4(T), x)
         return p * s
     end
 end
