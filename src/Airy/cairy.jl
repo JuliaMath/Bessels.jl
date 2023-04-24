@@ -50,7 +50,7 @@ airyai(z::Number) = _airyai(float(z))
 
 function _airyai(z::Complex{T}) where T <: Union{Float32, Float64}
     if ~isfinite(z)
-        if abs(angle(z)) < T(2)*π/3
+        if abs(angle(z)) < T(2π/3)
             return exp(-z)
         else
             return 1 / z
@@ -66,9 +66,9 @@ function _airyai(z::Complex{T}) where T <: Union{Float32, Float64}
     end
 
     if airy_large_argument_cutoff(x, y)
-        r = airyaix_large_args(z)[1] * exp(-T(2)/3 * z * sqrt(z))
+        r = airyaix_large_args(z)[1] * exp(-T(2/3) * z * sqrt(z))
     elseif airyai_levin_cutoff(x, y)
-        r = airyaix_levin(z, Val(17)) * exp(-T(2)/3 * z * sqrt(z))
+        r = airyaix_levin(z, Val(17)) * exp(-T(2/3) * z * sqrt(z))
     elseif airyai_power_series_cutoff(x, y)
         r = airyai_power_series(z)[1]
     else
@@ -93,10 +93,10 @@ function _airyaix(z::Complex{T}) where T <: Union{Float32, Float64}
     elseif airyai_levin_cutoff(x, y)
         r = airyaix_levin(z, Val(17))
     elseif airyai_power_series_cutoff(x, y)
-        r = airyai_power_series(z)[1] * exp(2 * z * sqrt(z) / 3)
+        r = airyai_power_series(z)[1] * exp(T(2/3) * z * sqrt(z))
     else
         c = cispi(one(T)/3)
-        r =  exp(2 * z * sqrt(z) / 3) * (c * _airyai(-z*c)  + conj(c) * _airyai(-z*conj(c)))
+        r =  exp(T(2/3) * z * sqrt(z)) * (c * _airyai(-z*c)  + conj(c) * _airyai(-z*conj(c)))
     end
     return check_conj ? conj(r) : r
 end
@@ -125,7 +125,7 @@ airyaiprime(z::Number) = _airyaiprime(float(z))
 
 function _airyaiprime(z::Complex{T}) where T <: Union{Float32, Float64}
     if ~isfinite(z)
-        if abs(angle(z)) < 2*T(π)/3
+        if abs(angle(z)) < T(2π/3)
             return -exp(-z)
         else
             return 1 / z
@@ -141,13 +141,13 @@ function _airyaiprime(z::Complex{T}) where T <: Union{Float32, Float64}
     end
 
     if airy_large_argument_cutoff(x, y)
-        r = airyaix_large_args(z)[2] * exp(-T(2)/3 * z * sqrt(z))
+        r = airyaix_large_args(z)[2] * exp(-T(2/3) * z * sqrt(z))
     elseif airyai_levin_cutoff(x, y)
-        r = airyaiprimex_levin(z, Val(17)) * exp(-T(2)/3 * z * sqrt(z))
+        r = airyaiprimex_levin(z, Val(17)) * exp(-T(2/3) * z * sqrt(z))
     elseif airyai_power_series_cutoff(x, y)
         r = airyai_power_series(z)[2]
     else
-        r = -cispi(T(2)/3) * _airyaiprime(-z*cispi(one(T)/3))  - cispi(-T(2)/3) * _airyaiprime(-z*cispi(-one(T)/3))
+        r = -cispi(T(2/3)) * _airyaiprime(-z*cispi(one(T)/3))  - cispi(-T(2/3)) * _airyaiprime(-z*cispi(-one(T)/3))
     end
     
     return check_conj ? conj(r) : r
@@ -167,9 +167,9 @@ function _airyaiprimex(z::Complex{T}) where T <: Union{Float32, Float64}
     elseif airyai_levin_cutoff(x, y)
         r = airyaiprimex_levin(z, Val(17))
     elseif airyai_power_series_cutoff(x, y)
-        r = airyai_power_series(z)[2] * exp(T(2)/3 * z * sqrt(z))
+        r = airyai_power_series(z)[2] * exp(T(2/3) * z * sqrt(z))
     else
-        r = exp(2 * z * sqrt(z) / 3) * (-cispi(T(2)/3) * _airyaiprime(-z*cispi(one(T)/3))  - cispi(-T(2)/3) * _airyaiprime(-z*cispi(-one(T)/3)))
+        r = exp(T(2/3) * z * sqrt(z)) * (-cispi(T(2)/3) * _airyaiprime(-z*cispi(one(T)/3))  - cispi(-T(2)/3) * _airyaiprime(-z*cispi(-one(T)/3)))
     end
     
     return check_conj ? conj(r) : r
@@ -199,7 +199,7 @@ airybi(z::Number) = _airybi(float(z))
 
 function _airybi(z::Complex{T}) where T <: Union{Float32, Float64}
     if ~isfinite(z)
-        if abs(angle(z)) < 2π/3
+        if abs(angle(z)) < T(2π/3)
             return exp(z)
         else
             return 1 / z
@@ -210,7 +210,7 @@ function _airybi(z::Complex{T}) where T <: Union{Float32, Float64}
     airybi_power_series_cutoff(x, y) && return airybi_power_series(z)[1]
 
     if x > zero(T)
-        zz = 2 * z * sqrt(z) / 3
+        zz = T(2/3) * z * sqrt(z)
         shift = 20
         order = one(T)/3
         inu, inum1 = besseli_power_series_inu_inum1(order + shift, zz)
@@ -222,7 +222,7 @@ function _airybi(z::Complex{T}) where T <: Union{Float32, Float64}
     else
         if iszero(y)
             xabs = abs(x)
-            xx = 2 * xabs * sqrt(xabs) / 3
+            xx = T(2/3) * xabs * sqrt(xabs)
             Jv, Yv = besseljy_positive_args(one(T)/3, xx)
             Jmv = (Jv - sqrt(T(3)) * Yv) / 2
             return convert(eltype(z), sqrt(xabs/3) * (Jmv - Jv))
@@ -256,7 +256,7 @@ airybiprime(z::Number) = _airybiprime(float(z))
 
 function _airybiprime(z::Complex{T}) where T <: Union{Float32, Float64}
     if ~isfinite(z)
-        if abs(angle(z)) < 2*T(π)/3
+        if abs(angle(z)) < T(2π/3)
             return exp(z)
         else
             return -1 / z
@@ -267,9 +267,9 @@ function _airybiprime(z::Complex{T}) where T <: Union{Float32, Float64}
     airybi_power_series_cutoff(x, y) && return airybi_power_series(z)[2]
 
     if x > zero(T)
-        zz = 2 * z * sqrt(z) / 3
+        zz = T(2/3) * z * sqrt(z)
         shift = 20
-        order = T(2)/3
+        order = T(2/3)
         inu, inum1 = besseli_power_series_inu_inum1(order + shift, zz)
         inu, inum1 = besselk_down_recurrence(zz, inum1, inu, order + shift - 1, order)
 
@@ -279,12 +279,12 @@ function _airybiprime(z::Complex{T}) where T <: Union{Float32, Float64}
     else
         if iszero(y)
             xabs = abs(x)
-            xx = 2 * xabs * sqrt(xabs) / 3
+            xx = T(2/3) * xabs * sqrt(xabs)
             Jv, Yv = besseljy_positive_args(T(2)/3, xx)
             Jmv = -(Jv + sqrt(T(3))*Yv) / 2
             return convert(eltype(z), xabs * (Jv + Jmv) / sqrt(T(3)))
         else
-            return -(cispi(T(2)/3) * _airybiprime(-z*cispi(one(T)/3)) + cispi(-T(2)/3) * _airybiprime(-z*cispi(-one(T)/3)))
+            return -(cispi(T(2/3)) * _airybiprime(-z*cispi(one(T)/3)) + cispi(-T(2/3)) * _airybiprime(-z*cispi(-one(T)/3)))
         end
     end
 end
@@ -355,7 +355,7 @@ function airybi_large_args(z::Complex{T}) where T
     else
         out = airybix_large_args(z)
     end
-    return out .* exp(2/3 * z * sqrt(z))
+    return out .* exp(T(2/3) * z * sqrt(z))
 end
 
 @inline function airyaix_large_args(z::Complex{T}) where T
@@ -364,7 +364,7 @@ end
     A, B, C, D = compute_airy_asy_coef(z, xsqrx)
     
     if (real(z) < 0.0) && abs(imag(z)) < sqrt(3)*abs(real(z))
-        e = exp(4/3 * z * xsqr)
+        e = exp(T(4/3) * z * xsqr)
         ai = muladd(B*im, e, A)
         aip = muladd(-D*im, e, C)
     else
@@ -424,7 +424,7 @@ end
                 invt = @fastmath inv(t)
                 Vec{4, T}((reim(out * invt)..., reim(invt)...))
             end
-            return @fastmath levin_transform(l) / (sqrt(T(π)^3) * sqrt(xsqr))
+            return @fastmath levin_transform(l) / (T(π)^(3//2) * sqrt(xsqr))
         end
     )
 end
@@ -442,7 +442,7 @@ end
                 invt = @fastmath inv(t)
                 Vec{4, T}((reim(out * invt)..., reim(invt)...))
             end
-            return @fastmath levin_transform(l) * sqrt(xsqr) / sqrt(T(π)^3) 
+            return @fastmath levin_transform(l) * sqrt(xsqr) / T(π)^(3//2) 
         end
     )
 end
