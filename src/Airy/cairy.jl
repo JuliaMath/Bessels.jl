@@ -416,7 +416,7 @@ end
             xsqr = sqrt(x)
             out = zero(typeof(x))
             t = GAMMA_ONE_SIXTH(T) * GAMMA_FIVE_SIXTHS(T) / 4
-            a = inv(4*xsqr*x)
+            a = T(0.25) / (xsqr*x)
 
             l = @ntuple $N i -> begin
                 out += t
@@ -434,7 +434,7 @@ end
             xsqr = sqrt(x)
             out = zero(typeof(x))
             t = -GAMMA_ONE_SIXTH(T) * GAMMA_FIVE_SIXTHS(T) / 4
-            a = inv(4*xsqr*x)
+            a = T(0.25) / (xsqr*x)
 
             l = @ntuple $N i -> begin
                 out += t
