@@ -420,7 +420,7 @@ end
 
             l = @ntuple $N i -> begin
                 out += t
-                t *= -3 * a * (i - 5//6) * (i - 1//6) / i
+                t *= a * (3 - 3*i - (5//12)/i)
                 invt = @fastmath inv(t)
                 Vec{4, T}((reim(out * invt)..., reim(invt)...))
             end
