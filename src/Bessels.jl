@@ -62,11 +62,11 @@ include("constants.jl")
 include("math_constants.jl")
 include("U_polynomials.jl")
 include("recurrence.jl")
-include("misc.jl")
+include("math.jl")
 include("Polynomials/besselj_polys.jl")
 include("asymptotics.jl")
 include("gamma.jl")
 
-precompile(besselj, (Float64, Float64))
+include("precompile.jl")
 
 end
