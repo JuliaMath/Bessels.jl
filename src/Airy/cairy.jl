@@ -149,7 +149,7 @@ function _airyaiprime(z::Complex{T}) where T <: Union{Float32, Float64}
     else
         r = -cispi(T(2/3)) * _airyaiprime(-z*cispi(one(T)/3))  - cispi(-T(2/3)) * _airyaiprime(-z*cispi(-one(T)/3))
     end
-    
+
     return check_conj ? conj(r) : r
 end
 
@@ -206,32 +206,17 @@ function _airybi(z::Complex{T}) where T <: Union{Float32, Float64}
         end
     end
     x, y = real(z), imag(z)
-    airy_large_argument_cutoff(z) && return airybi_large_args(z)[1]
-    airybi_power_series_cutoff(x, y) && return airybi_power_series(z)[1]
 
-    if x > zero(T)
-        zz = T(2/3) * z * sqrt(z)
-        shift = 20
-        order = one(T)/3
-        inu, inum1 = besseli_power_series_inu_inum1(order + shift, zz)
-        inu, inum1 = besselk_down_recurrence(zz, inum1, inu, order + shift - 1, order)
-
-        inu2, inum2 = besseli_power_series_inu_inum1(-order + shift, zz)
-        inu2, inum2 = besselk_down_recurrence(zz, inum2, inu2, -order + shift - 1, -order)
-        return sqrt(z/3) * (inu + inu2)
+    if airy_large_argument_cutoff(z)
+        return airybi_large_args(z)[1]
+    elseif x > 1.1 && y > 4.2
+        return airybi_levin(z, Val(16))
+    elseif angle(z) < 7pi/8 || x > -4.5
+        return airybi_power_series(z)[1]
     else
-        if iszero(y)
-            xabs = abs(x)
-            xx = T(2/3) * xabs * sqrt(xabs)
-            Jv, Yv = besseljy_positive_args(one(T)/3, xx)
-            Jmv = (Jv - sqrt(T(3)) * Yv) / 2
-            return convert(eltype(z), sqrt(xabs/3) * (Jmv - Jv))
-        else
-            return cispi(one(T)/3) * _airybi(-z * cispi(one(T)/3))  + cispi(-one(T)/3) * _airybi(-z*cispi(-one(T)/3))
-        end
+        return cispi(-1/6) * _airyai(z * cispi(-2/3)) + cispi(1/6) * _airyai(z*cispi(2/3))
     end
 end
-
 """
     airybiprime(z)
 
@@ -263,29 +248,15 @@ function _airybiprime(z::Complex{T}) where T <: Union{Float32, Float64}
         end
     end
     x, y = real(z), imag(z)
-    airy_large_argument_cutoff(z) && return airybi_large_args(z)[2]
-    airybi_power_series_cutoff(x, y) && return airybi_power_series(z)[2]
 
-    if x > zero(T)
-        zz = T(2/3) * z * sqrt(z)
-        shift = 20
-        order = T(2/3)
-        inu, inum1 = besseli_power_series_inu_inum1(order + shift, zz)
-        inu, inum1 = besselk_down_recurrence(zz, inum1, inu, order + shift - 1, order)
-
-        inu2, inum2 = besseli_power_series_inu_inum1(-order + shift, zz)
-        inu2, inum2 = besselk_down_recurrence(zz, inum2, inu2, -order + shift - 1, -order)
-        return z / sqrt(3) * (inu + inu2)
+    if airy_large_argument_cutoff(z)
+        return airybi_large_args(z)[2]
+    elseif x > 1.1 && y > 4.2
+        return airybiprime_levin(z, Val(16))
+    elseif angle(z) < 7pi/8 || x > -4.5
+        return airybi_power_series(z)[2]
     else
-        if iszero(y)
-            xabs = abs(x)
-            xx = T(2/3) * xabs * sqrt(xabs)
-            Jv, Yv = besseljy_positive_args(T(2)/3, xx)
-            Jmv = -(Jv + sqrt(T(3))*Yv) / 2
-            return convert(eltype(z), xabs * (Jv + Jmv) / sqrt(T(3)))
-        else
-            return -(cispi(T(2/3)) * _airybiprime(-z*cispi(one(T)/3)) + cispi(-T(2/3)) * _airybiprime(-z*cispi(-one(T)/3)))
-        end
+        return cispi(-5/6) * airyaiprime(z * cispi(-2/3)) + cispi(5/6) * airyaiprime(z*cispi(2/3))
     end
 end
 
@@ -324,17 +295,6 @@ airyai_power_series_cutoff(x::T, y::T) where T <: Float32 = x < 4.5f0 && abs(y) 
 # the Float32 cutoff can be simplified because it overlaps with the large argument expansion so there isn't a need for more complicated statements
 airybi_power_series_cutoff(x::T, y::T) where T <: Float64 = (abs(y) > -1.4*(x + 5.5) && abs(y) < -2.2*(x - 4)) || (x > zero(T) && abs(y) < 3)
 airybi_power_series_cutoff(x::T, y::T) where T <: Float32 = abs(complex(x, y)) < 9
-
-# calculates besselk from the power series of besseli using the continued fraction and wronskian
-# this shift the order higher first to avoid cancellation in the power series of besseli along the imaginary axis
-# for real arguments this is not needed because besseli can be computed stably over the entire real axis
-function besselk_continued_fraction_shift(nu, x)
-    shift = 20
-    inu, inum1 = besseli_power_series_inu_inum1(nu + shift, x)
-    inu, inum1 = besselk_down_recurrence(x, inum1, inu, nu + shift - 1, nu)
-    H_knu = besselk_ratio_knu_knup1(nu-1, x)
-    return 1 / (x * (inum1 + inu / H_knu))
-end
 
 #####
 #####  Large argument expansion for airy functions
@@ -442,7 +402,63 @@ end
                 invt = @fastmath inv(t)
                 Vec{4, T}((reim(out * invt)..., reim(invt)...))
             end
-            return @fastmath levin_transform(l) * sqrt(xsqr) / T(π)^(3//2) 
+            return @fastmath levin_transform(l) * sqrt(xsqr) / T(π)^(3//2)
+        end
+    )
+end
+
+@generated function airybi_levin(x::Complex{T}, ::Val{N}) where {T <: Union{Float32, Float64}, N}
+    :(
+        begin
+            xsqr = sqrt(x)
+            out = zero(typeof(x))
+            t = GAMMA_ONE_SIXTH(T) * GAMMA_FIVE_SIXTHS(T) / 4
+            a = T(0.25) / (xsqr*x)
+
+            l = @ntuple $N i -> begin
+                out += t
+                t *= -3 * a * (i - 5//6) * (i - 1//6) / i
+                invt = @fastmath inv(t)
+                Vec{4, T}((reim(out * invt)..., reim(invt)...))
+            end
+            out = zero(typeof(x))
+            t = GAMMA_ONE_SIXTH(T) * GAMMA_FIVE_SIXTHS(T) / 4
+            l2 = @ntuple $N i -> begin
+                out += t
+                t *= 3 * a * (i - 5//6) * (i - 1//6) / i
+                invt = @fastmath inv(t)
+                Vec{4, T}((reim(out * invt)..., reim(invt)...))
+            end
+            e = exp(-2/3 * x * sqrt(x))
+            return @fastmath (e*im*levin_transform(l) + 2*levin_transform(l2)/e) / (sqrt(T(π)^3) * sqrt(xsqr))
+        end
+    )
+end
+
+@generated function airybiprime_levin(x::Complex{T}, ::Val{N}) where {T <: Union{Float32, Float64}, N}
+    :(
+        begin
+            xsqr = sqrt(x)
+            out = zero(typeof(x))
+            t = GAMMA_ONE_SIXTH(T) * GAMMA_FIVE_SIXTHS(T) / 4
+            a = T(0.25) / (xsqr*x)
+
+            l = @ntuple $N i -> begin
+                out += t
+                t *= -3 * a * (i - 7//6) * (i + 1//6) / i
+                invt = @fastmath inv(t)
+                Vec{4, T}((reim(out * invt)..., reim(invt)...))
+            end
+            out = zero(typeof(x))
+            t = GAMMA_ONE_SIXTH(T) * GAMMA_FIVE_SIXTHS(T) / 4
+            l2 = @ntuple $N i -> begin
+                out += t
+                t *= 3 * a * (i - 7//6) * (i + 1//6) / i
+                invt = @fastmath inv(t)
+                Vec{4, T}((reim(out * invt)..., reim(invt)...))
+            end
+            e = exp(-2/3 * x * sqrt(x))
+            return @fastmath -(e*im*levin_transform(l) - 2*levin_transform(l2)/e) * sqrt(xsqr) / (sqrt(T(π)^3))
         end
     )
 end
