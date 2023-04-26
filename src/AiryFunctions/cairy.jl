@@ -312,7 +312,7 @@ function airybi_large_args(z::Complex{T}) where T
 end
 
 @inline function airyaix_large_args(z::Complex{T}) where T
-    if ~isfinite(z)
+    if isinf(z)
         if abs(angle(z)) < T(2π/3)
             e = exp(-z)
             return (e, -e)
@@ -339,7 +339,7 @@ end
 end
 
 @inline function airybix_large_args(z::Complex{T}) where T
-    if ~isfinite(z)
+    if isinf(z)
         if abs(angle(z)) < T(2π/3)
             e = exp(z)
             return (e, e)
