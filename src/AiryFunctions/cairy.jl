@@ -444,7 +444,7 @@ end
             w = @ntuple $N i -> w_{i}
 
             e = exp(-2/3 * x * sqrt(x))
-            return @fastmath (e*im*levin_transform(l) + 2*levin_transform(w)/e) / (sqrt(T(π)^3) * sqrt(xsqr))
+            return (e*im*levin_transform(l) + 2*levin_transform(w)/e) / (sqrt(T(π)^3) * sqrt(xsqr))
         end
     )
 end
