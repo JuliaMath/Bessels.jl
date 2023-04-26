@@ -47,26 +47,20 @@ External links: [DLMF](https://dlmf.nist.gov/9.2.2), [Wikipedia](https://en.wiki
 See also: [`airyaiprime`](@ref), [`airybi`](@ref)
 """
 airyai(z::Number) = _airyai(float(z))
+airyaix(z::Number) = _airyaix(float(z))
 
 function _airyai(z::Complex{T}) where T <: Union{Float32, Float64}
-    if ~isfinite(z)
-        if abs(angle(z)) < T(2π/3)
-            return exp(-z)
-        else
-            return 1 / z
-        end
-    end
-
     x, y = reim(z)
 
     check_conj = false
     if y < zero(T)
         z = conj(z)
+        y = -y
         check_conj = true
     end
 
     if airy_large_argument_cutoff(x, y)
-        r = airyaix_large_args(z)[1] * exp(-T(2/3) * z * sqrt(z))
+        r = airyai_large_args(z)[1]
     elseif airyai_levin_cutoff(x, y)
         r = airyaix_levin(z, Val(17)) * exp(-T(2/3) * z * sqrt(z))
     elseif airyai_power_series_cutoff(x, y)
@@ -85,6 +79,7 @@ function _airyaix(z::Complex{T}) where T <: Union{Float32, Float64}
     check_conj = false
     if y < zero(T)
         z = conj(z)
+        y = -y
         check_conj = true
     end
 
@@ -122,26 +117,20 @@ External links: [DLMF](https://dlmf.nist.gov/9.2), [Wikipedia](https://en.wikipe
 See also: [`airyai`](@ref), [`airybi`](@ref)
 """
 airyaiprime(z::Number) = _airyaiprime(float(z))
+airyaiprimex(z::Number) = _airyaiprimex(float(z))
 
 function _airyaiprime(z::Complex{T}) where T <: Union{Float32, Float64}
-    if ~isfinite(z)
-        if abs(angle(z)) < T(2π/3)
-            return -exp(-z)
-        else
-            return 1 / z
-        end
-    end
-
     x, y = reim(z)
 
     check_conj = false
     if y < zero(T)
         z = conj(z)
+        y = -y
         check_conj = true
     end
 
     if airy_large_argument_cutoff(x, y)
-        r = airyaix_large_args(z)[2] * exp(-T(2/3) * z * sqrt(z))
+        r = airyai_large_args(z)[2]
     elseif airyai_levin_cutoff(x, y)
         r = airyaiprimex_levin(z, Val(17)) * exp(-T(2/3) * z * sqrt(z))
     elseif airyai_power_series_cutoff(x, y)
@@ -159,6 +148,7 @@ function _airyaiprimex(z::Complex{T}) where T <: Union{Float32, Float64}
     check_conj = false
     if y < zero(T)
         z = conj(z)
+        y = -y
         check_conj = true
     end
 
@@ -198,24 +188,26 @@ See also: [`airybiprime`](@ref), [`airyai`](@ref)
 airybi(z::Number) = _airybi(float(z))
 
 function _airybi(z::Complex{T}) where T <: Union{Float32, Float64}
-    if ~isfinite(z)
-        if abs(angle(z)) < T(2π/3)
-            return exp(z)
-        else
-            return 1 / z
-        end
-    end
     x, y = real(z), imag(z)
 
-    if airy_large_argument_cutoff(z)
-        return airybi_large_args(z)[1]
-    elseif x > 1.1 && y > 4.2
-        return airybi_levin(z, Val(16))
-    elseif angle(z) < 7pi/8 || x > -4.5
-        return airybi_power_series(z)[1]
-    else
-        return cispi(-1/6) * _airyai(z * cispi(-2/3)) + cispi(1/6) * _airyai(z*cispi(2/3))
+    check_conj = false
+    if y < zero(T)
+        z = conj(z)
+        y = -y
+        check_conj = true
     end
+
+    if airy_large_argument_cutoff(z)
+        r = airybi_large_args(z)[1]
+    elseif x > 1.1 && y > 4.2
+        r = airybi_levin(z, Val(16))
+    elseif angle(z) < 7pi/8 || x > -4.5
+        r = airybi_power_series(z)[1]
+    else
+        r = cispi(-1/6) * _airyai(z * cispi(-2/3)) + cispi(1/6) * _airyai(z*cispi(2/3))
+    end
+
+    return check_conj ? conj(r) : r
 end
 """
     airybiprime(z)
@@ -240,24 +232,26 @@ See also: [`airybi`](@ref), [`airyai`](@ref)
 airybiprime(z::Number) = _airybiprime(float(z))
 
 function _airybiprime(z::Complex{T}) where T <: Union{Float32, Float64}
-    if ~isfinite(z)
-        if abs(angle(z)) < T(2π/3)
-            return exp(z)
-        else
-            return -1 / z
-        end
-    end
     x, y = real(z), imag(z)
 
-    if airy_large_argument_cutoff(z)
-        return airybi_large_args(z)[2]
-    elseif x > 1.1 && y > 4.2
-        return airybiprime_levin(z, Val(16))
-    elseif angle(z) < 7pi/8 || x > -4.5
-        return airybi_power_series(z)[2]
-    else
-        return cispi(-5/6) * airyaiprime(z * cispi(-2/3)) + cispi(5/6) * airyaiprime(z*cispi(2/3))
+    check_conj = false
+    if y < zero(T)
+        z = conj(z)
+        y = -y
+        check_conj = true
     end
+
+    if airy_large_argument_cutoff(z)
+        r = airybi_large_args(z)[2]
+    elseif x > 1.1 && y > 4.2
+        r = airybiprime_levin(z, Val(16))
+    elseif angle(z) < 7pi/8 || x > -4.5
+        r = airybi_power_series(z)[2]
+    else
+        r = cispi(-5/6) * airyaiprime(z * cispi(-2/3)) + cispi(5/6) * airyaiprime(z*cispi(2/3))
+    end
+
+    return check_conj ? conj(r) : r
 end
 
 #####
@@ -307,18 +301,26 @@ airy_large_argument_cutoff(z::ComplexOrReal{Float32}) = abs(z) > 4
 
 # valid in 0 <= angle(z) <= pi
 # use conjugation for bottom half plane
-airyai_large_args(z::Complex{T}) where T = airyaix_large_args(z) .* exp(-2/3 * z * sqrt(z))
+function airyai_large_args(z::Complex{T}) where T
+    out = airyaix_large_args(z)
+    return isfinite(z) ? out .* exp(-T(2/3) * z * sqrt(z)) : out
+end
 
 function airybi_large_args(z::Complex{T}) where T
-    if imag(z) < zero(T)
-        out = conj.(airybix_large_args(conj(z)))
-    else
-        out = airybix_large_args(z)
-    end
-    return out .* exp(T(2/3) * z * sqrt(z))
+    out = airybix_large_args(z)
+    return isfinite(z) ? out .* exp(T(2/3) * z * sqrt(z)) : out
 end
 
 @inline function airyaix_large_args(z::Complex{T}) where T
+    if ~isfinite(z)
+        if abs(angle(z)) < T(2π/3)
+            e = exp(-z)
+            return (e, -e)
+        else
+            invz = 1 / z
+            return (invz, invz)
+        end
+    end
     xsqr = sqrt(z)
     xsqrx =  Base.FastMath.inv_fast(z * xsqr)
     A, B, C, D = compute_airy_asy_coef(z, xsqrx)
@@ -337,6 +339,15 @@ end
 end
 
 @inline function airybix_large_args(z::Complex{T}) where T
+    if ~isfinite(z)
+        if abs(angle(z)) < T(2π/3)
+            e = exp(z)
+            return (e, e)
+        else
+            invz = 1 / z
+            return (invz, -invz)
+        end
+    end
     xsqr = sqrt(z)
     xsqrx = Base.FastMath.inv_fast(z * xsqr)
     A, B, C, D = compute_airy_asy_coef(z, xsqrx)
