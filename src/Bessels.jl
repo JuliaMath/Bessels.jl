@@ -1,7 +1,5 @@
 module Bessels
 
-using SIMDMath
-
 export besselj0
 export besselj1
 export besselj
