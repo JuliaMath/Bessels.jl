@@ -378,17 +378,14 @@ end
 
             t = GAMMA_ONE_SIXTH(T) * GAMMA_FIVE_SIXTHS(T) / 4
             t2 = 1 / t
-
             a = @fastmath inv(4*xsqrx)
             a2 = 4 * xsqrx
 
             s = zero(typeof(x))
             l = @ntuple $N i -> begin
                 s += t
-
                 t *= -a * (3 * (i - 5//6) * (i - 1//6) / i)
                 t2 *= -a2 * (i / (3 * (i - 5//6) * (i - 1//6)))
-                
                 Vec{4, T}((reim(s * t2)..., reim(t2)...))
             end
             return levin_transform(l) / (T(π)^(3//2) * sqrt(xsqr))
@@ -403,17 +400,14 @@ end
 
             t = -GAMMA_ONE_SIXTH(T) * GAMMA_FIVE_SIXTHS(T) / 4
             t2 = 1 / t
-
             a = @fastmath inv(4*xsqrx)
             a2 = 4 * xsqrx
 
             s = zero(typeof(x))
             l = @ntuple $N i -> begin
                 s += t
-
                 t *= -a * (3 * (i - 7//6) * (i + 1//6) / i)
                 t2 *= -a2 * (i / (3 * (i - 7//6) * (i + 1//6)))
-
                 Vec{4, T}((reim(s * t2)..., reim(t2)...))
             end
             return levin_transform(l) * sqrt(xsqr) / T(π)^(3//2)
@@ -424,27 +418,33 @@ end
 @generated function airybi_levin(x::Complex{T}, ::Val{N}) where {T <: Union{Float32, Float64}, N}
     :(
         begin
-            xsqr = sqrt(x)
-            out = zero(typeof(x))
-            t = GAMMA_ONE_SIXTH(T) * GAMMA_FIVE_SIXTHS(T) / 4
-            a = T(0.25) / (xsqr*x)
 
-            l = @ntuple $N i -> begin
-                out += t
-                t *= -3 * a * (i - 5//6) * (i - 1//6) / i
-                invt = @fastmath inv(t)
-                Vec{4, T}((reim(out * invt)..., reim(invt)...))
-            end
-            out = zero(typeof(x))
+            xsqr = sqrt(x)
+            xsqrx = xsqr * x
+
             t = GAMMA_ONE_SIXTH(T) * GAMMA_FIVE_SIXTHS(T) / 4
-            l2 = @ntuple $N i -> begin
-                out += t
-                t *= 3 * a * (i - 5//6) * (i - 1//6) / i
-                invt = @fastmath inv(t)
-                Vec{4, T}((reim(out * invt)..., reim(invt)...))
+            t2 = 1 / t
+            a = inv(4*xsqrx)
+            a2 = 4 * xsqrx
+
+            s = zero(typeof(x))
+            s2 = zero(typeof(x))
+            m = 1
+            @nexprs $N i -> begin
+                s += t
+                s2 += t * m
+                t *= -a * (3 * (i - 5//6) * (i - 1//6) / i)
+                t2 *= -a2 * (i / (3 * (i - 5//6) * (i - 1//6)))
+                l_{i} = Vec{4, T}((reim(s * t2)..., reim(t2)...))
+                w_{i} = Vec{4, T}((reim(s2 * t2 * m)..., reim(t2 * m)...))
+                m *= -1
             end
+
+            l = @ntuple $N i -> l_{i}
+            w = @ntuple $N i -> w_{i}
+
             e = exp(-2/3 * x * sqrt(x))
-            return @fastmath (e*im*levin_transform(l) + 2*levin_transform(l2)/e) / (sqrt(T(π)^3) * sqrt(xsqr))
+            return @fastmath (e*im*levin_transform(l) + 2*levin_transform(w)/e) / (sqrt(T(π)^3) * sqrt(xsqr))
         end
     )
 end
@@ -453,26 +453,31 @@ end
     :(
         begin
             xsqr = sqrt(x)
-            out = zero(typeof(x))
-            t = GAMMA_ONE_SIXTH(T) * GAMMA_FIVE_SIXTHS(T) / 4
-            a = T(0.25) / (xsqr*x)
+            xsqrx = xsqr * x
 
-            l = @ntuple $N i -> begin
-                out += t
-                t *= -3 * a * (i - 7//6) * (i + 1//6) / i
-                invt = @fastmath inv(t)
-                Vec{4, T}((reim(out * invt)..., reim(invt)...))
-            end
-            out = zero(typeof(x))
             t = GAMMA_ONE_SIXTH(T) * GAMMA_FIVE_SIXTHS(T) / 4
-            l2 = @ntuple $N i -> begin
-                out += t
-                t *= 3 * a * (i - 7//6) * (i + 1//6) / i
-                invt = @fastmath inv(t)
-                Vec{4, T}((reim(out * invt)..., reim(invt)...))
+            t2 = 1 / t
+            a = inv(4*xsqrx)
+            a2 = 4 * xsqrx
+
+            s = zero(typeof(x))
+            s2 = zero(typeof(x))
+            m = 1
+            @nexprs $N i -> begin
+                s += t
+                s2 += t * m
+                t *= -a * (3 * (i - 7//6) * (i + 1//6) / i)
+                t2 *= -a2 * (i / (3 * (i - 7//6) * (i + 1//6)))
+                l_{i} = Vec{4, T}((reim(s * t2)..., reim(t2)...))
+                w_{i} = Vec{4, T}((reim(s2 * t2 * m)..., reim(t2 * m)...))
+                m *= -1
             end
+
+            l = @ntuple $N i -> l_{i}
+            w = @ntuple $N i -> w_{i}
+
             e = exp(-2/3 * x * sqrt(x))
-            return @fastmath -(e*im*levin_transform(l) - 2*levin_transform(l2)/e) * sqrt(xsqr) / (sqrt(T(π)^3))
+            return -(e*im*levin_transform(l) - 2*levin_transform(w)/e) * sqrt(xsqr) / (sqrt(T(π)^3))
         end
     )
 end
