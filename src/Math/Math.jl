@@ -1,4 +1,28 @@
+module Math
+
+const ComplexOrReal{T} = Union{T,Complex{T}}
+
+include("math_constants.jl")
+
+export ComplexOrReal
+
+export sin_sum, cos_sum
+export levin_transform
+export clenshaw_chebyshev
+
+export Vec, ComplexVec, FloatTypes
+export fmadd, fmul, fadd, fsub
+export horner_simd, pack_poly
+
+export @nexprs, @ntuple
+
 using Base.Math: sin_kernel, cos_kernel, sincos_kernel, rem_pio2_kernel, DoubleFloat64, DoubleFloat32
+
+using Base.Cartesian: @nexprs, @ntuple
+
+using SIMDMath: Vec, ComplexVec, FloatTypes
+using SIMDMath: fmadd, fmul, fadd, fsub
+using SIMDMath: horner_simd, pack_poly
 
 """
     computes sin(sum(xs)) where xs are sorted by absolute value
@@ -91,10 +115,18 @@ function rem_pio2_sum(xs::Vararg{Float16, N}) where N
     return n, DoubleFloat32(y.hi)
 end
 
-# Levin's Sequence transformation
+# uses the Clenshaw algorithm to recursively evaluate a linear combination of Chebyshev polynomials
+function clenshaw_chebyshev(x, c)
+    x2 = 2x
+    c0 = c[end-1]
+    c1 = c[end]
+    for i in length(c)-2:-1:1
+        c0, c1 = c[i] - c1, c0 + c1 * x2
+    end
+    return c0 + c1 * x
+end
 
-using Base.Cartesian
-using SIMDMath: fmadd, Vec, FloatTypes
+# Levin's Sequence transformation
 
 #@inline levin_scale(B::T, n, k) where T = -(B + n) * (B + n + k)^(k - one(T)) / (B + n + k + one(T))^k
 @inline levin_scale(B::T, n, k) where T = -(B + n + k) * (B + n + k - 1) / ((B + n + 2k) * (B + n + 2k - 1))
@@ -121,4 +153,6 @@ end
             return (complex(a_1[1], a_1[2]) / complex(a_1[3], a_1[4]))
         end
     )
+end
+
 end

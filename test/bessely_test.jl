@@ -82,7 +82,7 @@ for v in nu, xx in x
     xx *= v
     sf = SpecialFunctions.bessely(BigFloat(v), BigFloat(xx))
     @test isapprox(bessely(v, xx), Float64(sf), rtol=2e-13)
-    @test isapprox(Bessels.besseljy_positive_args(v, xx)[2], Float64(sf), rtol=5e-12)
+    @test isapprox(Bessels.BesselFunctions.besseljy_positive_args(v, xx)[2], Float64(sf), rtol=5e-12)
     @test isapprox(bessely(Float32(v), Float32(xx)), Float32(sf))
 end
 
@@ -95,7 +95,7 @@ for v in nu, xx in x
     xx *= v
     sf = SpecialFunctions.bessely(v, xx)
     @test isapprox(bessely(v, xx), sf, rtol=5e-12)
-    @test isapprox(Bessels.besseljy_positive_args(v, xx)[2], SpecialFunctions.bessely(v, xx), rtol=5e-12)
+    @test isapprox(Bessels.BesselFunctions.besseljy_positive_args(v, xx)[2], SpecialFunctions.bessely(v, xx), rtol=5e-12)
     @test isapprox(bessely(Float32(v), Float32(xx)), Float32(sf))
 end
 
@@ -104,7 +104,7 @@ end
 @test bessely(0:50, 100.0) ≈ SpecialFunctions.bessely.(0:50, 100.0) rtol=1e-11
 @test bessely(0.5:1:10.5, 2.0) ≈ SpecialFunctions.bessely.(0.5:1:10.5, 2.0) rtol=1e-11
 @test bessely(0.5:1:10.5, 40.0) ≈ SpecialFunctions.bessely.(0.5:1:10.5, 40.0) rtol=1e-11
-@test Bessels.bessely!(zeros(Float64, 10), 1:10, 1.0) ≈ bessely(1:10, 1.0)
+@test bessely!(zeros(Float64, 10), 1:10, 1.0) ≈ bessely(1:10, 1.0)
 
 # test Float16
 @test bessely(Int16(10), Float16(1.0)) isa Float16

@@ -5,10 +5,12 @@ using SIMDMath
 export besselj0
 export besselj1
 export besselj
+export besselj!
 
 export bessely0
 export bessely1
 export bessely
+export bessely!
 
 export sphericalbesselj
 export sphericalbessely
@@ -40,33 +42,14 @@ export airybix
 export airybiprime
 export airybiprimex
 
-const ComplexOrReal{T} = Union{T,Complex{T}}
+include("Math/Math.jl")
+include("GammaFunctions/GammaFunctions.jl")
+include("AiryFunctions/AiryFunctions.jl")
+include("BesselFunctions/BesselFunctions.jl")
 
-include("math.jl")
-include("constants.jl")
-include("math_constants.jl")
-
-include("gamma.jl")
-include("besseli.jl")
-include("besselj.jl")
-include("besselk.jl")
-include("bessely.jl")
-include("hankel.jl")
-include("Airy/airy.jl")
-include("Airy/cairy.jl")
-include("sphericalbessel.jl")
-include("modifiedsphericalbessel.jl")
-
-include("Float128/besseli.jl")
-include("Float128/besselj.jl")
-include("Float128/besselk.jl")
-include("Float128/bessely.jl")
-include("Float128/constants.jl")
-
-include("U_polynomials.jl")
-include("recurrence.jl")
-include("Polynomials/besselj_polys.jl")
-include("asymptotics.jl")
+using .GammaFunctions
+using .AiryFunctions
+using .BesselFunctions
 
 include("precompile.jl")
 

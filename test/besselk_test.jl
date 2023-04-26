@@ -169,5 +169,5 @@ end
 
 # test besselk_levin for real and complex
 
-@test Bessels.besselkx_levin(1.1, 2.4, Val(16)) ≈ SpecialFunctions.besselkx(1.1, 2.4)
-@test Bessels.besselkx_levin(1.1, 2.4 + 1.1im, Val(16)) ≈ SpecialFunctions.besselkx(1.1, 2.4 + 1.1im)
+@test Bessels.BesselFunctions.besselkx_levin(1.1, 2.4, Val(16)) ≈ SpecialFunctions.besselkx(1.1, 2.4)
+@test Bessels.BesselFunctions.besselkx_levin(1.1, 2.4 + 1.1im, Val(16)) ≈ SpecialFunctions.besselkx(1.1, 2.4 + 1.1im)
