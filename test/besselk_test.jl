@@ -165,3 +165,9 @@ end
 
 (v, x) = -14.6, -10.6
 #@test besselk(v,x) ≈ -0.0180385087581148387140033906859 - 1.54653251445680014758965158559*im
+
+
+# test besselk_levin for real and complex
+
+@test Bessels.besselkx_levin(1.1, 2.4, Val(16)) ≈ SpecialFunctions.besselkx(1.1, 2.4)
+@test Bessels.besselkx_levin(1.1, 2.4 + 1.1im, Val(16)) ≈ SpecialFunctions.besselkx(1.1, 2.4 + 1.1im)

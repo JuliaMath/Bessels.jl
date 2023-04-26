@@ -570,3 +570,41 @@ function _besselk_large_argument(v, x::ComplexOrReal{T}) where T
     end 
     return res 
 end
+
+#####
+#####  Levin sequence transform for K_{nu}(x)
+#####
+
+@generated function besselkx_levin(v, x::T, ::Val{N}) where {T <: FloatTypes, N}
+    :(
+        begin
+            l = let (out, term, fv2) = (one(typeof(x)), one(typeof(x)), 4*v^2)
+                @ntuple $N i -> begin
+                    offset = muladd(2, i, -1)
+                    term *= muladd(offset, -offset, fv2) / (8 * x * i)
+                    out += term
+                    invterm = inv(term)
+                    Vec{2, T}((out * invterm, invterm))
+                end
+            end
+            return levin_transform(l) * sqrt(π / 2x)
+        end
+    )
+end
+
+@generated function besselkx_levin(v, x::Complex{T}, ::Val{N}) where {T <: FloatTypes, N}
+    :(
+        begin
+            l = let (out, term, fv2, invx) = (one(typeof(x)), one(typeof(x)), 4*v^2, inv(8*x))
+                @ntuple $N i -> begin
+                    offset = muladd(2, i, -1)
+                    term *= @fastmath muladd(offset, -offset, fv2) * invx / i
+                    out += term
+                    invterm = @fastmath inv(term)
+                    Vec{4, T}((reim(out * invterm)..., reim(invterm)...))
+                end
+            end
+            return levin_transform(l) * sqrt(π / 2x)
+        end
+    )
+end

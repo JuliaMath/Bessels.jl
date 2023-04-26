@@ -42,6 +42,11 @@ export airybiprimex
 
 const ComplexOrReal{T} = Union{T,Complex{T}}
 
+include("math.jl")
+include("constants.jl")
+include("math_constants.jl")
+
+include("gamma.jl")
 include("besseli.jl")
 include("besselj.jl")
 include("besselk.jl")
@@ -58,14 +63,10 @@ include("Float128/besselk.jl")
 include("Float128/bessely.jl")
 include("Float128/constants.jl")
 
-include("constants.jl")
-include("math_constants.jl")
 include("U_polynomials.jl")
 include("recurrence.jl")
-include("math.jl")
 include("Polynomials/besselj_polys.jl")
 include("asymptotics.jl")
-include("gamma.jl")
 
 include("precompile.jl")
 
