@@ -50,6 +50,7 @@ airyai(z::Number) = _airyai(float(z))
 airyaix(z::Number) = _airyaix(float(z))
 
 function _airyai(z::Complex{T}) where T <: Union{Float32, Float64}
+    isnan(z) && return z
     x, y = reim(z)
 
     check_conj = false
@@ -74,6 +75,7 @@ function _airyai(z::Complex{T}) where T <: Union{Float32, Float64}
 end
 
 function _airyaix(z::Complex{T}) where T <: Union{Float32, Float64}
+    isnan(z) && return z
     x, y = real(z), imag(z)
 
     check_conj = false
@@ -120,6 +122,7 @@ airyaiprime(z::Number) = _airyaiprime(float(z))
 airyaiprimex(z::Number) = _airyaiprimex(float(z))
 
 function _airyaiprime(z::Complex{T}) where T <: Union{Float32, Float64}
+    isnan(z) && return z
     x, y = reim(z)
 
     check_conj = false
@@ -143,6 +146,7 @@ function _airyaiprime(z::Complex{T}) where T <: Union{Float32, Float64}
 end
 
 function _airyaiprimex(z::Complex{T}) where T <: Union{Float32, Float64}
+    isnan(z) && return z
     x, y = reim(z)
 
     check_conj = false
@@ -188,6 +192,7 @@ See also: [`airybiprime`](@ref), [`airyai`](@ref)
 airybi(z::Number) = _airybi(float(z))
 
 function _airybi(z::Complex{T}) where T <: Union{Float32, Float64}
+    isnan(z) && return z
     x, y = real(z), imag(z)
 
     check_conj = false
@@ -232,6 +237,7 @@ See also: [`airybi`](@ref), [`airyai`](@ref)
 airybiprime(z::Number) = _airybiprime(float(z))
 
 function _airybiprime(z::Complex{T}) where T <: Union{Float32, Float64}
+    isnan(z) && return z
     x, y = real(z), imag(z)
 
     check_conj = false
