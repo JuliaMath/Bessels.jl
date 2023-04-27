@@ -131,24 +131,22 @@ end
 #@inline levin_scale(B::T, n, k) where T = -(B + n) * (B + n + k)^(k - one(T)) / (B + n + k + one(T))^k
 @inline levin_scale(B::T, n, k) where T = -(B + n + k) * (B + n + k - 1) / ((B + n + 2k) * (B + n + 2k - 1))
 
-# implementation for real numbers
-@inline @generated function levin_transform(s::NTuple{N, Vec{2, T}}) where {N, T <: FloatTypes}
+@inline @generated function levin_transform(s::NTuple{N, T}, w::NTuple{N, T}) where {N, T <: FloatTypes}
     len = N - 1
     :(
         begin
-            @nexprs $N i -> a_{i} = s[i]
+            @nexprs $N i -> a_{i} = Vec{2, T}((s[i] * w[i], w[i]))
             @nexprs $len k -> (@nexprs ($len-k) i -> a_{i} = fmadd(a_{i}, levin_scale(one(T), i, k-1), a_{i+1}))
             return (a_1[1] / a_1[2])
         end
     )
 end
 
-# implementation for complex numbers
-@inline @generated function levin_transform(s::NTuple{N, Vec{4, T}}) where {N, T <: FloatTypes}
+@inline @generated function levin_transform(s::NTuple{N, Complex{T}}, w::NTuple{N, Complex{T}}) where {N, T <: FloatTypes}
     len = N - 1
     :(
         begin
-            @nexprs $N i -> a_{i} = s[i]
+            @nexprs $N i -> a_{i} = Vec{4, T}((reim(s[i] * w[i])..., reim(w[i])...))
             @nexprs $len k -> (@nexprs ($len-k) i -> a_{i} = fmadd(a_{i}, levin_scale(one(T), i, k-1), a_{i+1}))
             return (complex(a_1[1], a_1[2]) / complex(a_1[3], a_1[4]))
         end

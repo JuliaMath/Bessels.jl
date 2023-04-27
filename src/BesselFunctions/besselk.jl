@@ -578,15 +578,16 @@ end
 @generated function besselkx_levin(v, x::T, ::Val{N}) where {T <: FloatTypes, N}
     :(
         begin
-            s = zero(T)
+            s_0 = zero(T)
             t = one(T)
-            l = @ntuple $N i -> begin
-                    s += t
+            @nexprs $N i -> begin
+                    s_{i} = s_{i-1} + t
                     t *= (4*v^2 - (2i - 1)^2) / (8 * x * i)
-                    invterm = inv(t)
-                    Vec{2, T}((s * invterm, invterm))
+                    w_{i} = 1 / t
                 end
-            return levin_transform(l) * sqrt(π / 2x)
+                sequence = @ntuple $N i -> s_{i}
+                weights = @ntuple $N i -> w_{i}
+            return levin_transform(sequence, weights) * sqrt(π / 2x)
         end
     )
 end
@@ -594,20 +595,22 @@ end
 @generated function besselkx_levin(v, x::Complex{T}, ::Val{N}) where {T <: FloatTypes, N}
     :(
         begin
-            s = zero(T)
+            s_0 = zero(T)
             t = one(typeof(x))
             t2 = t
             a = @fastmath inv(8*x)
             a2 = 8*x
 
-            l =  @ntuple $N i -> begin
-                    s += t
+            @nexprs $N i -> begin
+                    s_{i} = s_{i-1} + t
                     b = (4*v^2 - (2i - 1)^2) / i
                     t *= a * b
                     t2 *= a2 / b
-                    Vec{4, T}((reim(s * t2)..., reim(t2)...))
+                    w_{i} = t2
                 end
-            return levin_transform(l) * sqrt(π / 2x)
+                sequence = @ntuple $N i -> s_{i}
+                weights = @ntuple $N i -> w_{i}
+            return levin_transform(sequence, weights) * sqrt(π / 2x)
         end
     )
 end

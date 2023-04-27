@@ -398,14 +398,16 @@ end
             a = @fastmath inv(4*xsqrx)
             a2 = 4 * xsqrx
 
-            s = zero(typeof(x))
-            l = @ntuple $N i -> begin
-                s += t
+            s_0 = zero(typeof(x))
+            @nexprs $N i -> begin
+                s_{i} = s_{i-1} + t
                 t *= -a * (3 * (i - 5//6) * (i - 1//6) / i)
                 t2 *= -a2 * (i / (3 * (i - 5//6) * (i - 1//6)))
-                Vec{4, T}((reim(s * t2)..., reim(t2)...))
+                w_{i} = t2
             end
-            return levin_transform(l) / (T(π)^(3//2) * sqrt(xsqr))
+            sequence = @ntuple $N i -> s_{i}
+            weights = @ntuple $N i -> w_{i}
+            return levin_transform(sequence, weights) / (T(π)^(3//2) * sqrt(xsqr))
         end
     )
 end
@@ -420,14 +422,16 @@ end
             a = @fastmath inv(4*xsqrx)
             a2 = 4 * xsqrx
 
-            s = zero(typeof(x))
-            l = @ntuple $N i -> begin
-                s += t
+            s_0 = zero(typeof(x))
+            @nexprs $N i -> begin
+                s_{i} = s_{i-1} + t
                 t *= -a * (3 * (i - 7//6) * (i + 1//6) / i)
                 t2 *= -a2 * (i / (3 * (i - 7//6) * (i + 1//6)))
-                Vec{4, T}((reim(s * t2)..., reim(t2)...))
+                w_{i} = t2
             end
-            return levin_transform(l) * sqrt(xsqr) / T(π)^(3//2)
+            sequence = @ntuple $N i -> s_{i}
+            weights = @ntuple $N i -> w_{i}
+            return levin_transform(sequence, weights) * sqrt(xsqr) / T(π)^(3//2)
         end
     )
 end
@@ -444,24 +448,26 @@ end
             a = inv(4*xsqrx)
             a2 = 4 * xsqrx
 
-            s = zero(typeof(x))
-            s2 = zero(typeof(x))
+            s_0 = zero(typeof(x))
+            p_0 = zero(typeof(x))
             m = 1
             @nexprs $N i -> begin
-                s += t
-                s2 += t * m
+                s_{i} = s_{i-1} + t
+                p_{i} = p_{i-1} + t * m
                 t *= -a * (3 * (i - 5//6) * (i - 1//6) / i)
                 t2 *= -a2 * (i / (3 * (i - 5//6) * (i - 1//6)))
-                l_{i} = Vec{4, T}((reim(s * t2)..., reim(t2)...))
-                w_{i} = Vec{4, T}((reim(s2 * t2 * m)..., reim(t2 * m)...))
+                w_{i} = t2
                 m *= -1
             end
 
-            l = @ntuple $N i -> l_{i}
-            w = @ntuple $N i -> w_{i}
+            sequence1 = @ntuple $N i -> s_{i}
+            sequence2 = @ntuple $N i -> p_{i}
+            weights = @ntuple $N i -> w_{i}
 
-            e = exp(-2/3 * x * sqrt(x))
-            return (e*im*levin_transform(l) + 2*levin_transform(w)/e) / (sqrt(T(π)^3) * sqrt(xsqr))
+            e = exp(-T(2/3) * x * sqrt(x))
+            l1 = levin_transform(sequence1, weights)
+            l2 = levin_transform(sequence2, (@ntuple $N i -> weights[i] * (iseven(i) ? 1 : -1)))
+            return (e * im * l1 + 2 * l2 / e) / (sqrt(T(π)^3) * sqrt(xsqr))
         end
     )
 end
@@ -477,24 +483,26 @@ end
             a = inv(4*xsqrx)
             a2 = 4 * xsqrx
 
-            s = zero(typeof(x))
-            s2 = zero(typeof(x))
+            s_0 = zero(typeof(x))
+            p_0 = zero(typeof(x))
             m = 1
             @nexprs $N i -> begin
-                s += t
-                s2 += t * m
+                s_{i} = s_{i-1} + t
+                p_{i} = p_{i-1} + t * m
                 t *= -a * (3 * (i - 7//6) * (i + 1//6) / i)
                 t2 *= -a2 * (i / (3 * (i - 7//6) * (i + 1//6)))
-                l_{i} = Vec{4, T}((reim(s * t2)..., reim(t2)...))
-                w_{i} = Vec{4, T}((reim(s2 * t2 * m)..., reim(t2 * m)...))
+                w_{i} = t2
                 m *= -1
             end
 
-            l = @ntuple $N i -> l_{i}
-            w = @ntuple $N i -> w_{i}
+            sequence1 = @ntuple $N i -> s_{i}
+            sequence2 = @ntuple $N i -> p_{i}
+            weights = @ntuple $N i -> w_{i}
 
-            e = exp(-2/3 * x * sqrt(x))
-            return -(e*im*levin_transform(l) - 2*levin_transform(w)/e) * sqrt(xsqr) / (sqrt(T(π)^3))
+            l1 = levin_transform(sequence1, weights)
+            l2 = levin_transform(sequence2, (@ntuple $N i -> weights[i] * (iseven(i) ? 1 : -1)))
+            e = exp(-T(2/3) * x * sqrt(x))
+            return -(e * im * l1 - 2 * l2 / e) * sqrt(xsqr) / (sqrt(T(π)^3))
         end
     )
 end
