@@ -209,7 +209,7 @@ function _airybi(z::Complex{T}) where T <: Union{Float32, Float64}
     elseif angle(z) < 7pi/8 || x > -4.5
         r = airybi_power_series(z)[1]
     else
-        r = cispi(-1/6) * _airyai(z * cispi(-2/3)) + cispi(1/6) * _airyai(z*cispi(2/3))
+        r = cispi(-T(1/6)) * _airyai(z * cispi(-T(2/3))) + cispi(T(1/6)) * _airyai(z*cispi(T(2/3)))
     end
 
     return check_conj ? conj(r) : r
@@ -254,7 +254,7 @@ function _airybiprime(z::Complex{T}) where T <: Union{Float32, Float64}
     elseif angle(z) < 7pi/8 || x > -4.5
         r = airybi_power_series(z)[2]
     else
-        r = cispi(-5/6) * airyaiprime(z * cispi(-2/3)) + cispi(5/6) * airyaiprime(z*cispi(2/3))
+        r = cispi(-T(5/6)) * airyaiprime(z * cispi(-T(2/3))) + cispi(T(5/6)) * airyaiprime(z*cispi(T(2/3)))
     end
 
     return check_conj ? conj(r) : r
