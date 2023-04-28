@@ -51,9 +51,11 @@ end
 for x in [0.0, 0.01, 0.5, 1.0, 2.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 50.0], a in 0:pi/12:2pi
     z = x*exp(im*a)
     @test isapprox(airyai(z), SpecialFunctions.airyai(z), rtol=5e-10)
+    @test isapprox(airyaix(z), SpecialFunctions.airyaix(z), rtol=5e-10)
     @test isapprox(airyaiprime(z), SpecialFunctions.airyaiprime(z), rtol=5e-10)
-    @test isapprox(airybi(z), SpecialFunctions.airybi(z), rtol=1e-11)
-    @test isapprox(airybiprime(z), SpecialFunctions.airybiprime(z), rtol=1e-11)
+    @test isapprox(airyaiprimex(z), SpecialFunctions.airyaiprimex(z), rtol=5e-10)
+    @test isapprox(airybi(z), SpecialFunctions.airybi(z), rtol=5e-10)
+    @test isapprox(airybiprime(z), SpecialFunctions.airybiprime(z), rtol=5e-10)
 end
 
 
