@@ -1,4 +1,3 @@
-
 # TODO (cg 2023/05/08 10:38): As of now, this throws the error
 #
 # ERROR; LoadError: UndefVarError: `forward` not defined
@@ -16,8 +15,8 @@ module EnzymeRules
   # ] add Enzyme#main
   # so that's not great.
 
-  using Bessels, Enzyme
-  using Enzyme.EnzymeRules
+  using Bessels, EnzymeCore
+  using EnzymeCore.EnzymeRules
   using Bessels.Math
 
   # A manual method that takes an NTuple of partial sum terms and checks if it is
@@ -31,7 +30,10 @@ module EnzymeRules
   #
   # TODO (cg 2023/05/08 10:00): I'm not entirely sure how best to "generalize"
   # this to cases like a return type of DuplicatedNoNeed, or something being a
-  # `Enzyme.Const`. I have an open issue on the Enzyme.jl repo at
+  # `Enzyme.Const`. These shouldn't in principle affect the "point" of this
+  # function (which is just to check for convergence before applying a
+  # function), but on its face this approach would mean I need a lot of
+  # hand-written extra methods. I have an open issue on the Enzyme.jl repo at
   #
   # https://github.com/EnzymeAD/Enzyme.jl/issues/786
   #
