@@ -10,3 +10,4 @@ import SpecialFunctions
 @time @testset "gamma" begin include("gamma_test.jl") end
 @time @testset "airy" begin include("airy_test.jl") end
 @time @testset "sphericalbessel" begin include("sphericalbessel_test.jl") end
+@time @testset "enzyme autodiff" begin include("enzyme_test.jl") end

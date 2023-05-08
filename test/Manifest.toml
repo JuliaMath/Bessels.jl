@@ -1,6 +1,8 @@
 # This file is machine-generated - editing it directly is not advised
 
+julia_version = "1.9.0-rc3"
 manifest_format = "2.0"
+project_hash = "d08b9c18a9b1978d08c223ae5573bfa705b3affe"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra", "Requires"]
@@ -67,26 +69,21 @@ version = "1.6.0"
 
 [[deps.Enzyme]]
 deps = ["CEnum", "EnzymeCore", "Enzyme_jll", "GPUCompiler", "LLVM", "Libdl", "LinearAlgebra", "ObjectFile", "Printf", "Random"]
-git-tree-sha1 = "ad92a24f73bf8ffd1c23b2b5f59c9a761d7e9081"
-repo-rev = "main"
-repo-url = "https://github.com/EnzymeAD/Enzyme.jl.git"
+git-tree-sha1 = "4478f8bf24785d9eabe09044549b0e81b9e12d68"
 uuid = "7da242da-08ed-463a-9acd-ee780be4f1d9"
 version = "0.11.1"
 
 [[deps.EnzymeCore]]
 deps = ["Adapt"]
 git-tree-sha1 = "d0840cfff51e34729d20fd7d0a13938dc983878b"
-repo-rev = "main"
-repo-subdir = "lib/EnzymeCore"
-repo-url = "https://github.com/EnzymeAD/Enzyme.jl.git"
 uuid = "f151be2c-9106-41f4-ab19-57ee4f262869"
 version = "0.3.0"
 
 [[deps.Enzyme_jll]]
 deps = ["Artifacts", "JLLWrappers", "LazyArtifacts", "Libdl", "TOML"]
-git-tree-sha1 = "5aaf389552c3560da95e2767080a22037eed90a5"
+git-tree-sha1 = "b0f72433c4679db4df05c999f200d60cb78d1a27"
 uuid = "7cc45869-7501-5eee-bdea-0790c847d4ef"
-version = "0.0.59+0"
+version = "0.0.57+0"
 
 [[deps.ExprTools]]
 git-tree-sha1 = "c1d06d129da9f55715c6c212866f5b1bddc5fa00"
