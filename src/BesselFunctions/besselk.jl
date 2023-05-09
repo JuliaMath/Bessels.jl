@@ -578,15 +578,16 @@ end
 @generated function besselkx_levin(v, x::T, ::Val{N}) where {T <: FloatTypes, N}
     :(
         begin
-            s_0 = zero(T)
+            s = zero(T)
             t = one(T)
             @nexprs $N i -> begin
-                    s_{i} = s_{i-1} + t
-                    t *= (4*v^2 - (2i - 1)^2) / (8 * x * i)
-                    w_{i} = 1 / t
-                end
-                sequence = @ntuple $N i -> s_{i}
-                weights = @ntuple $N i -> w_{i}
+                  s += t
+                  t *= (4*v^2 - (2i - 1)^2) / (8 * x * i)
+                  s_{i} = s
+                  w_{i} = t
+              end
+              sequence = @ntuple $N i -> s_{i}
+              weights = @ntuple $N i -> w_{i}
             return levin_transform(sequence, weights) * sqrt(π / 2x)
         end
     )

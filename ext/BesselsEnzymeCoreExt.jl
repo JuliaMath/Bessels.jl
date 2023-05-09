@@ -1,19 +1,6 @@
-# TODO (cg 2023/05/08 10:38): As of now, this throws the error
-#
-# ERROR; LoadError: UndefVarError: `forward` not defined
-#
-# which is weird, because this code works fine in its own scope and not as an
-# extension.
-
-module EnzymeRules
+module BesselsEnzymeCoreExt
 
   # TODO (cg 2023/05/08 10:02): Compat of any kind. 
-  #
-  # TODO (cg 2023/05/08 10:27): This only works on the master branch of Enzyme.
-  # Which you can only use by doing
-  # ] add EnzymeCore#main
-  # ] add Enzyme#main
-  # so that's not great.
 
   using Bessels, EnzymeCore
   using EnzymeCore.EnzymeRules
