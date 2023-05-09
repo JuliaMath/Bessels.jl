@@ -11,6 +11,6 @@ for line in eachline("data/besselk/enzyme/besselkx_levin_enzyme_tests.csv")
   (v, x, dv, dx) = parse.(Float64, split(line))
   test_dv = dbesselkx_dv(v, x)
   test_dx = dbesselkx_dx(v, x)
-  @test isapprox(dv, test_dv, rtol=1e-4)
-  @test isapprox(dx, test_dx, rtol=1e-4)
+  @test isapprox(dv, test_dv, rtol=5e-14)
+  @test isapprox(dx, test_dx, rtol=5e-14)
 end
