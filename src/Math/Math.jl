@@ -136,7 +136,7 @@ end
     len = N - 1
     :(
         begin
-            @nexprs $N i -> a_{i} = Vec{2, T}((s[i] / w[i], 1 / w[i]))
+            @nexprs $N i -> a_{i} = iszero(w[i]) ? (return s[i]) : Vec{2, T}((s[i] / w[i], 1 / w[i]))
             @nexprs $len k -> (@nexprs ($len-k) i -> a_{i} = fmadd(a_{i}, levin_scale(one(T), i, k-1), a_{i+1}))
             return (a_1[1] / a_1[2])
         end

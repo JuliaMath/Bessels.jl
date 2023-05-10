@@ -6,10 +6,9 @@ module BesselsEnzymeCoreExt
   using EnzymeCore.EnzymeRules
   using Bessels.Math
 
-  # A manual method that takes an NTuple of partial sum terms and checks if it is
-  # exactly converged before computing the Levin sequence transformation. If it is
-  # exactly converged, the sequence transformation will create a divide-by-zero
-  # problem. See
+  # A manual method that separately transforms the `val` and `dval`, because
+  # sometimes the `val` can converge while the `dval` hasn't, so just using an
+  # early return or something can give incorrect derivatives in edge cases.
   #
   # https://github.com/JuliaMath/Bessels.jl/issues/96 
   #
@@ -30,10 +29,10 @@ module BesselsEnzymeCoreExt
                                ::Type{<:Duplicated}, 
                                s::Duplicated,
                                w::Duplicated)
-    (sv, dv, N) = (s.val, s.dval, length(s.val))
-    ls  = (sv[N-1] == sv[N]) ? sv[N] : levin_transform(sv, w.val)
-    dls = (dv[N-1] == dv[N]) ? dv[N] : levin_transform(dv, w.dval)
-    Duplicated(ls, dls)
+      (sv, dv, N) = (s.val, s.dval, length(s.val))
+      ls  = levin_transform(sv, w.val)
+      dls = levin_transform(dv, w.dval)
+      Duplicated(ls, dls)
   end
 
 end
