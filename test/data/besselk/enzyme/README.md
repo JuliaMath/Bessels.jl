@@ -1,12 +1,13 @@
 ```julia
-using FiniteDifferences, ArbNumerics, DelimitedFiles
+using FiniteDifferences, ArbNumerics, DelimitedFiles, SpecialFunctions
 
 if !(@isdefined vx)
-  const FD = central_fdm(10,1)
   vgrid = sort(vcat(range(0.05, 15.0, length=20), [0.5, 1.5, 2.5, 3.5]))
   xgrid = range(15.0, 30.0, length=20)
   const vx = vec(collect(Iterators.product(vgrid, xgrid)))
 end
+
+simplefd(f,x,h=ArbReal(1e-40)) = (f(x+h)-f(x))/h
 
 ArbNumerics.setprecision(ArbReal, digits=100)
 
@@ -17,8 +18,8 @@ end
 
 ref_values = map(vx) do vxj
   (v,x) = vxj
-  dx = FD(_x->arb_besselkx(v, _x), x)
-  dv = FD(_v->arb_besselkx(_v, x), v)
+  dx = simplefd(_x->arb_besselkx(v, _x), x)
+  dv = simplefd(_v->arb_besselkx(_v, x), v)
   Float64.((dv, dx))
 end
 
