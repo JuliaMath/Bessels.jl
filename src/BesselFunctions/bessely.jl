@@ -327,7 +327,7 @@ function _bessely(nu::Integer, x::T) where T <: Union{Float32, Float64}
 end
 
 """
-    Bessels.bessely!(out::DenseVector{T}, ν::AbstractRange, x::T)
+    Bessels.bessely!(out::AbstractVector{T}, ν::AbstractRange, x::T)
 
 Computes the Bessel function, ``Y_ν(x)``, of the second kind at many orders `ν` in-place using recurrence.
 The conditions `ν[1] >= 0` and `step(ν) == 1` must be met.
@@ -346,9 +346,9 @@ julia> Bessels.bessely!(out, nu, x)
 
 See also: [`bessely(ν, x)`](@ref Bessels.bessely(ν, x))
 """
-bessely!(out::DenseVector, nu::AbstractRange, x) = _bessely!(out, nu, float(x))
+bessely!(out::AbstractVector, nu::AbstractRange, x) = _bessely!(out, nu, float(x))
 
-function _bessely!(out::DenseVector{T}, nu::AbstractRange, x::T) where T
+function _bessely!(out::AbstractVector{T}, nu::AbstractRange, x::T) where T
     (nu[begin] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
     !isequal(length(out), length(nu)) && throw(ArgumentError("out and nu must have the same length"))
     out[begin], out[begin + 1] = _bessely(nu[begin], x), _bessely(nu[begin + 1], x)

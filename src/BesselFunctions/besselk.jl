@@ -258,7 +258,7 @@ function _besselk(nu::Integer, x::T) where T <: Union{Float32, Float64}
 end
 
 """
-    Bessels.besselk!(out::DenseVector{T}, ν::AbstractRange, x::T)
+    Bessels.besselk!(out::AbstractVector{T}, ν::AbstractRange, x::T)
 
 Computes the modified Bessel function, ``K_ν(x)``, of the second kind at many orders `ν` in-place using recurrence.
 The conditions `ν[1] >= 0` and `step(ν) == 1` must be met.
@@ -277,9 +277,9 @@ julia> Bessels.besselk!(out, nu, x)
 
 See also: [`besselk(ν, x)`](@ref Bessels.besselk(ν, x))
 """
-besselk!(out::DenseVector, nu::AbstractRange, x) = _besselk!(out, nu, float(x))
+besselk!(out::AbstractVector, nu::AbstractRange, x) = _besselk!(out, nu, float(x))
 
-function _besselk!(out::DenseVector{T}, nu::AbstractRange, x::T) where T
+function _besselk!(out::AbstractVector{T}, nu::AbstractRange, x::T) where T
     (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
     len = length(out)
     !isequal(len, length(nu)) && throw(ArgumentError("out and nu must have the same length"))

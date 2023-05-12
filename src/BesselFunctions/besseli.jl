@@ -451,7 +451,7 @@ function _besseli(nu::Integer, x::T) where T <: Union{Float32, Float64}
 end
 
 """
-    Bessels.besseli!(out::DenseVector{T}, ν::AbstractRange, x::T)
+    Bessels.besseli!(out::AbstractVector{T}, ν::AbstractRange, x::T)
 
 Computes the modified Bessel function, ``I_ν(x)``, of the first kind at many orders `ν` in-place using recurrence.
 The conditions `ν[1] >= 0` and `step(ν) == 1` must be met.
@@ -470,9 +470,9 @@ julia> Bessels.besseli!(out, nu, x)
 
 See also: [`besseli(ν, x)`](@ref Bessels.besseli(ν, x))
 """
-besseli!(out::DenseVector, nu::AbstractRange, x) = _besseli!(out, nu, float(x))
+besseli!(out::AbstractVector, nu::AbstractRange, x) = _besseli!(out, nu, float(x))
 
-function _besseli!(out::DenseVector{T}, nu::AbstractRange, x::T) where T
+function _besseli!(out::AbstractVector{T}, nu::AbstractRange, x::T) where T
     (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
     len = length(out)
     !isequal(len, length(nu)) && throw(ArgumentError("out and nu must have the same length"))

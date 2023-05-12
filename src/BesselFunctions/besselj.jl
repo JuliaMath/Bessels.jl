@@ -294,7 +294,7 @@ function _besselj(nu::Integer, x::T) where T <: Union{Float32, Float64}
 end
 
 """
-    Bessels.besselj!(out::DenseVector{T}, ν::AbstractRange, x::T)
+    Bessels.besselj!(out::AbstractVector{T}, ν::AbstractRange, x::T)
 
 Computes the Bessel function, ``j_ν(x)``, of the first kind at many orders `ν` in-place using recurrence.
 The conditions `ν[1] >= 0` and `step(ν) == 1` must be met.
@@ -313,9 +313,9 @@ julia> Bessels.besselj!(out, nu, x)
 
 See also: [`besselj(ν, x)`](@ref Bessels.besselj(ν, x))
 """
-besselj!(out::DenseVector, nu::AbstractRange, x) = _besselj!(out, nu, float(x))
+besselj!(out::AbstractVector, nu::AbstractRange, x) = _besselj!(out, nu, float(x))
 
-function _besselj!(out::DenseVector{T}, nu::AbstractVector, x::T) where T <: Union{Float32, Float64}
+function _besselj!(out::AbstractVector{T}, nu::AbstractVector, x::T) where T <: Union{Float32, Float64}
     (nu[begin] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
     len = length(out)
     !isequal(len, length(nu)) && throw(ArgumentError("out and nu must have the same length"))
