@@ -35,4 +35,17 @@ module BesselsEnzymeCoreExt
       Duplicated(ls, dls)
   end
 
+  # This is fixing a straight bug in Enzyme.
+  function EnzymeRules.forward(func::Const{typeof(sinpi)}, 
+                               ::Type{<:Duplicated}, 
+                               x::Duplicated)
+      Duplicated(sinpi(x.val), pi*cospi(x.val))
+  end
+
+  function EnzymeRules.forward(func::Const{typeof(sinpi)}, 
+                               ::Type{<:Const}, 
+                               x::Const)
+      sinpi(x.val)
+  end
+
 end

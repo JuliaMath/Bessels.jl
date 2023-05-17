@@ -155,6 +155,6 @@ end
 end
 
 # TODO (cg 2023/05/16 18:09): dispute this cutoff.
-isnearint(x) = abs(x-round(x)) < 1e-7
+isnearint(x) = abs(x-round(x)) < 1e-5
 
 end

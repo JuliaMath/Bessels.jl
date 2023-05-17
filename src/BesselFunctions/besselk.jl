@@ -654,16 +654,17 @@ function besselk_power_series_temme_basal(v::V, x::Float64) where{V}
 end
 
 function besselk_power_series_int(v, x::Float64)
-    v < zero(v) && return besselk_power_series_int(-v, x)
-    flv = Int(floor(v))
-    _v  = v - flv
+    v = abs(v)
+    (_v, flv) = modf(v)
+    if _v > 1/2
+      (_v, flv) = (_v-one(_v), flv+1)
+    end
     (kv, kvp1) = besselk_power_series_temme_basal(_v, x)
-    abs(v) < 1/2 && return kv
     twodx = 2/x
-    for _ in 1:(flv-1)
+    for _ in 1:flv
         _v += 1
         (kv, kvp1) = (kvp1, muladd(twodx*_v, kvp1, kv))
     end
-    kvp1
+    kv
 end
 
