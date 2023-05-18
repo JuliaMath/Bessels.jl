@@ -513,7 +513,8 @@ function besselk_power_series(v, x::ComplexOrReal{T}) where T
     # use the reflection identify to calculate gamma(-v)
     # use relation gamma(v)*v = gamma(v+1) to avoid two gamma calls
     gam_v = gamma(v)
-    gam_nv = π / (sinpi(-abs(v)) * gam_v * v)
+    #gam_nv = π / (sin(-pi*abs(v)) * gam_v * v) # not using sinpi here to avoid Enzyme bug
+    gam_nv = π / (sinpi(-abs(v)) * gam_v * v) # not using sinpi here to avoid Enzyme bug
     gam_1mv = -gam_nv * v
     gam_1mnv = gam_v * v
 
