@@ -603,35 +603,32 @@ end
     )
 end
 
-# This is an expansion of the function
-#
-# f_0(v, x) = (x^v)*gamma(-v)  + (x^(-v))*gamma(v)
-#           = (x^v)*(gamma(-v) + (x^(-2*v))*gamma(v))
-#
-# around v ∼ 0. As you can see by plugging that second form into Wolfram Alpha
-# and getting an expansion back, this is actually a bivariate polynomial in
-# (v^2, log(x)). So that's how this is structured.
+# This is a version of Temme's proposed f_0 (1975 JCP, see reference above) that
+# swaps in a bunch of local expansions for functions that are well-behaved but
+# whose standard forms can't be naively evaluated by a computer at the origin.
 @inline function f0_local_expansion_v0(v, x)
-    lx = log(x)
-    c0 = evalpoly(lx, (-1.1544313298030657,  -2.0))
-    c2 = evalpoly(lx, ( 1.4336878944573288,  -1.978111990655945, -0.5772156649015329,  -0.3333333333333333))
-    c4 = evalpoly(lx, (-0.6290784463642211,  -1.4584260788225176,   -0.23263776388631713, -0.32968533177599085, -0.048101305408461074, -0.016666666666666666))
-    evalpoly(v*v, (c0,c2,c4))/2
+    l2dx = log(2/x)
+    mu   = v*l2dx
+    vv   = v*v
+    sp = evalpoly(vv, (1.0, 1.6449340668482264, 1.8940656589944918, 1.9711021825948702))
+    g1 = evalpoly(vv, (-0.5772156649015329, 0.04200263503409518, 0.042197734555544306))
+    g2 = evalpoly(vv, (1.0, -0.6558780715202539, 0.16653861138229145))
+    sh = evalpoly(mu*mu, (1.0, 0.16666666666666666, 0.008333333333333333, 0.0001984126984126984, 2.7557319223985893e-6))
+    sp*(g1*cosh(mu) + g2*sh*l2dx)
 end
 
-# This function assumes |v| < 1e-6 or 1e-7!
-# 
-# TODO (cg 2023/05/16 18:07): lots of micro-optimizations.
-function besselk_power_series_temme_basal(v::V, x::Float64) where{V}
+# This function assumes |v|<1e-5!
+function besselk_power_series_temme_basal(v::V, x::X) where{V,X}
     max_iter = 50
-    T   = promote_type(V,Float64)
+    T   = promote_type(V,X)
     z   = x/2
     zz  = z*z
-    fk  = f0_local_expansion_v0(v, x/2)
+    fk  = f0_local_expansion_v0(v,x)
     zv  = z^v
     znv = inv(zv)
-    gam_1pv = GammaFunctions.gamma_near_1(1+v)
-    gam_1nv = GammaFunctions.gamma_near_1(1-v)
+    gam_1_c = (1.0, -0.5772156649015329, 0.9890559953279725, -0.23263776388631713)
+    gam_1pv = evalpoly(v,  gam_1_c)
+    gam_1nv = evalpoly(-v, gam_1_c)
     (pk, qk, _ck, factk, vv) = (znv*gam_1pv/2, zv*gam_1nv/2, one(T), one(T), v*v)
     (out_v, out_vp1) = (zero(T), zero(T))
     for k in 1:max_iter
