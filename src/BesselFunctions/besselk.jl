@@ -500,24 +500,38 @@ besselk_power_series(v, x::ComplexF32) = ComplexF32(besselk_power_series(v, Comp
 
 function besselk_power_series(v, x::ComplexOrReal{T}) where T
     Math.isnearint(v) && return besselk_power_series_int(v, x)
-    MaxIter = 5000
-    gam = gamma(v)
-    ngam = π / (sinpi(-abs(v)) * gam * v)
+    MaxIter = 1000
+    S = eltype(x)
+    v, x = S(v), S(x)
 
-    s1, s2 = zero(T), zero(T)
-    t1, t2 = one(T), one(T)
+    z  = x / 2
+    zz = z * z
+    logz = log(z)
+    xd2_v = exp(v*logz)
+    xd2_nv = inv(xd2_v)
 
-    for k in 1:MaxIter
-        s1 += t1
-        s2 += t2
-        t1 *= x^2 / (4k * (k - v))
-        t2 *= x^2 / (4k * (k + v))
-        abs(t1) < eps(T) && break
+    # use the reflection identify to calculate gamma(-v)
+    # use relation gamma(v)*v = gamma(v+1) to avoid two gamma calls
+    gam_v = gamma(v)
+    gam_nv = π / (sinpi(-abs(v)) * gam_v * v)
+    gam_1mv = -gam_nv * v
+    gam_1mnv = gam_v * v
+
+    _t1 = gam_v * xd2_nv * gam_1mv
+    _t2 = gam_nv * xd2_v * gam_1mnv
+    (xd2_pow, fact_k, out) = (one(S), one(S), zero(S))
+    for k in 0:MaxIter
+        t1 = xd2_pow * T(0.5)
+        tmp = muladd(_t1, gam_1mnv, _t2 * gam_1mv)
+        tmp *= inv(gam_1mv * gam_1mnv * fact_k)
+        term = t1 * tmp
+        out += term
+        abs(term / out) < eps(T) && break
+        (gam_1mnv, gam_1mv) = (gam_1mnv*(one(S) + v + k), gam_1mv*(one(S) - v + k)) 
+        xd2_pow *= zz
+        fact_k *= k + one(S)
     end
-
-    xpv = (x/2)^v
-    s = gam * s1 + xpv^2 * ngam * s2
-    return s / (2*xpv)
+    return out
 end
 besselk_power_series_cutoff(nu, x::Float64) = x < 2.0 || nu > 1.6x - 1.0
 besselk_power_series_cutoff(nu, x::Float32) = x < 10.0f0 || nu > 1.65f0*x - 8.0f0
