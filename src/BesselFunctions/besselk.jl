@@ -499,6 +499,7 @@ besselk_power_series(v, x::Float32) = Float32(besselk_power_series(v, Float64(x)
 besselk_power_series(v, x::ComplexF32) = ComplexF32(besselk_power_series(v, ComplexF64(x)))
 
 function besselk_power_series(v, x::ComplexOrReal{T}) where T
+    Math.isnearint(v) && return besselk_power_series_int(v, x)
     MaxIter = 1000
     S = eltype(x)
     v, x = S(v), S(x)
@@ -512,7 +513,8 @@ function besselk_power_series(v, x::ComplexOrReal{T}) where T
     # use the reflection identify to calculate gamma(-v)
     # use relation gamma(v)*v = gamma(v+1) to avoid two gamma calls
     gam_v = gamma(v)
-    gam_nv = π / (sinpi(-abs(v)) * gam_v * v)
+    #gam_nv = π / (sin(-pi*abs(v)) * gam_v * v) # not using sinpi here to avoid Enzyme bug
+    gam_nv = π / (sinpi(-abs(v)) * gam_v * v) # not using sinpi here to avoid Enzyme bug
     gam_1mv = -gam_nv * v
     gam_1mnv = gam_v * v
 
@@ -578,15 +580,16 @@ end
 @generated function besselkx_levin(v, x::T, ::Val{N}) where {T <: FloatTypes, N}
     :(
         begin
-            s_0 = zero(T)
+            s = zero(T)
             t = one(T)
             @nexprs $N i -> begin
-                    s_{i} = s_{i-1} + t
-                    t *= (4*v^2 - (2i - 1)^2) / (8 * x * i)
-                    w_{i} = 1 / t
-                end
-                sequence = @ntuple $N i -> s_{i}
-                weights = @ntuple $N i -> w_{i}
+                  s += t
+                  t *= (4*v^2 - (2i - 1)^2) / (8 * x * i)
+                  s_{i} = s
+                  w_{i} = t
+              end
+              sequence = @ntuple $N i -> s_{i}
+              weights = @ntuple $N i -> w_{i}
             return levin_transform(sequence, weights) * sqrt(π / 2x)
         end
     )
@@ -614,3 +617,66 @@ end
         end
     )
 end
+
+# This is a version of Temme's proposed f_0 (1975 JCP, see reference above) that
+# swaps in a bunch of local expansions for functions that are well-behaved but
+# whose standard forms can't be naively evaluated by a computer at the origin.
+@inline function f0_local_expansion_v0(v, x)
+    l2dx = log(2/x)
+    mu   = v*l2dx
+    vv   = v*v
+    sp = evalpoly(vv, (1.0, 1.6449340668482264, 1.8940656589944918, 1.9711021825948702))
+    g1 = evalpoly(vv, (-0.5772156649015329, 0.04200263503409518, 0.042197734555544306))
+    g2 = evalpoly(vv, (1.0, -0.6558780715202539, 0.16653861138229145))
+    sh = evalpoly(mu*mu, (1.0, 0.16666666666666666, 0.008333333333333333, 0.0001984126984126984, 2.7557319223985893e-6))
+    sp*(g1*cosh(mu) + g2*sh*l2dx)
+end
+
+# This function assumes |v|<1e-5!
+function besselk_power_series_temme_basal(v::V, x::X) where{V,X}
+    max_iter = 50
+    T   = promote_type(V,X)
+    z   = x/2
+    zz  = z*z
+    fk  = f0_local_expansion_v0(v,x)
+    zv  = z^v
+    znv = inv(zv)
+    gam_1_c = (1.0, -0.5772156649015329, 0.9890559953279725, -0.23263776388631713)
+    gam_1pv = evalpoly(v,  gam_1_c)
+    gam_1nv = evalpoly(-v, gam_1_c)
+    (pk, qk, _ck, factk, vv) = (znv*gam_1pv/2, zv*gam_1nv/2, one(T), one(T), v*v)
+    (out_v, out_vp1) = (zero(T), zero(T))
+    for k in 1:max_iter
+        # add to the series:
+        ck       = _ck/factk
+        term_v   = ck*fk
+        term_vp1 = ck*(pk - (k-1)*fk)
+        out_v   += term_v
+        out_vp1 += term_vp1
+        # check for convergence:
+        ((abs(term_v) < eps(T)) && (abs(term_vp1) < eps(T))) && break
+        # otherwise, increment new quantities:
+        fk     = (k*fk + pk + qk)/(k^2 - vv)
+        pk    /= (k-v)
+        qk    /= (k+v)
+        _ck   *= zz
+        factk *= k
+    end
+    (out_v, out_vp1/z)
+end
+
+function besselk_power_series_int(v, x::Float64)
+    v = abs(v)
+    (_v, flv) = modf(v)
+    if _v > 1/2
+      (_v, flv) = (_v-one(_v), flv+1)
+    end
+    (kv, kvp1) = besselk_power_series_temme_basal(_v, x)
+    twodx = 2/x
+    for _ in 1:flv
+        _v += 1
+        (kv, kvp1) = (kvp1, muladd(twodx*_v, kvp1, kv))
+    end
+    kv
+end
+

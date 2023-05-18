@@ -113,3 +113,5 @@ function gamma(n::Integer)
     n > 20 && return gamma(float(n))
     @inbounds return Float64(factorial(n-1))
 end
+
+gamma_near_1(x) = evalpoly(x-one(x), (1.0, -0.5772156649015329, 0.9890559953279725, -0.23263776388631713))
