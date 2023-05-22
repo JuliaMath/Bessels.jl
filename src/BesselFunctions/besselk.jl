@@ -244,7 +244,7 @@ function _besselk(v::T, x::T) where T <: Union{Float32, Float64}
     
     else
         v_floor, v_int = modf(v)
-        if x >= 1.5 # determine cutoff as function for differnet types
+        if x > 1.5 # determine cutoff as function for differnet types
             kv, kvp1 = besselkx_levin(v_floor, x, Val(16)), besselkx_levin(v_floor + 1, x, Val(16))
             return besselk_up_recurrence(x, kvp1, kv, v_floor + 1, v)[1] * exp(-x)
         else
