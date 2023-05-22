@@ -602,7 +602,7 @@ function besselk_temme_series(v::V, x::X) where {V , X}
 end
 
 @inline function f0_local_expansion_v0(v, x)
-    l2dx = log(2 / x)
+    l2dx = log(2) - log(x)
     mu = v * l2dx
     vv = v * v
     sp = evalpoly(vv, (1.0, 1.6449340668482264, 1.8940656589944918, 1.9711021825948702))
