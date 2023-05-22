@@ -232,28 +232,107 @@ _besselk(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_besselk
 
 _besselk(nu::AbstractRange, x::T) where T = besselk!(zeros(T, length(nu)), nu, x)
 
-function _besselk(nu::T, x::T) where T <: Union{Float32, Float64}
-    isinteger(nu) && return _besselk(Int(nu), x)
-    abs_nu = abs(nu)
-    abs_x = abs(x)
+function _besselk(v::T, x::T) where T <: Union{Float32, Float64}
+    v = abs(v)
+    x < 0 && return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
 
-    if x >= 0
-        return besselk_positive_args(abs_nu, abs_x)
+    if besselk_large_args_cutoff(v, x) return besselk_large_args(v, x)
+
+    elseif besselkx_levin_cutoff(v, x) return besselkx_levin(v, x, Val(16)) * exp(-x)
+
+    elseif besselik_debye_cutoff(v, x) return besselk_large_orders(v, x)
+    
     else
-        return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
-        #return cispi(-abs_nu)*besselk_positive_args(abs_nu, abs_x) - besseli_positive_args(abs_nu, abs_x) * im * π
+        v_floor, v_int = modf(v)
+        if x >= 1.5 # determine cutoff as function for differnet types
+            kv, kvp1 = besselkx_levin(v_floor, x, Val(16)), besselkx_levin(v_floor + 1, x, Val(16))
+            return besselk_up_recurrence(x, kvp1, kv, v_floor + 1, v)[1] * exp(-x)
+        else
+            if Math.isnearint(v)
+                # near integer orders use Temme series with forward recurrence
+                # requires starting values -0.5 < v < 0.5 and computes K_v and K_{v+1}
+                if v_floor > T(0.5)
+                    v_floor -= 1
+                    v_int += 1
+                end
+                kv, kvp1 = besselk_temme_series(v_floor, x)
+                return besselk_up_recurrence(x, kvp1, kv, v_floor + 1, v)[1]
+            else
+                # use regular power series which can be computed without recurrence
+                return besselk_power_series(v, x)
+            end
+        end
     end
 end
-function _besselk(nu::Integer, x::T) where T <: Union{Float32, Float64}
-    abs_nu = abs(nu)
-    abs_x = abs(x)
-    sg = iseven(abs_nu) ? 1 : -1
 
-    if x >= 0
-        return besselk_positive_args(abs_nu, abs_x)
+function _besselkx(v::T, x::T) where T <: Union{Float32, Float64}
+    v = abs(v)
+    x < 0 && return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
+
+    if besselk_large_args_cutoff(v, x) return besselkx_large_args(v, x)
+
+    elseif besselkx_levin_cutoff(v, x) return besselkx_levin(v, x, Val(16))
+
+    elseif besselik_debye_cutoff(v, x) return besselk_large_orders_scaled(v, x)
+    
     else
-        return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
-        #return sg * besselk_positive_args(abs_nu, abs_x) - im * π * besseli_positive_args(abs_nu, abs_x)
+        v_floor, v_int = modf(v)
+        if x >= 1.5 # determine cutoff as function for differnet types
+            kv, kvp1 = besselkx_levin(v_floor, x, Val(16)), besselkx_levin(v_floor + 1, x, Val(16))
+            return besselk_up_recurrence(x, kvp1, kv, v_floor + 1, v)[1]
+        else
+            if Math.isnearint(v)
+                # near integer orders use Temme series with forward recurrence
+                # requires starting values -0.5 < v < 0.5 and computes K_v and K_{v+1}
+                if v_floor > T(0.5)
+                    v_floor -= 1
+                    v_int += 1
+                end
+                kv, kvp1 = besselk_temme_series(v_floor, x)
+                return besselk_up_recurrence(x, kvp1, kv, v_floor + 1, v)[1] * exp(x)
+            else
+                # use regular power series which can be computed without recurrence
+                return besselk_power_series(v, x) * exp(x)
+            end
+        end
+    end
+end
+
+function _besselk(v::Integer, x::T) where T <: Union{Float32, Float64}
+    v = abs(v)
+    x < 0 && return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
+
+    v == 0 && return besselk0(x)
+    v == 1 && return besselk1(x)
+
+    if besselk_large_args_cutoff(v, x) return besselk_large_args(v, x)
+
+    elseif besselkx_levin_cutoff(v, x) return besselkx_levin(v, x, Val(16)) * exp(-x)
+
+    elseif v > 50 return besselk_large_orders(v, x)
+
+    else
+        kv, kvp1 = besselk0(x), besselk1(x)
+        return besselk_up_recurrence(x, kvp1, kv, 1, v)[1]
+    end
+end
+
+function _besselkx(v::Integer, x::T) where T <: Union{Float32, Float64}
+    v = abs(v)
+    x < 0 && return throw(DomainError(x, "Complex result returned for real arguments. Complex arguments are currently not supported"))
+
+    v == 0 && return besselk0x(x)
+    v == 1 && return besselk1x(x)
+
+    if besselk_large_args_cutoff(v, x) return besselkx_large_args(v, x)
+
+    elseif besselkx_levin_cutoff(v, x) return besselkx_levin(v, x, Val(16))
+
+    elseif v > 50 return besselk_large_orders_scaled(v, x)
+
+    else
+        kv, kvp1 = besselk0x(x), besselk1x(x)
+        return besselk_up_recurrence(x, kvp1, kv, 1, v)[1]
     end
 end
 
@@ -310,36 +389,6 @@ end
 besselk_underflow_check(nu, x::T) where T = nu < T(1.45)*(x - 780) + 45*Base.Math._approx_cbrt(x - 780)
 
 """
-    besselk_positive_args(x::T) where T <: Union{Float32, Float64}
-
-Modified Bessel function of the second kind of order nu, ``K_{nu}(x)`` valid for positive arguments and orders.
-"""
-function besselk_positive_args(nu, x::T) where T <: Union{Float32, Float64}
-    iszero(x) && return T(Inf)
-    isinf(x) && return zero(T)
-
-    # dispatch to avoid uniform expansion when nu = 0 
-    iszero(nu) && return besselk0(x)
-    
-    # check if nu is a half-integer
-    (isinteger(nu-1/2) && sphericalbesselk_cutoff(nu)) && return sphericalbesselk_int(Int(nu-1/2), x)*SQPIO2(T)*sqrt(x)
-
-    # check if the standard asymptotic expansion can be used
-    besseli_large_argument_cutoff(nu, x) && return besselk_large_argument(nu, x)
-
-    # use uniform debye expansion if x or nu is large
-    besselik_debye_cutoff(nu, x) && return besselk_large_orders(nu, x)
-
-    # for integer nu use forward recurrence starting with K_0 and K_1
-    isinteger(nu) && return besselk_up_recurrence(x, besselk1(x), besselk0(x), 1, nu)[1]
-
-    # for small x and nu > x use power series
-    besselk_power_series_cutoff(nu, x) && return besselk_power_series(nu, x)
-
-    # for rest of values use the continued fraction approach
-    return besselk_continued_fraction(nu, x)
-end
-"""
     besselkx(x::T) where T <: Union{Float32, Float64}
 
 Scaled modified Bessel function of the second kind of order nu, ``K_{nu}(x)*e^{x}``.
@@ -348,26 +397,6 @@ besselkx(nu::Real, x::Real) = _besselkx(nu, float(x))
 
 _besselkx(nu, x::Float16) = Float16(_besselkx(nu, Float32(x)))
 
-function _besselkx(nu, x::T) where T <: Union{Float32, Float64}
-    # dispatch to avoid uniform expansion when nu = 0 
-    iszero(nu) && return besselk0x(x)
-
-    # check if the standard asymptotic expansion can be used
-    besseli_large_argument_cutoff(nu, x) && return besselk_large_argument_scaled(nu, x)
-
-    # use uniform debye expansion if x or nu is large
-    besselik_debye_cutoff(nu, x) && return besselk_large_orders_scaled(nu, x)
-
-    # for integer nu use forward recurrence starting with K_0 and K_1
-    isinteger(nu) && return besselk_up_recurrence(x, besselk1x(x), besselk0x(x), 1, nu)[1]
-
-    # for small x and nu > x use power series
-    besselk_power_series_cutoff(nu, x) && return besselk_power_series(nu, x) * exp(x)
-
-    # for rest of values use the continued fraction approach
-    return besselk_continued_fraction(nu, x) * exp(x)
-end
-
 #####
 #####  Debye's uniform asymptotic for K_{nu}(x)
 #####
@@ -375,6 +404,7 @@ end
 # Implements the uniform asymptotic expansion https://dlmf.nist.gov/10.41
 # In general this is valid when either x or nu is gets large
 # see the file src/U_polynomials.jl for more details
+
 """
     besselk_large_orders(nu, x::T)
 
@@ -388,10 +418,11 @@ function besselk_large_orders(v, x::T) where T
     n = zs + log(z) - log1p(zs)
     coef = SQPIO2(S) * sqrt(inv(v)) * exp(-v*n) / sqrt(zs)
     p = inv(zs)
-    p2  = v^2/fma(max(v,x), max(v,x), min(v,x)^2)
+    p2  = v^2 / fma(max(v,x), max(v,x), min(v,x)^2)
 
     return T(coef*Uk_poly_Kn(p, v, p2, T))
 end
+
 function besselk_large_orders_scaled(v, x::T) where T
     S = promote_type(T, Float64)
     x = S(x)
@@ -404,78 +435,86 @@ function besselk_large_orders_scaled(v, x::T) where T
 
     return T(coef*Uk_poly_Kn(p, v, p2, T))
 end
+
 besselik_debye_cutoff(nu, x::Float64) = nu > 25.0 || x > 35.0
 besselik_debye_cutoff(nu, x::Float32) = nu > 15.0f0 || x > 20.0f0
 
 #####
-#####  Continued fraction with Wronskian for K_{nu}(x)
+#####  Large argument expansion for K_{\nu}(x)
 #####
 
-# Use the ratio K_{nu+1}/K_{nu} and I_{nu-1}, I_{nu}
-# along with the Wronskian (NIST https://dlmf.nist.gov/10.28.E2) to calculate K_{nu}
-# Inu and Inum1 are generated from the power series form where K_{nu_1}/K_{nu}
-# is calculated with continued fractions. 
-# The continued fraction K_{nu_1}/K_{nu} method is a slightly modified form
-# https://github.com/heltonmc/Bessels.jl/issues/17#issuecomment-1195726642 by @cgeoga  
-# 
-# It is also possible to use continued fraction to calculate inu/inmu1 such as
-# inum1 = besseli_power_series(nu-1, x)
-# H_inu = steed(nu, x)
-# inu = besseli_power_series(nu, x)#inum1 * H_inu
-# but it appears to be faster to modify the series to calculate both Inu and Inum1
+# Computes the asymptotic expansion of K_ν(x) for large argument (x -> ∞).
+# Accurate for large x, and faster than uniform asymptotic expansion for small to small-ish orders.
+# http://dlmf.nist.gov/10.40.E2
 
-function besselk_continued_fraction(nu, x)
-    inu, inum1 = besseli_power_series_inu_inum1(nu, x)
-    H_knu = besselk_ratio_knu_knup1(nu-1, x)
-    return 1 / (x * (inum1 + inu / H_knu))
+function besselk_large_args(v, x)
+    e = exp(-x / 2)
+    return (e * besselkx_large_args(v, x)) * e
 end
 
-# a modified version of the I_{nu} power series to compute both I_{nu} and I_{nu-1}
-# use this along with the continued fractions for besselk
-function besseli_power_series_inu_inum1(v, x::ComplexOrReal{T}) where T
-    MaxIter = 3000
-    S = eltype(x)
-    out = zero(S)
-    out2 = zero(S)
-    x2 = x / 2
-    xs = x2^v
-    gmx = xs / gamma(v)
-    a = gmx / v
-    b = gmx / x2
-    t2 = x2 * x2
-    for i in 0:MaxIter
-        out += a
-        out2 += b
-        abs(a) < eps(T) * abs(out) && break
-        a *= inv((v + i + one(T)) * (i + one(T))) * t2
-        b *= inv((v + i) * (i + one(T))) * t2
+function besselkx_large_args(v, x::ComplexOrReal{T}) where T
+    MaxIter = 75
+    t = one(x)
+    invx = inv(8 * x)
+    s = t
+    for i in 1:MaxIter
+        t *= invx * ((4*v^2 - (2i - 1)^2) / i)
+        s += t
+        abs(t) <= eps(T) && break
     end
-    return out, out2
+    return s * sqrt(π / (2 * x))
 end
 
-# computes K_{nu+1}/K_{nu} using continued fractions and the modified Lentz method
-# generally slow to converge for small x
-besselk_ratio_knu_knup1(v, x::Float32) = Float32(besselk_ratio_knu_knup1(v, Float64(x)))
-besselk_ratio_knu_knup1(v, x::ComplexF32) = ComplexF32(besselk_ratio_knu_knup1(v, ComplexF64(x)))
-function besselk_ratio_knu_knup1(v, x::ComplexOrReal{T}) where T
-    MaxIter = 1000
-    S = eltype(x)
-    (hn, Dn, Cn) = (S(1e-50), zero(S), S(1e-50))
+besselk_large_args_cutoff(v, x::Float64) = x > v^2 / 36 + 18
+besselk_large_args_cutoff(v, x::Float32) = x > v^2 / 50 + 9
+besselk_large_args_cutoff(v, x::Float16) = x > v^2 / 50 + 5
 
-    jf = one(S)
-    vv = v * v
-    for _ in 1:MaxIter
-        an = (vv - ((2*jf - 1)^2) * T(0.25))
-        bn = 2 * (x + jf)
-        Cn = an / Cn + bn
-        Dn = inv(muladd(an, Dn, bn))
-        del = Dn * Cn
-        hn *= del
-        abs(del - 1) < eps(T) && break
-        jf += one(T)
-    end
-    xinv = inv(x)
-    return xinv * (v + x + 1/2) + xinv * hn
+#####
+#####  Levin sequence transform for K_{nu}(x)
+#####
+
+@generated function besselkx_levin(v, x::T, ::Val{N}) where {T <: FloatTypes, N}
+    :(
+        begin
+            s = zero(T)
+            t = one(T)
+            @nexprs $N i -> begin
+                s += t
+                t *= (4*v^2 - (2i - 1)^2) / (8 * x * i)
+                s_{i} = s
+                w_{i} = t
+            end
+            sequence = @ntuple $N i -> s_{i}
+            weights = @ntuple $N i -> w_{i}
+            return levin_transform(sequence, weights) * sqrt(π / 2x)
+        end
+    )
+end
+
+besselkx_levin_cutoff(v, x::Float64) = x > v^4 / 2401 + 1.5
+besselkx_levin_cutoff(v, x::Float32) = x > v^4 / 3000 + 0.95
+
+@generated function besselkx_levin(v, x::Complex{T}, ::Val{N}) where {T <: FloatTypes, N}
+    :(
+        begin
+            s_0 = zero(T)
+            t = one(typeof(x))
+            t2 = t
+            a = @fastmath inv(8*x)
+            a2 = 8*x
+
+            @nexprs $N i -> begin
+                s_{i} = s_{i-1} + t
+                b = (4*v^2 - (2i - 1)^2) / i
+                t *= a * b
+                t2 *= a2 / b
+                w_{i} = t2
+            end
+            sequence = @ntuple $N i -> s_{i}
+            weights = @ntuple $N i -> w_{i}
+            return levin_transform(sequence, weights) * sqrt(π / 2x)
+        end
+    )
 end
 
 #####
@@ -499,184 +538,76 @@ besselk_power_series(v, x::Float32) = Float32(besselk_power_series(v, Float64(x)
 besselk_power_series(v, x::ComplexF32) = ComplexF32(besselk_power_series(v, ComplexF64(x)))
 
 function besselk_power_series(v, x::ComplexOrReal{T}) where T
-    Math.isnearint(v) && return besselk_power_series_int(v, x)
-    MaxIter = 1000
-    S = eltype(x)
-    v, x = S(v), S(x)
+    MaxIter = 50
+    gam = gamma(v)
+    ngam = π / (sinpi(-abs(v)) * gam * v)
 
-    z  = x / 2
-    zz = z * z
-    logz = log(z)
-    xd2_v = exp(v*logz)
-    xd2_nv = inv(xd2_v)
+    s1, s2 = zero(T), zero(T)
+    t1, t2 = one(T), one(T)
 
-    # use the reflection identify to calculate gamma(-v)
-    # use relation gamma(v)*v = gamma(v+1) to avoid two gamma calls
-    gam_v = gamma(v)
-    #gam_nv = π / (sin(-pi*abs(v)) * gam_v * v) # not using sinpi here to avoid Enzyme bug
-    gam_nv = π / (sinpi(-abs(v)) * gam_v * v) # not using sinpi here to avoid Enzyme bug
-    gam_1mv = -gam_nv * v
-    gam_1mnv = gam_v * v
-
-    _t1 = gam_v * xd2_nv * gam_1mv
-    _t2 = gam_nv * xd2_v * gam_1mnv
-    (xd2_pow, fact_k, out) = (one(S), one(S), zero(S))
-    for k in 0:MaxIter
-        t1 = xd2_pow * T(0.5)
-        tmp = muladd(_t1, gam_1mnv, _t2 * gam_1mv)
-        tmp *= inv(gam_1mv * gam_1mnv * fact_k)
-        term = t1 * tmp
-        out += term
-        abs(term / out) < eps(T) && break
-        (gam_1mnv, gam_1mv) = (gam_1mnv*(one(S) + v + k), gam_1mv*(one(S) - v + k)) 
-        xd2_pow *= zz
-        fact_k *= k + one(S)
+    for k in 1:MaxIter
+        s1 += t1
+        s2 += t2
+        t1 *= x^2 / (4k * (k - v))
+        t2 *= x^2 / (4k * (k + v))
+        abs(t1) < eps(T) && break
     end
-    return out
+
+    xpv = (x/2)^v
+    s = gam * s1 + xpv^2 * ngam * s2
+    return s / (2*xpv)
 end
-besselk_power_series_cutoff(nu, x::Float64) = x < 2.0 || nu > 1.6x - 1.0
+
+besselk_power_series_cutoff(nu, x::Float64) = x < 2.0 || nu > 1.6x
 besselk_power_series_cutoff(nu, x::Float32) = x < 10.0f0 || nu > 1.65f0*x - 8.0f0
 
 #####
-#####  Large argument expansion for K_{nu}(x)
+#####  Temme's series for K_{nu}(x)
 #####
-
-# Computes the asymptotic expansion of K_ν w.r.t. argument. 
-# Accurate for large x, and faster than uniform asymptotic expansion for small to small-ish orders
-# See http://dlmf.nist.gov/10.40.E2
-
-function besselk_large_argument(v, x::T) where T
-    a = exp(-x / 2)
-    coef = a * sqrt(pi / 2x)
-    return T(_besselk_large_argument(v, x) * coef * a)
-end
-
-besselk_large_argument_scaled(v, x::T) where T =  T(_besselk_large_argument(v, x) * sqrt(pi / 2x))
-
-_besselk_large_argument(v, x::Float32) = Float32(_besselk_large_argument(v, Float64(x)))
-_besselk_large_argument(v, x::ComplexF32) = ComplexF32(_besselk_large_argument(v, ComplexF64(x)))
-function _besselk_large_argument(v, x::ComplexOrReal{T}) where T
-    MaxIter = 5000 
-    S = eltype(x)
-    v, x = S(v), S(x) 
- 
-    fv2 = 4 * v^2 
-    term = one(S) 
-    res = term 
-    s = term 
-    for i in 1:MaxIter 
-        offset = muladd(2, i, -1) 
-        term *= muladd(offset, -offset, fv2) / (8 * x * i) 
-        res = muladd(term, s, res) 
-        abs(term) <= eps(T) && break 
-    end 
-    return res 
-end
-
-#####
-#####  Levin sequence transform for K_{nu}(x)
-#####
-
-@generated function besselkx_levin(v, x::T, ::Val{N}) where {T <: FloatTypes, N}
-    :(
-        begin
-            s = zero(T)
-            t = one(T)
-            @nexprs $N i -> begin
-                  s += t
-                  t *= (4*v^2 - (2i - 1)^2) / (8 * x * i)
-                  s_{i} = s
-                  w_{i} = t
-              end
-              sequence = @ntuple $N i -> s_{i}
-              weights = @ntuple $N i -> w_{i}
-            return levin_transform(sequence, weights) * sqrt(π / 2x)
-        end
-    )
-end
-
-@generated function besselkx_levin(v, x::Complex{T}, ::Val{N}) where {T <: FloatTypes, N}
-    :(
-        begin
-            s_0 = zero(T)
-            t = one(typeof(x))
-            t2 = t
-            a = @fastmath inv(8*x)
-            a2 = 8*x
-
-            @nexprs $N i -> begin
-                    s_{i} = s_{i-1} + t
-                    b = (4*v^2 - (2i - 1)^2) / i
-                    t *= a * b
-                    t2 *= a2 / b
-                    w_{i} = t2
-                end
-                sequence = @ntuple $N i -> s_{i}
-                weights = @ntuple $N i -> w_{i}
-            return levin_transform(sequence, weights) * sqrt(π / 2x)
-        end
-    )
-end
 
 # This is a version of Temme's proposed f_0 (1975 JCP, see reference above) that
 # swaps in a bunch of local expansions for functions that are well-behaved but
 # whose standard forms can't be naively evaluated by a computer at the origin.
-@inline function f0_local_expansion_v0(v, x)
-    l2dx = log(2/x)
-    mu   = v*l2dx
-    vv   = v*v
-    sp = evalpoly(vv, (1.0, 1.6449340668482264, 1.8940656589944918, 1.9711021825948702))
-    g1 = evalpoly(vv, (-0.5772156649015329, 0.04200263503409518, 0.042197734555544306))
-    g2 = evalpoly(vv, (1.0, -0.6558780715202539, 0.16653861138229145))
-    sh = evalpoly(mu*mu, (1.0, 0.16666666666666666, 0.008333333333333333, 0.0001984126984126984, 2.7557319223985893e-6))
-    sp*(g1*cosh(mu) + g2*sh*l2dx)
-end
 
 # This function assumes |v|<1e-5!
-function besselk_power_series_temme_basal(v::V, x::X) where{V,X}
-    max_iter = 50
-    T   = promote_type(V,X)
-    z   = x/2
-    zz  = z*z
-    fk  = f0_local_expansion_v0(v,x)
-    zv  = z^v
+function besselk_temme_series(v::V, x::X) where {V , X}
+    Max_Iter = 500
+    T = promote_type(V , X)
+    z = x / 2
+    zz = z * z
+    fk = f0_local_expansion_v0(v, x)
+    zv = z^v
     znv = inv(zv)
     gam_1_c = (1.0, -0.5772156649015329, 0.9890559953279725, -0.23263776388631713)
     gam_1pv = evalpoly(v,  gam_1_c)
     gam_1nv = evalpoly(-v, gam_1_c)
     (pk, qk, _ck, factk, vv) = (znv*gam_1pv/2, zv*gam_1nv/2, one(T), one(T), v*v)
     (out_v, out_vp1) = (zero(T), zero(T))
-    for k in 1:max_iter
-        # add to the series:
-        ck       = _ck/factk
-        term_v   = ck*fk
-        term_vp1 = ck*(pk - (k-1)*fk)
-        out_v   += term_v
+
+    for k in 1:Max_Iter
+        ck = _ck / factk
+        term_v = ck * fk
+        term_vp1 = ck * (pk - (k-1) * fk)
+        out_v += term_v
         out_vp1 += term_vp1
-        # check for convergence:
         ((abs(term_v) < eps(T)) && (abs(term_vp1) < eps(T))) && break
-        # otherwise, increment new quantities:
-        fk     = (k*fk + pk + qk)/(k^2 - vv)
-        pk    /= (k-v)
-        qk    /= (k+v)
-        _ck   *= zz
+
+        fk = (k * fk + pk + qk) / (k^2 - vv)
+        pk /= k - v
+        qk /= k + v
+        _ck *= zz
         factk *= k
     end
-    (out_v, out_vp1/z)
+    return out_v, out_vp1 / z
 end
 
-function besselk_power_series_int(v, x::Float64)
-    v = abs(v)
-    (_v, flv) = modf(v)
-    if _v > 1/2
-      (_v, flv) = (_v-one(_v), flv+1)
-    end
-    (kv, kvp1) = besselk_power_series_temme_basal(_v, x)
-    twodx = 2/x
-    for _ in 1:flv
-        _v += 1
-        (kv, kvp1) = (kvp1, muladd(twodx*_v, kvp1, kv))
-    end
-    kv
+@inline function f0_local_expansion_v0(v, x)
+    l2dx = log(2 / x)
+    mu = v * l2dx
+    vv = v * v
+    sp = evalpoly(vv, (1.0, 1.6449340668482264, 1.8940656589944918, 1.9711021825948702))
+    g1 = evalpoly(vv, (-0.5772156649015329, 0.04200263503409518, 0.042197734555544306))
+    g2 = evalpoly(vv, (1.0, -0.6558780715202539, 0.16653861138229145))
+    sh = evalpoly(mu * mu, (1.0, 0.16666666666666666, 0.008333333333333333, 0.0001984126984126984, 2.7557319223985893e-6))
+    return sp * (g1 * cosh(mu) + g2 * sh * l2dx)
 end
-
