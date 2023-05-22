@@ -428,7 +428,7 @@ function _besseli(nu::T, x::T) where T <: Union{Float32, Float64}
         end
     else
         if x >= 0
-            return besseli_positive_args(abs_nu, abs_x) + 2 / π * sinpi(abs_nu) * besselk_positive_args(abs_nu, abs_x)
+            return besseli_positive_args(abs_nu, abs_x) + 2 / π * sinpi(abs_nu) * besselk(abs_nu, abs_x)
         else
             #Iv = besseli_positive_args(abs_nu, abs_x)
             #Kv = besselk_positive_args(abs_nu, abs_x)
