@@ -7,6 +7,8 @@
 [![deps](https://juliahub.com/docs/Bessels/deps.svg)](https://juliahub.com/ui/Packages/Bessels/29L49?t=2)
 [![Downloads](https://shields.io/endpoint?url=https://pkgs.genieframework.com/api/v1/badge/Bessels)](https://pkgs.genieframework.com?packages=Bessels)
 
+#### *Main branch is being heavily developed as we work on routines for Bessel functions compatible with Automatic Differentiation for both order and argument.
+
 Numerical routines for computing Bessel, Airy, and Hankel functions for real arguments. These routines are written in the Julia programming language and are self contained without any external dependencies.
 
 The goal of the library is to provide high quality numerical implementations of Bessel functions with high accuracy without comprimising on computational time. In general, we try to match (and often exceed) the accuracy of other open source routines such as those provided by [SpecialFunctions.jl](https://github.com/JuliaMath/SpecialFunctions.jl). There are instances where we don't quite match that desired accuracy (within a digit or two) but in general will provide implementations that are 5-10x faster (see [benchmarks](https://github.com/JuliaMath/Bessels.jl#benchmarks)).
