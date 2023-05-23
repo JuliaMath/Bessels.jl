@@ -580,26 +580,22 @@ function besselk_temme_series(v::T, x::T) where T <: Float64
     zz = z * z
     fk = f0_local_expansion_v0(v, x)
     zv = z^v
-    znv = inv(zv)
-    gam_1_c = (1.0, -0.5772156649015329, 0.9890559953279725, -0.23263776388631713)
-    gam_1pv = evalpoly(v,  gam_1_c)
-    gam_1nv = evalpoly(-v, gam_1_c)
-    (pk, qk, _ck, factk, vv) = (znv*gam_1pv/2, zv*gam_1nv/2, one(T), one(T), v*v)
-    (out_v, out_vp1) = (zero(T), zero(T))
+    pk = evalpoly(v,  (1.0, -0.5772156649015329, 0.9890559953279725, -0.23263776388631713)) / (2 * zv)
+    qk = zv * evalpoly(-v, (1.0, -0.5772156649015329, 0.9890559953279725, -0.23263776388631713)) / 2
+    ck = one(T)
+    out_v, out_vp1 = zero(T), zero(T)
 
     for k in 1:Max_Iter
-        ck = _ck / factk
         term_v = ck * fk
         term_vp1 = ck * (pk - (k-1) * fk)
         out_v += term_v
         out_vp1 += term_vp1
         ((abs(term_v) < eps(T)) && (abs(term_vp1) < eps(T))) && break
 
-        fk = (k * fk + pk + qk) / (k^2 - vv)
+        fk = (k * fk + pk + qk) / (k^2 - v^2)
         pk /= k - v
         qk /= k + v
-        _ck *= zz
-        factk *= k
+        ck *= zz / k
     end
     return out_v, out_vp1 / z
 end
