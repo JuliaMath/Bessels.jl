@@ -8,10 +8,10 @@ dbesselkx_dv(v, x) = autodiff(Forward, _v->besselkx_levin(_v, x, Val(30)),
 dbesselkx_dx(v, x) = autodiff(Forward, _x->besselkx_levin(v, _x, Val(30)), 
                               Duplicated, Duplicated(x, 1.0))[2]
 
-dbesselk_ps_dv(v, x) = autodiff(Forward, _v->besselk_power_series(_v, x), 
+dbesselk_ps_dv(v, x) = autodiff(Forward, _v->besselk(_v, x), 
                                 Duplicated, Duplicated(v, 1.0))[2]
 
-dbesselk_ps_dx(v, x) = autodiff(Forward, _x->besselk_power_series(v, _x), 
+dbesselk_ps_dx(v, x) = autodiff(Forward, _x->besselk(v, _x), 
                                 Duplicated, Duplicated(x, 1.0))[2]
 
 
