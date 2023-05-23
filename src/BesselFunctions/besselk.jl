@@ -572,7 +572,7 @@ besselk_power_series_cutoff(nu, x::Float32) = x < 10.0f0 || nu > 1.65f0*x - 8.0f
 # whose standard forms can't be naively evaluated by a computer at the origin.
 
 # This function assumes |v|<1e-5!
-besselk_temme_series(v, x::Float32) = Float32(besselk_temme_series(v, Float64(x)))
+besselk_temme_series(v::Float32, x::Float32) = Float32(besselk_temme_series(Float64(v), Float64(x)))
 
 function besselk_temme_series(v::T, x::T) where T <: Float64
     Max_Iter = 500
