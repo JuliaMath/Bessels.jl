@@ -243,8 +243,8 @@ function _besselk(v::T, x::T) where T <: Union{Float32, Float64}
     elseif besselik_debye_cutoff(v, x) return besselk_large_orders(v, x)
     
     else
-        v_floor, v_int = modf(v)
-        if x > 1.5 # determine cutoff as function for differnet types
+        v_floor, _ = modf(v)
+        if x > besselkx_levin_min(T)
             kv, kvp1 = besselkx_levin(v_floor, x, Val(16)), besselkx_levin(v_floor + 1, x, Val(16))
             return besselk_up_recurrence(x, kvp1, kv, v_floor + 1, v)[1] * exp(-x)
         else
@@ -253,7 +253,6 @@ function _besselk(v::T, x::T) where T <: Union{Float32, Float64}
                 # requires starting values -0.5 < v < 0.5 and computes K_v and K_{v+1}
                 if v_floor > T(0.5)
                     v_floor -= 1
-                    v_int += 1
                 end
                 kv, kvp1 = besselk_temme_series(v_floor, x)
                 return besselk_up_recurrence(x, kvp1, kv, v_floor + 1, v)[1]
@@ -276,8 +275,8 @@ function _besselkx(v::T, x::T) where T <: Union{Float32, Float64}
     elseif besselik_debye_cutoff(v, x) return besselk_large_orders_scaled(v, x)
     
     else
-        v_floor, v_int = modf(v)
-        if x >= 1.5 # determine cutoff as function for differnet types
+        v_floor, _ = modf(v)
+        if x > besselkx_levin_min(T)
             kv, kvp1 = besselkx_levin(v_floor, x, Val(16)), besselkx_levin(v_floor + 1, x, Val(16))
             return besselk_up_recurrence(x, kvp1, kv, v_floor + 1, v)[1]
         else
@@ -286,7 +285,6 @@ function _besselkx(v::T, x::T) where T <: Union{Float32, Float64}
                 # requires starting values -0.5 < v < 0.5 and computes K_v and K_{v+1}
                 if v_floor > T(0.5)
                     v_floor -= 1
-                    v_int += 1
                 end
                 kv, kvp1 = besselk_temme_series(v_floor, x)
                 return besselk_up_recurrence(x, kvp1, kv, v_floor + 1, v)[1] * exp(x)
@@ -467,7 +465,6 @@ end
 
 besselk_large_args_cutoff(v, x::Float64) = x > v^2 / 36 + 18
 besselk_large_args_cutoff(v, x::Float32) = x > v^2 / 50 + 9
-besselk_large_args_cutoff(v, x::Float16) = x > v^2 / 50 + 5
 
 #####
 #####  Levin sequence transform for K_{nu}(x)
@@ -493,6 +490,9 @@ end
 
 besselkx_levin_cutoff(v, x::Float64) = x > v^4 / 2401 + 1.5
 besselkx_levin_cutoff(v, x::Float32) = x > v^4 / 3000 + 0.95
+
+besselkx_levin_min(::Type{Float64}) = 1.5
+besselkx_levin_min(::Type{Float32}) = 0.95
 
 @generated function besselkx_levin(v, x::Complex{T}, ::Val{N}) where {T <: FloatTypes, N}
     :(
@@ -521,12 +521,14 @@ end
 #####  Power series for K_{nu}(x)
 #####
 
-# Use power series form of K_v(x) which is accurate for small x (x<2) or when nu > x
-# We use the form as described by Equation 3.2 from reference [7].
+# Power series form of K_v(x) valid when v is a non - integer
+# Can only be used for small x (x < 1.5) or when nu > x
+# Cancellation will also occur when v is close to an integer
+# We use a more simplified form described by Equation 3.2 from reference [7].
 # This method was originally contributed by @cgeoga https://github.com/cgeoga/BesselK.jl/blob/main/src/besk_ser.jl
-# A modified form appears below. See more discussion at https://github.com/heltonmc/Bessels.jl/pull/29
-# This is only valid for noninteger orders (nu) and no checks are performed. 
+# A modified form appears below. 
 #
+
 """
     besselk_power_series(nu, x::T) where T <: Float64
 
@@ -570,9 +572,10 @@ besselk_power_series_cutoff(nu, x::Float32) = x < 10.0f0 || nu > 1.65f0*x - 8.0f
 # whose standard forms can't be naively evaluated by a computer at the origin.
 
 # This function assumes |v|<1e-5!
-function besselk_temme_series(v::V, x::X) where {V , X}
+besselk_temme_series(v, x::Float32) = Float32(besselk_temme_series(v, Float64(x)))
+
+function besselk_temme_series(v::T, x::T) where T <: Float64
     Max_Iter = 500
-    T = promote_type(V , X)
     z = x / 2
     zz = z * z
     fk = f0_local_expansion_v0(v, x)
