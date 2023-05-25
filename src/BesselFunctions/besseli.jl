@@ -444,9 +444,9 @@ function _besseli(nu::Integer, x::T) where T <: Union{Float32, Float64}
     sg = iseven(abs_nu) ? 1 : -1
 
     if x >= 0
-        return besseli_positive_args(abs_nu, abs_x)
+        return besseli_positive_args(T(abs_nu), abs_x)
     else
-        return sg * besseli_positive_args(abs_nu, abs_x)
+        return sg * besseli_positive_args(T(abs_nu), abs_x)
     end
 end
 
@@ -507,17 +507,16 @@ besseli_underflow_check(nu, x::T) where T = nu > 140 + T(1.45)*x + 53*Base.Math.
 Modified Bessel function of the first kind of order nu, ``I_{nu}(x)`` for positive arguments.
 """
 function besseli_positive_args(nu, x::T) where T <: Union{Float32, Float64}
-    iszero(nu) && return besseli0(x)
-    isone(nu) && return besseli1(x)
-
-    # use large argument expansion if x >> nu
-    besseli_large_argument_cutoff(nu, x) && return besseli_large_argument(nu, x)
-
-    # use uniform debye expansion if x or nu is large
-    besselik_debye_cutoff(nu, x) && return besseli_large_orders(nu, x)
-
-    # for rest of values use the power series
-    return besseli_power_series(nu, x)
+    if besseli_large_argument_cutoff(nu, x)
+        # large argument expansion if x >> nu
+        return besseli_large_args(nu, x)
+    elseif besselik_debye_cutoff(nu, x)
+        # uniform debye expansion if x or nu is large
+        return besseli_large_orders(nu, x)
+    else
+        # power series
+        return besseli_power_series(nu, x)
+    end
 end
 
 """
@@ -536,7 +535,7 @@ function _besselix(nu, x::T) where T <: Union{Float32, Float64}
     isinf(x) && return T(Inf)
 
     # use large argument expansion if x >> nu
-    besseli_large_argument_cutoff(nu, x) && return besseli_large_argument_scaled(nu, x)
+    besseli_large_argument_cutoff(nu, x) && return besselix_large_args(nu, x)
 
     # use uniform debye expansion if x or nu is large
     besselik_debye_cutoff(nu, x) && return besseli_large_orders_scaled(nu, x)
@@ -589,40 +588,27 @@ end
 
 # Implements the uniform asymptotic expansion https://dlmf.nist.gov/10.40.E1
 # In general this is valid when x > nu^2
-"""
-    besseli_large_orders(nu, x::T)
 
-Debey's uniform asymptotic expansion for large order valid when v-> ∞ or x -> ∞
-"""
-function besseli_large_argument(v, x::T) where T
-    a = exp(x / 2)
-    coef = a / sqrt(2 * (π * x))
-    return T(_besseli_large_argument(v, x) * coef * a)
+function besseli_large_args(v, x::T) where T
+    e = exp(x / 2)
+    return (e * besselix_large_args(v, x)) * e
 end
 
-besseli_large_argument_scaled(v, x::T) where T =  T(_besseli_large_argument(v, x) / sqrt(2 * (π * x)))
-
-function _besseli_large_argument(v, x::T) where T
-    MaxIter = 5000
-    S = promote_type(T, Float64)
-    v, x = S(v), S(x)
-
-    fv2 = 4 * v^2
-    term = one(S)
-    res = term
-    s = -term
+function besselix_large_args(v, x::ComplexOrReal{T}) where T
+    MaxIter = 1000
+    t = one(x)
+    invx = inv(8 * x)
+    s = t
     for i in 1:MaxIter
-        offset = muladd(2, i, -1)
-        term *= muladd(offset, -offset, fv2) / (8 * x * i)
-        res = muladd(term, s, res)
-        s = -s
-        abs(term) <= eps(T) && break
+        t *= -invx * ((4*v^2 - (2i - 1)^2) / i)
+        s += t
+        abs(t) <= eps(T) && break
     end
-    return res
+    return s / sqrt(2 * (π * x))
 end
 
-besseli_large_argument_cutoff(nu, x::Float64) = x > 23.0 && x > nu^2 / 1.8 + 23.0
-besseli_large_argument_cutoff(nu, x::Float32) = x > 18.0f0 && x > nu^2 / 19.5f0 + 18.0f0
+besseli_large_argument_cutoff(nu, x::Float64) = x > nu^2 / 2 + 19.0
+besseli_large_argument_cutoff(nu, x::Float32) = x > nu^2 / 2 + 9.0f0
 
 #####
 #####  Power series for I_{nu}(x)
@@ -630,24 +616,18 @@ besseli_large_argument_cutoff(nu, x::Float32) = x > 18.0f0 && x > nu^2 / 19.5f0 
 
 # Use power series form of I_v(x) which is generally accurate across all values though slower for larger x
 # https://dlmf.nist.gov/10.25.E2
-"""
-    besseli_power_series(nu, x::T) where T <: Float64
 
-Computes ``I_{nu}(x)`` using the power series for any value of nu.
-"""
 function besseli_power_series(v, x::ComplexOrReal{T}) where T
     MaxIter = 3000
-    S = eltype(x)
-    out = zero(S)
-    xs = (x/2)^v
-    a = xs / gamma(v + one(T))
-    t2 = (x/2)^2
+    s = zero(x)
+    t = one(x)
+    xx = x * x * T(0.25)
     for i in 0:MaxIter
-        out += a
-        abs(a) < eps(T) * abs(out) && break
-        a *= inv((v + i + one(T)) * (i + one(T))) * t2
+        s += t
+        abs(t) < eps(T) * abs(s) && break
+        t *= xx / ((v + i + 1) * (i + 1))
     end
-    return out
+    return s * ((x/2)^v / gamma(v + 1))
 end
 
 #=
