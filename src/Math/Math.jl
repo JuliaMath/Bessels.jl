@@ -46,7 +46,7 @@ end
     computes sincos(sum(xs)) where xs are sorted by absolute value
     Doing this is much more accurate than the naive sincos(sum(xs))
 """
-function sincos_sum(xs::Vararg{T, N})::T where {T<:Base.IEEEFloat, N}
+function sincos_sum(xs::Vararg{T, N})::NTuple{2, T} where {T<:Base.IEEEFloat, N}
     n, y = rem_pio2_sum(xs...)
     n &= 3
     si, co = sincos_kernel(y)
