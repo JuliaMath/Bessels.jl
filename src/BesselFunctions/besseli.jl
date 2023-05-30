@@ -624,7 +624,7 @@ function besseli_power_series(v, x::ComplexOrReal{T}) where T
     xx = x * x * T(0.25)
     for i in 0:MaxIter
         s += t
-        abs(t) < eps(T) * abs(s) && break
+        Math.check_convergence(t, s) && break
         t *= xx / ((v + i + 1) * (i + 1))
     end
     return s * ((x/2)^v / gamma(v + 1))

@@ -24,6 +24,13 @@ module BesselsEnzymeCoreExt
     (t.val <= eps(T)) && (t.dval <= eps(T))
   end
 
+  function EnzymeRules.forward(func::Const{typeof(check_convergence)},
+                               ::Type{Const{Bool}},
+                               t::Duplicated{T},
+                               s::Duplicated{T}) where{T}
+    (t.val <= eps(T)*s.val) && (t.dval <= eps(T)*s.dval)
+  end
+
   # This will be fixed upstream: see #861 for Enzyme.jl whenever the next
   # release occurs.
   function EnzymeRules.forward(func::Const{typeof(sinpi)}, 
