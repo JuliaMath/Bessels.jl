@@ -11,3 +11,4 @@ import SpecialFunctions
 @time @testset "airy" begin include("airy_test.jl") end
 @time @testset "sphericalbessel" begin include("sphericalbessel_test.jl") end
 @time @testset "besselk enzyme autodiff" begin include("besselk_enzyme_test.jl") end
+@time @testset "besseli enzyme autodiff" begin include("besseli_enzyme_test.jl") end

@@ -458,7 +458,7 @@ function besselkx_large_args(v, x::ComplexOrReal{T}) where T
     for i in 1:MaxIter
         t *= invx * ((4*v^2 - (2i - 1)^2) / i)
         s += t
-        abs(t) <= eps(T) && break
+        Math.check_convergence(t) && break
     end
     return s * sqrt(π / (2 * x))
 end
@@ -552,7 +552,7 @@ function besselk_power_series(v, x::ComplexOrReal{T}) where T
         s2 += t2
         t1 *= x^2 / (4k * (k - v))
         t2 *= x^2 / (4k * (k + v))
-        abs(t1) < eps(T) && break
+        Math.check_convergence(t1) && break
     end
 
     xpv = (x/2)^v
@@ -590,8 +590,7 @@ function besselk_temme_series(v::T, x::T) where T <: Float64
         term_vp1 = ck * (pk - (k-1) * fk)
         out_v += term_v
         out_vp1 += term_vp1
-        ((abs(term_v) < eps(T)) && (abs(term_vp1) < eps(T))) && break
-
+        (Math.check_convergence(term_v) && Math.check_convergence(term_vp1)) && break
         fk = (k * fk + pk + qk) / (k^2 - v^2)
         pk /= k - v
         qk /= k + v

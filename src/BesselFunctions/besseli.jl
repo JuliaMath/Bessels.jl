@@ -414,7 +414,6 @@ _besseli(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_besseli
 _besseli(nu::AbstractRange, x::T) where T = besseli!(zeros(T, length(nu)), nu, x)
 
 function _besseli(nu::T, x::T) where T <: Union{Float32, Float64}
-    isinteger(nu) && return _besseli(Int(nu), x)
     ~isfinite(x) && return x
     abs_nu = abs(nu)
     abs_x = abs(x)
@@ -602,7 +601,7 @@ function besselix_large_args(v, x::ComplexOrReal{T}) where T
     for i in 1:MaxIter
         t *= -invx * ((4*v^2 - (2i - 1)^2) / i)
         s += t
-        abs(t) <= eps(T) && break
+        Math.check_convergence(t) && break
     end
     return s / sqrt(2 * (π * x))
 end
@@ -624,7 +623,7 @@ function besseli_power_series(v, x::ComplexOrReal{T}) where T
     xx = x * x * T(0.25)
     for i in 0:MaxIter
         s += t
-        abs(t) < eps(T) * abs(s) && break
+        Math.check_convergence(t, s) && break
         t *= xx / ((v + i + 1) * (i + 1))
     end
     return s * ((x/2)^v / gamma(v + 1))

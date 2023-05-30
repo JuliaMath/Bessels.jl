@@ -131,7 +131,8 @@ end
 (v, x) = 12.0, 3.2
 @test besseli(v,x) ≈ 7.1455266650203694069897133431e-7
 
-(v,x) = 13.0, -1.0
+# Negative arguments only allowed with v::Int!
+(v,x) = 13, -1.0
 @test besseli(v,x) ≈ -1.995631678207200756444e-14
 
 (v,x) = 12.6, -3.0
@@ -146,8 +147,7 @@ end
 (v, x) = -12.3, 8.2
 @test besseli(v,x) ≈ 0.267079696793126091886043602895
 
-(v, x) = -14.0, -9.9
+# Negative arguments only allowed with v::Int!
+(v, x) = -14, -9.9
 @test besseli(v,x) ≈ 0.2892290867115615816280234648
 
-(v, x) = -14.6, -10.6
-#@test besseli(v,x) ≈ -0.157582642056898598750175404443 - 0.484989503203097528858271270828*im

@@ -154,7 +154,10 @@ end
     )
 end
 
-# TODO (cg 2023/05/16 18:09): dispute this cutoff.
 isnearint(x) = abs(x-round(x)) < 1e-5
+
+@inline check_convergence(term::T) where T = abs(term) <= eps(T)
+
+@inline check_convergence(ser::T, term::T) where T = (abs(term) <= eps(T)*ser)
 
 end
