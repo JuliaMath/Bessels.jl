@@ -602,7 +602,7 @@ function besselix_large_args(v, x::ComplexOrReal{T}) where T
     for i in 1:MaxIter
         t *= -invx * ((4*v^2 - (2i - 1)^2) / i)
         s += t
-        abs(t) <= eps(T) && break
+        Math.check_convergence(t) && break
     end
     return s / sqrt(2 * (π * x))
 end
