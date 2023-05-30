@@ -414,7 +414,6 @@ _besseli(nu::Union{Int16, Float16}, x::Union{Int16, Float16}) = Float16(_besseli
 _besseli(nu::AbstractRange, x::T) where T = besseli!(zeros(T, length(nu)), nu, x)
 
 function _besseli(nu::T, x::T) where T <: Union{Float32, Float64}
-    isinteger(nu) && return _besseli(Int(nu), x)
     ~isfinite(x) && return x
     abs_nu = abs(nu)
     abs_x = abs(x)
