@@ -28,7 +28,7 @@ module BesselsEnzymeCoreExt
                                ::Type{Const{Bool}},
                                t::Duplicated{T},
                                s::Duplicated{T}) where{T}
-    check_convergence(t.val, s.val) && check_convergence(t.dval, s.val)
+    check_convergence(t.val, s.val) && check_convergence(t.dval, s.dval)
   end
 
   # This will be fixed upstream: see #861 for Enzyme.jl whenever the next
