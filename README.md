@@ -268,5 +268,5 @@ Benchmarks were run using Julia Version 1.7.2 on an Apple M1 using Rosetta.
 
 # Contributing 
 
-Contributions are very welcome, as are feature requests, suggestions or general discussions. Please open an [issue](https://github.com/JuliaMath/Bessels.jl/issues/new) for discussion on newer implementations, share papers, new features, or if you encounter any problems. Our goal is to provide high quality implementations of Bessel functions that match or exceed the accuracy of the implementatations provided by SpecialFunctions.jl. Please let us know if you encounter any accuracy or performance differences.
+Contributions are very welcome, as are feature requests, suggestions or general discussions. Please open an [issue](https://github.com/JuliaMath/Bessels.jl/issues/new) for discussion on newer implementations, share papers, new features, or if you encounter any problems. Our goal is to provide high quality implementations of Bessel functions that match or exceed the accuracy of the implementations provided by SpecialFunctions.jl. Please let us know if you encounter any accuracy or performance differences.
  
