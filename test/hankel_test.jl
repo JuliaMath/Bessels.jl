@@ -31,3 +31,7 @@ v, x = 14.3, 29.4
 @test isapprox(hankelh1(0.5:1:25.5, 15.0), SpecialFunctions.hankelh1.(0.5:1:25.5, 15.0), rtol=2e-13)
 @test isapprox(hankelh1(1:50, 100.0), SpecialFunctions.hankelh1.(1:50, 100.0), rtol=2e-13)
 @test isapprox(hankelh2(1:50, 10.0), SpecialFunctions.hankelh2.(1:50, 10.0), rtol=2e-13)
+
+#test 2 arg version
+@test besselh(v, 1, x) == besselh(v, x)
+@test besselh(1:50, 1, 10.0) == besselh(1:50, 10.0)
