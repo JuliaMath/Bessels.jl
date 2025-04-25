@@ -217,6 +217,8 @@ function besselh(nu::Real, k::Integer, x)
     end
 end
 
+besselh(nu, x) = besselh(nu, 1, x)
+
 function besselh(nu::AbstractRange, k::Integer, x::T) where T
     (nu[1] >= 0 && step(nu) == 1) || throw(ArgumentError("nu must be >= 0 with step(nu)=1"))
     if nu[end] < x

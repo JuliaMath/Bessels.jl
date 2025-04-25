@@ -38,4 +38,8 @@
     @test isapprox(hankelh1(1:50, T(100)), SpecialFunctions.hankelh1.(1:50, 100.0); 2*rtol)
     @test isapprox(hankelh2(1:50, T(10)), SpecialFunctions.hankelh2.(1:50, 10.0); rtol)
     @inferred hankelh2(1:50, T(10))
+
+    #test 2 arg version
+    @test besselh(v, 1, x) == besselh(v, x)
+    @test besselh(1:50, 1, T(10.0)) == besselh(1:50, T(10.0))
 end
