@@ -420,7 +420,7 @@ function bessely_power_series(v, x::T) where T
     out2 = zero(S)
     a = (x/2)^v
     # check for underflow and return limit for small arguments
-    iszero(a) && return (-T(Inf), a)
+    iszero(a) && return (-T(Inf), T(a))
 
     b = inv(a)
     a /= gamma(v + one(S))
@@ -434,7 +434,7 @@ function bessely_power_series(v, x::T) where T
         b *= -inv((-v + i + one(S)) * (i + one(S))) * t2
     end
     s, c = sincospi(v)
-    return (out*c - out2) / s, out
+    return T((out*c - out2) / s), T(out)
 end
 bessely_series_cutoff(v, x::Float64) = (x < 7.0) || v > 1.35*x - 4.5
 bessely_series_cutoff(v, x::Float32) = (x < 21.0f0) || v > 1.38f0*x - 12.5f0
@@ -484,7 +484,7 @@ function bessely_chebyshev_low_orders(v, x)
     x1 = 2*(x - 6)/13 - 1
     v1 = v - 1
     v2 = v
-    a = clenshaw_chebyshev.(x1, bessely_cheb_weights)
+    a = clenshaw_chebyshev.(x1, map(Base.Fix1(map, typeof(x1)),bessely_cheb_weights))
     return clenshaw_chebyshev(v1, a), clenshaw_chebyshev(v2, a)
 end
 
