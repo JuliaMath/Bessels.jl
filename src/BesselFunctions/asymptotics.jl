@@ -51,7 +51,7 @@ function besseljy_large_argument(v, x::T) where T
     s3 = CMS * sα
     s4 = CPS * cα
 
-    return SQ2O2(S) * (s1 + s2) * b, SQ2O2(S) * (s3 - s4) * b
+    return T(SQ2O2(S) * (s1 + s2) * b), T(SQ2O2(S) * (s3 - s4) * b)
 end
 
 # Float64
@@ -101,11 +101,11 @@ end
 function _α_αp_asymptotic(v, x::Float32)
     v, x = Float64(v), Float64(x)
     if x > 4*v
-        return _α_αp_poly_5(v, x)
+        return Float32.(_α_αp_poly_5(v, x))
     elseif x > 1.8*v
-        return _α_αp_poly_10(v, x)
+        return Float32.(_α_αp_poly_10(v, x))
     else
-        return _α_αp_poly_30(v, x)
+        return Float32.(_α_αp_poly_30(v, x))
     end
 end
 

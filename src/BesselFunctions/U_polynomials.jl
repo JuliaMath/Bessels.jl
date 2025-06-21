@@ -40,7 +40,7 @@ function besseljy_debye(v, x::T) where T
     p2  = v^2 / vmx
 
     Uk_Jn, Uk_Yn = Uk_poly_Jn(p, v, p2, T(x))
-    return coef_Jn * Uk_Jn, coef_Yn * Uk_Yn
+    return T(coef_Jn * Uk_Jn), T(coef_Yn * Uk_Yn)
 end
 
 # Cutoffs for besseljy_debye expansions
@@ -102,7 +102,7 @@ function hankel_debye(v, x::T) where T
     p2  = v^2 / vmx
 
     _, Uk_Yn = Uk_poly_Hankel(p*im, v, -p2, T(x))
-    return coef_Yn * Uk_Yn
+    return T(coef_Yn * Uk_Yn)
 end
 
 # Cutoffs for hankel_debye expansions
