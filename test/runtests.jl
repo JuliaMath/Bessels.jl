@@ -10,5 +10,11 @@ import SpecialFunctions
 @time @testset "gamma" begin include("gamma_test.jl") end
 @time @testset "airy" begin include("airy_test.jl") end
 @time @testset "sphericalbessel" begin include("sphericalbessel_test.jl") end
-@time @testset "besselk enzyme autodiff" begin include("besselk_enzyme_test.jl") end
-@time @testset "besseli enzyme autodiff" begin include("besseli_enzyme_test.jl") end
+
+# https://github.com/EnzymeAD/Enzyme.jl/issues/2699
+if VERSION > v"1.12"
+    @warn "Skipping enzyme autodiff tests on Julia > 1.12 due to Enzyme.jl compatibility issues."
+else
+    @time @testset "besselk enzyme autodiff" begin include("besselk_enzyme_test.jl") end
+    @time @testset "besseli enzyme autodiff" begin include("besseli_enzyme_test.jl") end
+end
