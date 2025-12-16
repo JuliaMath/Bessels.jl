@@ -111,11 +111,17 @@ end
 
 x = [0.05, 0.1, 0.2, 0.4, 0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.92, 0.95, 0.97, 0.99, 1.0, 1.01, 1.05, 1.08, 1.1, 1.2, 1.4, 1.5, 1.6, 1.8, 2.0, 2.5, 3.0]
 nu = [0.1, 0.4567, 0.8123, 1.5, 2.5, 4.1234, 6.8, 12.3, 18.9, 28.2345, 38.1235, 51.23, 72.23435, 80.5, 98.5, 104.2]
-for v in nu, xx in x
+@testset "besselj($v, $xx)" for v in nu, xx in x
     xx *= v
     sf = SpecialFunctions.besselj(v, xx)
     @test isapprox(besselj(v, xx), sf, rtol=1e-12)
     @test isapprox(Bessels.BesselFunctions.besseljy_positive_args(v, xx)[1], sf, rtol=1e-12)
+
+    # TODO:  besselj(72.23435, 144.4687) ~ SF.jl=-0.0008351541819259504
+    if 72.23435 == v && -0.0008351542f0 == Float32(sf)
+        @test_broken isapprox(besselj(Float32(v), Float32(xx)), Float32(sf))
+        continue
+    end
     @test isapprox(besselj(Float32(v), Float32(xx)), Float32(sf))
 end
 

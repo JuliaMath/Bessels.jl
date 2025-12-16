@@ -102,7 +102,7 @@ function hankel_debye(v, x::T) where T
     p2  = v^2 / vmx
 
     _, Uk_Yn = Uk_poly_Hankel(p*im, v, -p2, T(x))
-    return T(coef_Yn * Uk_Yn)
+    return Complex{T}(coef_Yn * Uk_Yn)
 end
 
 # Cutoffs for hankel_debye expansions
