@@ -30,7 +30,7 @@ end
 
 # real loggamma for Float64, Float32, Float16 against SpecialFunctions.jl
 # Note: Stirling-based approach has higher relative error near loggamma zeros (x ≈ 1, 2)
-for (T, max, rtol) in ((Float16, 13, 1.0), (Float32, 43, 1.0), (Float64, 170, 7))
+for (T, max, rtol) in ((Float16, 13, 1.0), (Float32, 43, 1.0), (Float64, 170, 7))    
     v = rand(T, 5000) * max
     for x in v
         ref = T(SpecialFunctions.loggamma(widen(x)))
@@ -39,6 +39,9 @@ for (T, max, rtol) in ((Float16, 13, 1.0), (Float32, 43, 1.0), (Float64, 170, 7)
     @test isnan(loggamma(T(NaN)))
     @test loggamma(T(Inf)) == T(Inf)
 end
+
+@test gamma(0.29384) ≈ exp(loggamma(0.29384))
+@test gamma(0.29384+0.12938im) ≈ exp(loggamma(0.29384+0.12938im))
 
 # logabsgamma
 for (T, rtol) in ((Float16, 1.0), (Float32, 1.0), (Float64, 7))
