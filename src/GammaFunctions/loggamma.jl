@@ -98,6 +98,9 @@ function _logabsgamma(x::Float16)
     return Float16(y), s
 end
 
+_logabsgamma(x::BigFloat) = (real(_loggamma_complex_bigfloat(Complex{BigFloat}(x, zero(BigFloat)))), sign(gamma(x)))
+
+
 # Lanczos-type rational approximation for loggamma on (2, 3)
 # Used as the core for reduction-based approach
 const _LOGGAMMA_P = (
@@ -309,4 +312,3 @@ function _loggamma(z::Complex{BigFloat})
         end
     end
 end
-
