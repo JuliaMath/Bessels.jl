@@ -171,14 +171,6 @@ function _loggamma(x::Float64)
     end
 end
 
-function _loggamma(x::Float32)
-    return Float32(_loggamma(Float64(x)))
-end
-
-function _loggamma(x::Float16)
-    return Float16(_loggamma(Float64(x)))
-end
-
 # Complex loggamma for Float64
 # Combines the asymptotic series, Taylor series at z=1 and z=2,
 # the reflection formula, and the shift recurrence.

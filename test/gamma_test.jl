@@ -16,7 +16,15 @@ x = [0, 1, 2, 3, 8, 15, 20, 30]
 @test SpecialFunctions.gamma.(x) ≈ Bessels.gamma.(x)
 
 # loggamma tests
-using Bessels.GammaFunctions: gamma, loggamma, logabsgamma, logfactorial, _loggamma_oracle64_point
+using Bessels.GammaFunctions: gamma, gamma_near_1, loggamma, logabsgamma, logfactorial, _loggamma_oracle64_point
+
+# exact at expansion point (constant term = Γ(1) = 1)
+@test gamma_near_1(1.0) === 1.0
+# nearby values: degree-3 Taylor gives O((x-1)^4) error,
+# ≲ 1e-4 for |x-1| ≤ 0.1
+for x in (0.90, 0.95, 1.0, 1.05, 1.10)
+    @test gamma_near_1(x) ≈ gamma(x) atol=1e-3
+end
 
 @testset "logfactorial" begin
     @test logfactorial(0) ≈ 0.0 atol=5eps(Float64)
@@ -73,6 +81,7 @@ end
 # complex loggamma for Float32 and Float16
 for z in [1.0f0+1.0f0im, 5.0f0+2.0f0im, 0.5f0+3.0f0im]
     @test isapprox(loggamma(z), Complex{Float32}(SpecialFunctions.loggamma(Complex{Float64}(z))), rtol=eps(Float32))
+    @test isapprox(loggamma(z), Complex{Float16}(SpecialFunctions.loggamma(Complex{Float64}(z))), rtol=eps(Float16))
 end
 
 # complex loggamma edge cases and SpecialFunctions consistency
