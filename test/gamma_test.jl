@@ -80,8 +80,8 @@ end
 
 # complex loggamma for Float32 and Float16
 for z in [1.0f0+1.0f0im, 5.0f0+2.0f0im, 0.5f0+3.0f0im]
-    @test isapprox(loggamma(z), Complex{Float32}(SpecialFunctions.loggamma(Complex{Float64}(z))), rtol=eps(Float32))
-    @test isapprox(loggamma(z), Complex{Float16}(SpecialFunctions.loggamma(Complex{Float64}(z))), rtol=eps(Float16))
+    @test isapprox(loggamma(Complex{Float32}(z)), Complex{Float32}(SpecialFunctions.loggamma(Complex{Float64}(z))), rtol=eps(Float32))
+    @test isapprox(loggamma(Complex{Float16}(z)), Complex{Float16}(SpecialFunctions.loggamma(Complex{Float64}(z))), rtol=eps(Float16))
 end
 
 # complex loggamma edge cases and SpecialFunctions consistency
