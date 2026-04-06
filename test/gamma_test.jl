@@ -280,3 +280,7 @@ end
         z_nanbf = loggamma(Complex{BigFloat}(big(Inf), big(Inf)))
         @test isnan(real(z_nanbf)) && isnan(imag(z_nanbf))
     end
+
+@test gamma(big"0.29384") ≈ exp(loggamma(big"0.29384"))
+@test gamma(big"0.29384"+big"0.12938"*im) ≈ exp(loggamma(big"0.29384"+big"0.12938"*im))
+
