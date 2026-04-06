@@ -115,3 +115,6 @@ function gamma(n::Integer)
 end
 
 gamma_near_1(x) = evalpoly(x-one(x), (1.0, -0.5772156649015329, 0.9890559953279725, -0.23263776388631713))
+
+gamma(x::BigFloat) = exp(loggamma(x))
+gamma(x::Complex) = exp(loggamma(x))

@@ -18,11 +18,27 @@ External links: [DLMF](https://dlmf.nist.gov/5.4), [Wikipedia](https://en.wikipe
 """
 loggamma(x::Float64) = _loggamma(x)
 loggamma(x::Union{Float16, Float32}) = typeof(x)(_loggamma(Float64(x)))
+loggamma(x::Rational) = loggamma(float(x))
+loggamma(x::Integer) = loggamma(float(x))
 loggamma(z::Complex{Float64}) = _loggamma(z)
 loggamma(z::Complex{Float32}) = Complex{Float32}(_loggamma(Complex{Float64}(z)))
 loggamma(z::Complex{Float16}) = Complex{Float16}(_loggamma(Complex{Float64}(z)))
 loggamma(z::Complex{<:Integer}) = _loggamma(Complex{Float64}(z))
-loggamma(x::BigFloat) = real(_loggamma_complex_bigfloat(Complex{BigFloat}(x, zero(BigFloat))))
+loggamma(z::Complex{<:Rational}) = loggamma(float(z))
+function loggamma(x::BigFloat)
+    if isnan(x)
+        return x
+    elseif isinf(x)
+        return x > 0 ? x : BigFloat(NaN)
+    elseif x <= 0
+        x == 0 && return BigFloat(Inf)
+        sinpi(x) == 0 && return BigFloat(Inf)  # negative integer pole
+        y, sgn = _logabsgamma(x)
+        sgn < 0 && throw(DomainError(x, "`gamma(x)` must be non-negative"))
+        return y
+    end
+    return real(_loggamma_complex_bigfloat(Complex{BigFloat}(x, zero(BigFloat))))
+end
 loggamma(z::Complex{BigFloat}) = _loggamma(z)
 
 """
@@ -98,7 +114,21 @@ function _logabsgamma(x::Float16)
     return Float16(y), s
 end
 
-_logabsgamma(x::BigFloat) = (real(_loggamma_complex_bigfloat(Complex{BigFloat}(x, zero(BigFloat)))), sign(gamma(x)))
+function _logabsgamma(x::BigFloat)
+    if isnan(x)
+        return x, 1
+    elseif isinf(x)
+        return x > 0 ? (x, 1) : (BigFloat(NaN), 1)
+    elseif x > 0
+        return real(_loggamma_complex_bigfloat(Complex{BigFloat}(x, zero(BigFloat)))), 1
+    elseif iszero(x)
+        return BigFloat(Inf), Int(sign(1 / x))
+    end
+
+    s = sinpi(x)
+    s == 0 && return BigFloat(Inf), 1
+    return real(_loggamma_complex_bigfloat(Complex{BigFloat}(x, zero(BigFloat)))), (signbit(s) ? -1 : 1)
+end
 
 
 # Lanczos-type rational approximation for loggamma on (2, 3)
@@ -249,9 +279,24 @@ end
 
 function _loggamma_complex_bigfloat(z::Complex{BigFloat})
     bigpi = big(π)
+    x = real(z)
+    y = imag(z)
+
+    if !isfinite(x) || !isfinite(y)
+        inf = BigFloat(Inf)
+        nan = BigFloat(NaN)
+        if isinf(x) && isfinite(y)
+            yim = x > 0 ? (iszero(y) ? y : copysign(inf, y)) : copysign(inf, -y)
+            return Complex{BigFloat}(x, yim)
+        elseif isfinite(x) && isinf(y)
+            return Complex{BigFloat}(-inf, y)
+        else
+            return Complex{BigFloat}(nan, nan)
+        end
+    end
 
     # reflection formula
-    if real(z) < 0.5
+    if x < 0.5
         val = log(bigpi) - log(sinpi(z)) - _loggamma_complex_bigfloat(1 - z)
         return _loggamma_branchcorrect(val, z)
     end
