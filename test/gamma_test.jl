@@ -50,14 +50,16 @@ for (T, rtol) in ((Float16, 1.0), (Float32, 1.0), (Float64, 7))
     end
 end
 
-# logabsgamma edge cases
+# logabsgamma edge cases and SpecialFunctions behavior consistency
 @test logabsgamma(0.0) == (Inf, 1)
 @test logabsgamma(-0.0) == (Inf, -1)
 @test logabsgamma(-1.0) == (Inf, 1)
 @test logabsgamma(-2.0) == (Inf, 1)
-
+@test isnan(logabsgamma(NaN)[1])
+@test logabsgamma(NaN)[2] == 1
 # real loggamma should throw for negative gamma
 @test_throws DomainError loggamma(-0.5)
+@test loggamma(-1.5) == logabsgamma(-1.5)[1]
 
 # complex loggamma for Float64
 for z in [1.0+1.0im, 2.0+0.5im, 0.5+3.0im, 5.0+2.0im, 0.1+0.1im,
@@ -70,9 +72,11 @@ for z in [1.0f0+1.0f0im, 5.0f0+2.0f0im, 0.5f0+3.0f0im]
     @test isapprox(loggamma(z), Complex{Float32}(SpecialFunctions.loggamma(Complex{Float64}(z))), rtol=eps(Float32))
 end
 
-# complex loggamma edge cases
+# complex loggamma edge cases and SpecialFunctions consistency
 @test loggamma(Complex(Inf, 0.0)) == Complex(Inf, 0.0)
 @test all(isnan, reim(loggamma(Complex(NaN, NaN))))
+@test loggamma(Complex(0.0, 0.0)) === Complex(Inf, -0.0)
+@test loggamma(Complex(-0.0, 0.0)) == Complex(Inf, -Float64(π))
 
 # BigFloat loggamma (real via complex with zero imaginary part)
 for x in [big"0.5", big"1.5", big"5.0", big"10.0", big"50.0"]
@@ -247,6 +251,7 @@ end
 
         # negative values
         @test loggamma(big(-3.0)) == big(Inf)
+        @test loggamma(big(-1.5)) == logabsgamma(big(-1.5))[1]
         @test_throws DomainError loggamma(big(-2.76))
 
         # non-finite values
