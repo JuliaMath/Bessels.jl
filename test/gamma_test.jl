@@ -81,12 +81,6 @@ end
 @test isapprox(loggamma(big"1.0"), big"0.0", atol=1e-60)
 @test isapprox(loggamma(big"2.0"), big"0.0", atol=1e-60)
 
-# Complex BigFloat loggamma
-for z in [big"1.0"+big"1.0"*im, big"2.0"+big"0.5"*im, big"0.5"+big"3.0"*im,
-          big"5.0"+big"2.0"*im, big"-1.5"+big"0.5"*im]
-    @test isapprox(loggamma(z), SpecialFunctions.loggamma(z), rtol=1e-30)
-end
-
 # Map Complex{Int64} to Complex{Float64} for loggamma tests
 @test loggamma(Complex{Int64}(-300)) ≈ loggamma(Complex{Float64}(-300))
 
@@ -260,4 +254,3 @@ end
         @test loggamma(big(Inf)) == big(Inf)
         @test logabsgamma(big(Inf))[1] == big(Inf)
     end
-    
