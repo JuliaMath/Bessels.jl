@@ -243,6 +243,7 @@ end
         @test loggamma(big(3//2)) == loggamma(big(1.5))
         @test logabsgamma(big(3124)) == logabsgamma(big(3124.0))
         @test logabsgamma(big(3//2)) == logabsgamma(big(1.5))
+        @test loggamma(complex(3//2, 1//3)) ≈ loggamma(complex(1.5, 1 / 3))
 
         # negative values
         @test loggamma(big(-3.0)) == big(Inf)
@@ -252,5 +253,22 @@ end
         @test isnan(loggamma(big(NaN)))
         @test isnan(logabsgamma(big(NaN))[1])
         @test loggamma(big(Inf)) == big(Inf)
+        @test isnan(loggamma(big(-Inf)))
         @test logabsgamma(big(Inf))[1] == big(Inf)
+        @test isnan(logabsgamma(big(-Inf))[1])
+
+        # BigFloat signed-zero edge cases for sign of Γ(x)
+        @test logabsgamma(BigFloat(0.0)) == (big(Inf), 1)
+        @test logabsgamma(BigFloat(-0.0)) == (big(Inf), -1)
+
+        # Complex{BigFloat} non-finite branches
+        @test loggamma(Complex{BigFloat}(big(Inf), BigFloat(0.0))) == Complex{BigFloat}(big(Inf), BigFloat(0.0))
+        @test loggamma(Complex{BigFloat}(big(Inf), big(1.0))) == Complex{BigFloat}(big(Inf), big(Inf))
+        @test loggamma(Complex{BigFloat}(big(Inf), big(-1.0))) == Complex{BigFloat}(big(Inf), big(-Inf))
+        @test loggamma(Complex{BigFloat}(big(-Inf), big(1.0))) == Complex{BigFloat}(big(-Inf), big(-Inf))
+        @test loggamma(Complex{BigFloat}(big(-Inf), big(-1.0))) == Complex{BigFloat}(big(-Inf), big(Inf))
+        @test loggamma(Complex{BigFloat}(big(1.0), big(Inf))) == Complex{BigFloat}(big(-Inf), big(Inf))
+        @test loggamma(Complex{BigFloat}(big(1.0), big(-Inf))) == Complex{BigFloat}(big(-Inf), big(-Inf))
+        z_nanbf = loggamma(Complex{BigFloat}(big(Inf), big(Inf)))
+        @test isnan(real(z_nanbf)) && isnan(imag(z_nanbf))
     end
