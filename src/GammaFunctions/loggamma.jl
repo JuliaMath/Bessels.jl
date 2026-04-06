@@ -87,12 +87,11 @@ function _loggamma_asymptotic(z::Complex{Float64})
         )
 end
 
-# logabsgamma for Float64
 function _logabsgamma(x::Float64)
     if isnan(x)
         return x, 1
     elseif x > 0
-        return _loggamma(x), 1
+        return _loggamma_unsafe_pos(x), 1
     elseif x == 0
         return Inf, Int(sign(1/x))  # ±0 → correct sign
     else
@@ -102,6 +101,15 @@ function _logabsgamma(x::Float64)
         sgn = signbit(s) ? -1 : 1
         return LOGPI_F64 - log(abs(s)) - _loggamma(1.0 - x), sgn
     end
+end
+
+# Version of logabsgamma for Float64 without input checks, used for loggamma reduction to avoid double checks
+function _logabsgamma_unsafe_sub0(x::Float64)
+    # Since this is only used from loggamma, we can assume x < 0 is a clean input
+    s = sinpi(x)
+    s == 0 && return Inf, 1
+    sgn = signbit(s) ? -1 : 1
+    return LOGPI_F64 - log(abs(s)) - _loggamma(1.0 - x), sgn
 end
 
 function _logabsgamma(x::Float32)
@@ -130,7 +138,6 @@ function _logabsgamma(x::BigFloat)
     return real(_loggamma_complex_bigfloat(Complex{BigFloat}(x, zero(BigFloat)))), (signbit(s) ? -1 : 1)
 end
 
-
 # Lanczos-type rational approximation for loggamma on (2, 3)
 # Used as the core for reduction-based approach
 const _LOGGAMMA_P = (
@@ -154,10 +161,26 @@ function _loggamma(x::Float64)
         s == 0 && return Inf  # negative integer pole
         # reflection: log|Γ(x)| = log(π) - log|sin(πx)| - log(Γ(1-x))
         # but loggamma for real requires Γ(x)>0
-        y, sgn = _logabsgamma(x)
+        y, sgn = _logabsgamma_unsafe_sub0(x)
         sgn < 0 && throw(DomainError(x, "`gamma(x)` must be non-negative"))
         return y
     elseif x < 7
+        # shift x into asymptotic region [7,∞)
+        n = 7 - floor(Int, x)
+        z = x
+        prod = one(x)
+        for i in 0:n-1
+            prod *= z + i
+        end
+        return _loggamma_stirling(z + n) - log(prod)
+    else
+        return _loggamma_stirling(x)
+    end
+end
+
+# loggamma for positive x without checks, used for logabsgamma reduction to avoid double checks
+function _loggamma_unsafe_pos(x::Float64)
+    if x < 7
         # shift x into asymptotic region [7,∞)
         n = 7 - floor(Int, x)
         z = x
@@ -243,7 +266,6 @@ function _loggamma(z::Complex{Float64})
         return _loggamma_asymptotic(Complex(x, y)) - shift
     end
 end
-
 
 # Complex BigFloat loggamma
 # Adapted from SpecialFunctions.jl (MIT license)
