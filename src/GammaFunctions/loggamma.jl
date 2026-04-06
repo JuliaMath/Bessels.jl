@@ -32,7 +32,7 @@ function loggamma(x::BigFloat)
         return x > 0 ? x : BigFloat(NaN)
     elseif x <= 0
         x == 0 && return BigFloat(Inf)
-        sinpi(x) == 0 && return BigFloat(Inf)  # negative integer pole
+        isinteger(x) && return BigFloat(Inf)  # negative integer pole
         y, sgn = _logabsgamma(x)
         sgn < 0 && throw(DomainError(x, "`gamma(x)` must be non-negative"))
         return y
