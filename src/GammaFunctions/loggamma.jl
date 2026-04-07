@@ -157,8 +157,7 @@ function _loggamma(x::Float64)
         return x > 0 ? Inf : NaN
     elseif x ≤ 0
         x == 0 && return Inf
-        s = sinpi(x)
-        s == 0 && return Inf  # negative integer pole
+        isinteger(x) && return Inf  # negative integer pole
         # reflection: log|Γ(x)| = log(π) - log|sin(πx)| - log(Γ(1-x))
         # but loggamma for real requires Γ(x)>0
         y, sgn = _logabsgamma_unsafe_sub0(x)
