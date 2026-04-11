@@ -40,12 +40,13 @@ export airybix
 export airybiprime
 export airybiprimex
 
+
+using Gamma
+
 include("Math/Math.jl")
-include("GammaFunctions/GammaFunctions.jl")
 include("AiryFunctions/AiryFunctions.jl")
 include("BesselFunctions/BesselFunctions.jl")
 
-using .GammaFunctions
 using .AiryFunctions
 using .BesselFunctions
 

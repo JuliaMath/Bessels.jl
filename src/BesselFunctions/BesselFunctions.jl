@@ -1,6 +1,6 @@
 module BesselFunctions
 
-using ..GammaFunctions
+using Gamma: gamma, loggamma
 using ..Math
 
 export besselj0
