@@ -1,10 +1,10 @@
 using EnzymeCore, Enzyme
 
-dbesseli_dv(v, x) = autodiff(Forward, _v->besseli(_v, x), 
-                             Duplicated, Duplicated(v, 1.0))[2]
+dbesseli_dv(v, x) = only(autodiff(Forward, _v->besseli(_v, x),
+                                  Duplicated, Duplicated(v, 1.0)))
 
-dbesseli_dx(v, x) = autodiff(Forward, _x->besseli(v, _x), 
-                             Duplicated, Duplicated(x, 1.0))[2]
+dbesseli_dx(v, x) = only(autodiff(Forward, _x->besseli(v, _x),
+                                  Duplicated, Duplicated(x, 1.0)))
 
 
 for line in eachline("data/besseli/enzyme/besseli_enzyme_tests.csv")
