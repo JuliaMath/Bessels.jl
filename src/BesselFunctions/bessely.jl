@@ -403,7 +403,7 @@ end
 # this also works well for nu > 1.35x - 4.5
 # for nu > 25 more cancellation occurs near integer values
 # There could be premature underflow when (x/2)^v == 0.
-# It might be better to use logarithms (when we get loggamma julia implementation)
+# It might be better to use logarithms, now that we have loggamma julia implementation
 """
     bessely_power_series(nu, x::T) where T <: Float64
 

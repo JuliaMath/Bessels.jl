@@ -53,8 +53,3 @@ airyaiprime
 airybi
 airybiprime
 ```
-
-# Gamma functions
-```@docs
-Bessels.gamma
-```
